@@ -2,10 +2,10 @@
 document.getElementById('studentLoginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    const username = document.getElementById('username').value;
+    const facultyNumber = document.getElementById('faculty-number').value;
     const password = document.getElementById('password').value;
 
-    const studentData = { username, password };
+    const studentData = { facultyNumber, password };
 
     console.log('Student Login Attempt:', studentData);
 

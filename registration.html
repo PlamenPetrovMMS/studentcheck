@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+    <link rel="stylesheet" href="css/studentLogin.css">
+</head>
+<body>
+    <main class="auth-container">
+        <h1>Register</h1>
+        <form id="registrationForm" method="post" novalidate>
+            <div class="form-field">
+                <label for="firstName">First name</label>
+                <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" autocomplete="given-name" required>
+            </div>
+
+            <div class="form-field">
+                <label for="middleName">Middle name</label>
+                <input type="text" id="middleName" name="middleName" placeholder="Enter your middle name" autocomplete="additional-name">
+            </div>
+
+            <div class="form-field">
+                <label for="lastName">Last name</label>
+                <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" autocomplete="family-name" required>
+            </div>
+
+            <div class="form-field">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+
+            <div class="form-field">
+                <label for="facultyNumber">Faculty number</label>
+                <input type="text" id="facultyNumber" name="facultyNumber" placeholder="e.g., 123456" inputmode="numeric" pattern="^[0-9]+$" title="Digits only" required>
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="role-button">Register</button>
+            </div>
+        </form>
+        <p class="muted"><a href="index.html">Back to home</a></p>
+    </main>
+
+    <script src="javascript/registration.js"></script>
+</body>
+</html>
