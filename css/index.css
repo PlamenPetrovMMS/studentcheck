@@ -6,6 +6,7 @@ body {
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
+	justify-content: center; /* Center heading and buttons together vertically */
 	font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
@@ -14,17 +15,18 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 16px;
+	gap: 24px;
 	padding: 16px;
 	flex-wrap: wrap;
-	/* Vertically center within the page while keeping the heading at the top */
-	margin: auto 0;
+	/* No auto margins so it stays grouped with the heading */
+	margin: 0;
 }
 
 /* Make the buttons bigger and nicer */
 .role-button {
-	font-size: 1.125rem; /* ~18px */
-	padding: 12px 24px;
+	font-size: 1.5rem; /* ~24px */
+	padding: 16px 32px;
+	min-width: 220px;
 	border-radius: 10px;
 	border: 2px solid #2563eb;
 	background-color: #3b82f6;
@@ -41,7 +43,7 @@ body {
 }
 
 .role-button:active {
-	transform: translateY(1px);
+	transform: translateY(3px);
 }
 
 .role-button:focus-visible {
@@ -52,6 +54,6 @@ body {
 /* Optional: center the heading text */
 h1 {
 	text-align: center;
-	margin-top: 24px;
+	margin: 0 0 16px; /* Sit just above the buttons */
 }
 
