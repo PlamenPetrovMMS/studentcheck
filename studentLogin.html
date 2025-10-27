@@ -3,9 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Student Login</title>
+    <link rel="stylesheet" href="css/studentLogin.css">
 </head>
 <body>
-    
+    <main class="auth-container">
+        <h1>Student Login</h1>
+        <form id="studentLoginForm" method="post" novalidate>
+            <div class="form-field">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username" required>
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="role-button">Log in</button>
+            </div>
+        </form>
+        <p class="muted"><a href="index.html">Back to home</a></p>
+    </main>
+    <script src="javascript/studentLogin.js"></script>
 </body>
 </html>
