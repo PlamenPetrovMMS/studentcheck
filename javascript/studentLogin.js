@@ -2,12 +2,6 @@
 document.getElementById('studentLoginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    // Block submit if time expired
-    if (remainingSeconds <= 0) {
-        renderTimer();
-        return;
-    }
-
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
@@ -17,6 +11,7 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
 
     // Optional: measure request duration
     const t0 = performance.now();
+    
     const response = await fetch("https://studentcheck-server.onrender.com/studentLogin", {
         method: 'POST',
         headers: {
