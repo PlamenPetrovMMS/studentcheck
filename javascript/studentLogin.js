@@ -2,7 +2,7 @@
 document.getElementById('studentLoginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    const facultyNumber = document.getElementById('faculty-number').value;
+    const facultyNumber = document.getElementById('facultyNumber').value;
     const password = document.getElementById('password').value;
 
     const studentData = { facultyNumber, password };
