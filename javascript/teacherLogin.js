@@ -1,4 +1,4 @@
-document.getElementById('studentBtn').addEventListener('submit', async function(e) {
+document.getElementById('teacherLoginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const email = document.getElementById('email').value;
