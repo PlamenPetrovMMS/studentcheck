@@ -35,7 +35,7 @@ document.getElementById('registrationForm')?.addEventListener('submit', async fu
 
     const user = { firstName, middleName, lastName, email, facultyNumber, password };
 
-    const result = await fetch("https://studentcheck-server.onrender.com/register", {
+    const result = await fetch("https://studentcheck-server.onrender.com/registration", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
