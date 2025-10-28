@@ -4,8 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Login</title>
+    <link rel="stylesheet" href="css/teacherLogin.css">
 </head>
 <body>
-    
+    <main class="auth-container">
+        <h1>Teacher Login</h1>
+        <form id="teacherLoginForm" method="post" novalidate>
+            <div class="form-field">
+                <label for="email">Email</label>
+                <input type="text" id="email" name="email" placeholder="Enter your email" autocomplete="username" required>
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="role-button">Log in</button>
+            </div>
+        </form>
+    </main>
+    <script src="javascript/teacherLogin.js"></script>
 </body>
 </html>
