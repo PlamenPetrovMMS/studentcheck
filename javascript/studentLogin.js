@@ -26,6 +26,16 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
     if (response.ok) {
         const data = await response.json();
         if(data.loginSuccess) {
+            // Store non-sensitive data for the homepage
+            try {
+                sessionStorage.setItem('studentAuth', JSON.stringify({
+                    facultyNumber,
+                    data
+                }));
+            } catch (e) {
+                console.warn('Failed to persist session data:', e);
+            }
+
             alert('Login successful!');
             console.log('Login successful:', data);
             window.location.href = 'studentHomepage.html';
