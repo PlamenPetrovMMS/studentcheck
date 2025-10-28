@@ -35,6 +35,21 @@ document.getElementById('registrationForm')?.addEventListener('submit', async fu
 
     const user = { firstName, middleName, lastName, email, facultyNumber, password };
 
+    const result = await fetch("https://studentcheck-server.onrender.com/register", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(user)
+    });
+
+    if (result.ok) {
+        const data = await result.json();
+        console.log('Registration successful:', data);
+    } else {
+        console.error('Registration failed:', result.statusText);
+    }
+
     console.log('Registration attempt:', user);
 
 });
