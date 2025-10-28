@@ -45,7 +45,12 @@ document.getElementById('registrationForm')?.addEventListener('submit', async fu
 
     if (result.ok) {
         const data = await result.json();
-        console.log('Registration successful:', data);
+        if(data.registrationSuccess) {
+            alert('Registration successful!');
+            window.location.href = 'studentHomepage.html';
+        }else{
+            alert('Registration failed: ' + (data.message || 'Unknown error'));
+        }
     } else {
         console.error('Registration failed:', result.statusText);
     }

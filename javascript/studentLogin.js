@@ -25,7 +25,13 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
 
     if (response.ok) {
         const data = await response.json();
-        console.log('Login successful:', data);
+        if(data.loginSuccess) {
+            alert('Login successful!');
+            console.log('Login successful:', data);
+            window.location.href = 'studentHomepage.html';
+        }else{
+            alert('Login failed: ' + (data.message || 'Unknown error'));
+        }
     } else {
         console.error('Login failed:', response.statusText);
     }
