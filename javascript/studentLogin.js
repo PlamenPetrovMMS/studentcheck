@@ -10,7 +10,9 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
     if(studentData.facultyNumber != "" && studentData.password != "") {
         console.log('Student Login Attempt:', studentData);
     }else{
-        alert("Faculty Number and Password are required.");
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.style.color = "red";
+        errorMessage.textContent = "Faculty Number and Password are required."
         return;
     }
 
