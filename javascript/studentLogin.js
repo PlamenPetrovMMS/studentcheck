@@ -7,7 +7,12 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
 
     const studentData = { facultyNumber, password };
 
-    console.log('Student Login Attempt:', studentData);
+    if(studentData.facultyNumber != "" && studentData.password != "") {
+        console.log('Student Login Attempt:', studentData);
+    }else{
+        alert("Faculty Number and Password are required.");
+        return;
+    }
 
     // Optional: measure request duration
     const t0 = performance.now();
