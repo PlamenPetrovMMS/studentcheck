@@ -73,7 +73,7 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 window.location.href = 'studentHomepage.html';
             } else {
                 errorMessage.style.color = "red";
-                errorMessage.textContent = 'Login failed';
+                errorMessage.textContent = 'Invalid credentials';
                 stopLoadingAnimation();
             }
         } else {
@@ -85,7 +85,7 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
     } catch (err) {
         console.error('Login request failed:', err);
         errorMessage.style.color = "red";
-        errorMessage.textContent = 'Login failed: Network error or server unavailable.';
+        errorMessage.textContent = 'Login failed: Network error or unavailable server.';
         stopLoadingAnimation();
     }
 
