@@ -72,14 +72,15 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 stopLoadingAnimation();
                 window.location.href = 'studentHomepage.html';
             } else {
+                console.log("data.loginSuccess = false")
                 errorMessage.style.color = "red";
-                errorMessage.textContent = 'Invalid credentials';
+                errorMessage.textContent = 'Login failed';
                 stopLoadingAnimation();
             }
         } else {
             console.error('Login failed: response is not OK', response.statusText);
             errorMessage.style.color = "red";
-            errorMessage.textContent = 'Login failed';
+            errorMessage.textContent = 'Invalid credentials';
             stopLoadingAnimation();
         }
     } catch (err) {
