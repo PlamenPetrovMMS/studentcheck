@@ -69,9 +69,7 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 } catch (e) {
                     console.warn('Failed to persist session data:', e);
                 }
-
-                alert('Login successful!');
-                console.log('Login successful:', data);
+                stopLoadingAnimation();
                 window.location.href = 'studentHomepage.html';
             } else {
                 alert('Login failed: ' + (data.message || 'Unknown error'));
@@ -83,8 +81,6 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
     } catch (err) {
         console.error('Login request failed:', err);
         alert('Login failed: Network error or server unavailable.');
-    } finally {
-        stopLoadingAnimation();
     }
 
 });
