@@ -72,7 +72,9 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 stopLoadingAnimation();
                 window.location.href = 'studentHomepage.html';
             } else {
-                alert('Login failed: ' + (data.message || 'Unknown error'));
+                errorMessage.style.color = "red";
+                errorMessage.textContent = 'Login failed';
+                stopLoadingAnimation();
             }
         } else {
             console.error('Login failed:', response.statusText);
