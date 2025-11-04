@@ -77,12 +77,16 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 stopLoadingAnimation();
             }
         } else {
-            console.error('Login failed:', response.statusText);
-            alert('Login failed: ' + response.statusText);
+            console.error('Login failed: response is not OK', response.statusText);
+            errorMessage.style.color = "red";
+            errorMessage.textContent = 'Login failed';
+            stopLoadingAnimation();
         }
     } catch (err) {
         console.error('Login request failed:', err);
-        alert('Login failed: Network error or server unavailable.');
+        errorMessage.style.color = "red";
+        errorMessage.textContent = 'Login failed: Network error or server unavailable.';
+        stopLoadingAnimation();
     }
 
 });
