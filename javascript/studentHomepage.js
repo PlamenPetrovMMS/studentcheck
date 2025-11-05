@@ -20,12 +20,14 @@ function deriveDisplayName(loginData) {
 
 document.addEventListener('DOMContentLoaded', () => {
 	const data = sessionStorage.getItem('studentData');
-
     console.log("Loaded student homepage with data:", data);
 
-	const displayName = deriveDisplayName(data) || 'Student';
+    const studentData = data.student;
+    console.log("Student data extracted:", studentData);
+
+	const displayName = deriveDisplayName(studentData) || 'Student';
 	if (nameEl) nameEl.textContent = displayName;
-	if (fnEl) fnEl.textContent = safeJsonParse.facultyNumber || '—';
+	if (fnEl) fnEl.textContent = studentData.facultyNumber || '—';
 
 	// Wire up logout button
 	const logoutBtn = document.getElementById('logoutBtn');
