@@ -24,11 +24,10 @@ function deriveDisplayName(loginData) {
 
 document.addEventListener('DOMContentLoaded', () => {
 	const data = sessionStorage.getItem('studentData');
-	const safeJsonParse = safeJsonParse(data);
 
-    console.log("Loaded student homepage with data:", safeJsonParse);
+    console.log("Loaded student homepage with data:", data);
 
-	const displayName = deriveDisplayName(safeJsonParse) || 'Student';
+	const displayName = deriveDisplayName(data) || 'Student';
 	if (nameEl) nameEl.textContent = displayName;
 	if (fnEl) fnEl.textContent = safeJsonParse.facultyNumber || '—';
 
@@ -36,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const logoutBtn = document.getElementById('logoutBtn');
 	if (logoutBtn) {
 		logoutBtn.addEventListener('click', () => {
-			sessionStorage.removeItem('studentAuth');
+			sessionStorage.removeItem('studentData');
 			window.location.replace('index.html');
 		});
 	}
