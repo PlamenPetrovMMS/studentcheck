@@ -1,7 +1,3 @@
-function safeJsonParse(str) {
-	try { return JSON.parse(str); } catch { return null; }
-}
-
 function deriveDisplayName(loginData) {
 	if (!loginData) return null;
 	// Try common locations for a name
