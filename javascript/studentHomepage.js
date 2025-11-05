@@ -1,3 +1,7 @@
+function safeJsonParse(str) {
+    try { return JSON.parse(str); } catch { return null; }
+}
+
 function deriveDisplayName(loginData) {
 	if (!loginData) return null;
 	// Try common locations for a name
@@ -19,21 +23,42 @@ function deriveDisplayName(loginData) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	const data = JSON.parse(sessionStorage.getItem('studentData'));
-    console.log("Loaded student homepage with data:", data);
+	// Try both keys that might be used by the login flow
+	const raw = sessionStorage.getItem('studentData');
+	if (!raw) {
+		// No session data: send user back to login
+		window.location.replace('studentLogin.html');
+		return;
+	}
 
-    const studentData = data.student;
-    console.log("Student data extracted:", studentData);
+	const parsed = safeJsonParse(raw);
+	console.log("Loaded student homepage with data:", parsed);
 
-	const displayName = deriveDisplayName(studentData) || 'Student';
+	// Elements to update
+	const nameEl = document.getElementById('studentDisplayName');
+	const fnEl = document.getElementById('studentFacultyNumber');
+
+	// Try to locate the student/user object in common shapes
+	const studentData = (
+		parsed.student
+	);
+
+	// Determine a reasonable display name
+	const displayName = deriveDisplayName(parsed) ||
+		[studentData.firstName || studentData.firstname || studentData.first_name,
+		 studentData.lastName || studentData.lastname || studentData.last_name]
+			.filter(Boolean).join(' ').trim() || 'Student';
+
 	if (nameEl) nameEl.textContent = displayName;
-	if (fnEl) fnEl.textContent = studentData.facultyNumber || '—';
+	const facultyNumber = studentData.facultyNumber || parsed.facultyNumber || studentData.faculty_number || '—';
+	if (fnEl) fnEl.textContent = facultyNumber;
 
 	// Wire up logout button
 	const logoutBtn = document.getElementById('logoutBtn');
 	if (logoutBtn) {
 		logoutBtn.addEventListener('click', () => {
 			sessionStorage.removeItem('studentData');
+			sessionStorage.removeItem('studentAuth');
 			window.location.replace('index.html');
 		});
 	}
