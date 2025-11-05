@@ -19,7 +19,7 @@ function deriveDisplayName(loginData) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	const data = sessionStorage.getItem('studentData');
+	const data = JSON.parse(sessionStorage.getItem('studentData'));
     console.log("Loaded student homepage with data:", data);
 
     const studentData = data.student;
