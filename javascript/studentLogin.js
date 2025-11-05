@@ -62,10 +62,11 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
             if(data.loginSuccess) {
                 // Store non-sensitive data for the homepage
                 try {
-                    sessionStorage.setItem('studentAuth', JSON.stringify({
-                        facultyNumber,
+                    sessionStorage.setItem('studentData', JSON.stringify({
                         data
                     }));
+                    console.log("Session data persisted successfully.");
+                    console.log(data);
                 } catch (e) {
                     console.warn('Failed to persist session data:', e);
                 }

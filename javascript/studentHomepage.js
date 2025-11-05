@@ -47,5 +47,32 @@ document.addEventListener('DOMContentLoaded', () => {
 			window.location.replace('index.html');
 		});
 	}
+
+    const qrContainer = document.getElementById('qrContainer');
+    if (qrContainer) {
+        qrContainer.innerHTML = '';
+        // Collect all user data from localStorage
+        const user = {
+            first_name: localStorage.getItem('first_name'),
+            last_name: localStorage.getItem('last_name'),
+            email: localStorage.getItem('email'),
+            faculty_number: localStorage.getItem('faculty_number'),
+            studies_number: localStorage.getItem('studies_number'),
+            role: localStorage.getItem('role')
+        };
+        // Remove undefined/null fields
+        Object.keys(user).forEach(key => {
+            if (user[key] === null || user[key] === undefined) {
+                delete user[key];
+            }
+        });
+        const qrData = JSON.stringify(user);
+        new QRCode(qrContainer, {
+            text: qrData,
+            width: 256,
+            height: 256,
+        });
+    }
 });
+
 
