@@ -23,21 +23,14 @@ function deriveDisplayName(loginData) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	const raw = sessionStorage.getItem('studentAuth');
-	const auth = safeJsonParse(raw);
+	const data = sessionStorage.getItem('studentData');
+	const safeJsonParse = safeJsonParse(data);
 
-	if (!auth) {
-		// No session data: send user back to login
-		window.location.replace('studentLogin.html');
-		return;
-	}
+    console.log("Loaded student homepage with data:", safeJsonParse);
 
-	const nameEl = document.getElementById('studentDisplayName');
-	const fnEl = document.getElementById('studentFacultyNumber');
-
-	const displayName = deriveDisplayName(auth) || 'Student';
+	const displayName = deriveDisplayName(safeJsonParse) || 'Student';
 	if (nameEl) nameEl.textContent = displayName;
-	if (fnEl) fnEl.textContent = auth.facultyNumber || '—';
+	if (fnEl) fnEl.textContent = safeJsonParse.facultyNumber || '—';
 
 	// Wire up logout button
 	const logoutBtn = document.getElementById('logoutBtn');
