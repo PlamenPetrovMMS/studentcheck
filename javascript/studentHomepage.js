@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	const parsedData = JSON.parse(rawData);
-	console.log("Loaded student homepage with data:", parsedData);
 	console.log("Parsed message:", parsedData.message);
 	console.log("Parsed student data:", parsedData.student);
 	console.log("Parsed loginSuccess:", parsedData.loginSuccess);
