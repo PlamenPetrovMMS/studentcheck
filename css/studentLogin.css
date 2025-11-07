@@ -1,18 +1,24 @@
 /* --- Auth/Login layout --- */
 /* Basic reset to prevent mobile overflow */
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; padding: 0; height:100%; }
 *, *::before, *::after { box-sizing: border-box; }
 
-.auth-container {
-	display: flex;
-	justify-content: center;
-	width: 100%;
-	max-width: 360px; /* smaller default to fit mobile comfortably */
-	margin: 24px auto; /* add a little top breathing room */
-	padding: 20px 20px;
-	background: #ffffff;
-	border-radius: 12px;
-	box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+body {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px; /* breathing room on small devices */
+    min-height:100dvh; /* handle mobile viewport */
+}
+
+.login-container {
+	width:100%;
+	max-width:340px; /* slightly narrower */
+	margin:0; /* centered by flex parent */
+	padding:18px 18px;
+	background:#ffffff;
+	border-radius:12px;
+	box-shadow:0 10px 24px rgba(0,0,0,0.08);
 }
 
 .form-field {
@@ -58,7 +64,7 @@ html, body { margin: 0; padding: 0; }
 
 /* Button styles */
 
-.role-button {
+.login-button {
 	margin-top: 20px;
 	font-size: 1.4rem; /* slightly smaller for tighter box */
 	padding: 14px 28px;
@@ -71,17 +77,17 @@ html, body { margin: 0; padding: 0; }
 	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 	transition: transform 0.05s ease-out, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
-.role-button:hover {
+.login-button:hover {
 	background-color: #2563eb;
 	border-color: #1d4ed8;
 	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
-.role-button:active {
+.login-button:active {
 	transform: translateY(3px);
 }
 
-.role-button:focus-visible {
+.login-button:focus-visible {
 	outline: 3px solid #f59e0b;
 	outline-offset: 2px;
 }
@@ -129,15 +135,8 @@ html, body { margin: 0; padding: 0; }
 }
 
 /* Responsive tweaks for very small screens */
-@media (max-width: 480px) {
-	.auth-container {
-		max-width: 320px;
-		padding: 18px 16px;
-		margin: 16px auto;
-	}
-	.role-button {
-		font-size: 1.25rem;
-		padding: 12px 24px;
-		min-width: 180px;
-	}
+@media (max-width:480px){
+	body{padding:12px;}
+	.login-container{max-width:300px;padding:16px 16px;}
+	.login-button{font-size:1.2rem;padding:12px 22px;min-width:170px;}
 }
