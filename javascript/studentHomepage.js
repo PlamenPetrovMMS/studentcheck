@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		studentData = parsedData.data.student;
 
 	}catch(e){
-		console.error("Error during extracting data:", e);
+		console.error("Error during extracting data.", e);
 		return;
 	}
 
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		facultyNumberElement = document.getElementById('studentFacultyNumber');
 
 	}catch(e){
-		console.error("Error during initializing page elements: ", e);
+		console.error("Error during initializing page elements.", e);
 		return;
 	}
 
