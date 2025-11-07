@@ -29,26 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	const parsedData = JSON.parse(rawData);
-	console.log("Parsed message:", parsedData.data.message);
-	console.log("Parsed student data:", parsedData.data.student);
-	console.log("Parsed loginSuccess:", parsedData.data.loginSuccess);
+	const studentData = parsedData.data.student;
 
 	// Elements to update
 	const nameElement = document.getElementById('studentDisplayName');
 	const facultyNumberElement = document.getElementById('studentFacultyNumber');
 
-	// Try to locate the student/user object in common shapes
-	const studentData = JSON.parse(parsedData.student);
-	console.log("Extracted student data:", studentData);
-
 	// Determine a reasonable display name
-	const displayName = deriveDisplayName(parsedData) ||
-		[studentData.firstName || studentData.firstname || studentData.first_name,
-		 studentData.lastName || studentData.lastname || studentData.last_name]
-			.filter(Boolean).join(' ').trim() || 'Student';
+	const displayName = studentData.fullName || "Error: No Name Found";
+	const facultyNumber = studentData.facultyNumber || '—';
 
 	if (nameElement) nameElement.textContent = displayName;
-	const facultyNumber = studentData.facultyNumber || parsed.facultyNumber || studentData.faculty_number || '—';
 	if (facultyNumberElement) facultyNumberElement.textContent = facultyNumber;
 
 	// Wire up logout button
@@ -56,8 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (logoutBtn) {
 		logoutBtn.addEventListener('click', () => {
 			sessionStorage.removeItem('studentData');
-			sessionStorage.removeItem('studentAuth');
-			window.location.replace('index.html');
+			window.location.replace('studentLogin.html');
 		});
 	}
 
