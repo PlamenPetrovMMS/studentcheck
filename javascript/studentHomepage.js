@@ -82,47 +82,44 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	const qrContainer = document.getElementById('qrContainer');
-	if (qrContainer) {
+	if (qrContainer && typeof kjua === 'function') {
 		qrContainer.innerHTML = '';
 
 		// Build compact payload with short keys to reduce size
 		const payload = {
-			n: displayName,
-			fn: facultyNumber,
-			em: studentData.email || studentData.mail || undefined
+			name: studentData.fullName,
+			facultyNumber: studentData.facultyNumber,
+			email: studentData.email
 		};
+
+		// remove empty fields
 		Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k]; });
 
-		const qrData = JSON.stringify(payload);
-		console.log('QR payload:', payload, 'length:', qrData.length);
+		let qrData = JSON.stringify(payload);
+		console.log('QR (kjua) payload:', payload, 'length:', qrData.length);
 
-		function generateQr(dataStr) {
-			for (let typeNum = 1; typeNum <= 40; typeNum++) {
-				try {
-					const qr = qrcode(typeNum, 'L');
-					qr.addData(dataStr);
-					qr.make();
-					return qr.createSvgTag({ scalable: true });
-				} catch (err) {
-					if (typeNum === 40) throw err;
-				}
-			}
+		// kjua options: render as SVG for crisp scaling
+		function makeKjua(dataStr) {
+			return kjua({
+				
+			});
 		}
 
-		let svgTag;
-		try {
-			svgTag = generateQr(qrData);
-		} catch (overflow) {
-			console.warn('Overflow with full payload, falling back:', overflow);
-			const fallback = JSON.stringify({ fn: facultyNumber });
-			try { svgTag = generateQr(fallback); } catch (fallbackErr) { console.error('Fallback failed:', fallbackErr); }
-		}
-
-		if (svgTag) {
-			qrContainer.innerHTML = svgTag;
+		let kjuaData = kjua({
+				render: 'svg',
+				text: dataStr,
+				size: 256,
+				quiet: 2,
+				level: 'L'
+		});
+		
+		if (kjuaData) {
+			qrContainer.appendChild(kjuaData);
 		} else {
 			qrContainer.innerHTML = '<p style="color:red;">Unable to generate QR code</p>';
 		}
+	} else if (qrContainer) {
+		qrContainer.innerHTML = '<p style="color:red;">QR library not loaded</p>';
 	}
 });
 
