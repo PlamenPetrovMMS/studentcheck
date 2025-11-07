@@ -54,24 +54,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrContainer = document.getElementById('qrContainer');
     if (qrContainer) {
         qrContainer.innerHTML = '';
-        // Collect all user data from localStorage
+        
+        // Debug: log the student data to see what's available
+        console.log('Student data for QR code:', studentData);
+        console.log('Full parsed data:', parsedData);
+        
+        // Collect user data from the actual student object
         const user = {
             fullName: studentData.fullName,
 			facultyNumber: studentData.facultyNumber,
 			email: studentData.email
         };
-        // Remove undefined/null fields
+        
+        // Remove undefined/null/empty fields
         Object.keys(user).forEach(key => {
-            if (user[key] === null || user[key] === undefined) {
+            if (user[key] === null || user[key] === undefined || user[key] === '') {
                 delete user[key];
             }
         });
+        
+        console.log('QR code data:', user);
         const qrData = JSON.stringify(user);
-        new QRCode(qrContainer, {
-            text: qrData,
-            width: 256,
-            height: 256,
-        });
+        console.log('QR code string:', qrData);
+        
+        if (Object.keys(user).length === 0) {
+            qrContainer.innerHTML = '<p style="color: red;">No student data available for QR code</p>';
+        } else {
+            new QRCode(qrContainer, {
+                text: qrData,
+                width: 256,
+                height: 256,
+            });
+        }
     }
 });
 
