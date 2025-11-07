@@ -19,25 +19,55 @@ function deriveDisplayName(loginData) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	// Try both keys that might be used by the login flow
-	const rawData = sessionStorage.getItem('studentData');
 
-	if (!rawData) {
-		// No session data: send user back to login
-		window.location.replace('studentLogin.html');
+	const rawData = null;
+	const parsedData = null;
+	const studentData = null;
+
+	const nameElement = null;
+	const facultyNumberElement = null;
+
+	try{
+
+		rawData = sessionStorage.getItem('studentData');
+
+		if (!rawData) {
+			// No session data: send user back to login
+			window.location.replace('studentLogin.html');
+			return;
+		}
+
+		parsedData = JSON.parse(rawData);
+		studentData = parsedData.data.student;
+
+	}catch(e){
+		console.error("Error during extracting data:", e);
 		return;
 	}
 
-	const parsedData = JSON.parse(rawData);
-	const studentData = parsedData.data.student;
+	if (!studentData) {
+		console.error("No student data found in sessionStorage.");
+		return;
+	}
+	
+	try{
 
-	// Elements to update
-	const nameElement = document.getElementById('studentDisplayName');
-	const facultyNumberElement = document.getElementById('studentFacultyNumber');
+		nameElement = document.getElementById('studentDisplayName');
+		facultyNumberElement = document.getElementById('studentFacultyNumber');
+
+	}catch(e){
+		console.error("Error during initializing page elements: ", e);
+		return;
+	}
+
+	if(nameElement == null || facultyNumberElement == null){
+		console.error("Essential page elements are missing.");
+		return;
+	}
 
 	// Determine a reasonable display name
 	const displayName = studentData.fullName || "Error: No Name Found";
-	const facultyNumber = studentData.facultyNumber || '—';
+	const facultyNumber = studentData.facultyNumber || '---';
 
 	if (nameElement) nameElement.textContent = displayName;
 	if (facultyNumberElement) facultyNumberElement.textContent = facultyNumber;
@@ -51,42 +81,49 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
-    const qrContainer = document.getElementById('qrContainer');
-    if (qrContainer) {
-        qrContainer.innerHTML = '';
-        
-        // Debug: log the student data to see what's available
-        console.log('Student data for QR code:', studentData);
-        console.log('Full parsed data:', parsedData);
-        
-        // Collect user data from the actual student object
-        const user = {
-            fullName: studentData.fullName,
-			facultyNumber: studentData.facultyNumber,
-			email: studentData.email
-        };
-        
-        // Remove undefined/null/empty fields
-        Object.keys(user).forEach(key => {
-            if (user[key] === null || user[key] === undefined || user[key] === '') {
-                delete user[key];
-            }
-        });
-        
-        console.log('QR code data:', user);
-        const qrData = JSON.stringify(user);
-        console.log('QR code string:', qrData);
-        
-        if (Object.keys(user).length === 0) {
-            qrContainer.innerHTML = '<p style="color: red;">No student data available for QR code</p>';
-        } else {
-            new QRCode(qrContainer, {
-                text: qrData,
-                width: 256,
-                height: 256,
-            });
-        }
-    }
+	const qrContainer = document.getElementById('qrContainer');
+	if (qrContainer) {
+		qrContainer.innerHTML = '';
+
+		// Build compact payload with short keys to reduce size
+		const payload = {
+			n: displayName,
+			fn: facultyNumber,
+			em: studentData.email || studentData.mail || undefined
+		};
+		Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k]; });
+
+		const qrData = JSON.stringify(payload);
+		console.log('QR payload:', payload, 'length:', qrData.length);
+
+		function generateQr(dataStr) {
+			for (let typeNum = 1; typeNum <= 40; typeNum++) {
+				try {
+					const qr = qrcode(typeNum, 'L');
+					qr.addData(dataStr);
+					qr.make();
+					return qr.createSvgTag({ scalable: true });
+				} catch (err) {
+					if (typeNum === 40) throw err;
+				}
+			}
+		}
+
+		let svgTag;
+		try {
+			svgTag = generateQr(qrData);
+		} catch (overflow) {
+			console.warn('Overflow with full payload, falling back:', overflow);
+			const fallback = JSON.stringify({ fn: facultyNumber });
+			try { svgTag = generateQr(fallback); } catch (fallbackErr) { console.error('Fallback failed:', fallbackErr); }
+		}
+
+		if (svgTag) {
+			qrContainer.innerHTML = svgTag;
+		} else {
+			qrContainer.innerHTML = '<p style="color:red;">Unable to generate QR code</p>';
+		}
+	}
 });
 
 
