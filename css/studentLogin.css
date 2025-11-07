@@ -4,6 +4,8 @@ html, body { margin: 0; padding: 0; }
 *, *::before, *::after { box-sizing: border-box; }
 
 .auth-container {
+	display: flex;
+	justify-content: center;
 	width: 100%;
 	max-width: 360px; /* smaller default to fit mobile comfortably */
 	margin: 24px auto; /* add a little top breathing room */
