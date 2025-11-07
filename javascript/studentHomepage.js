@@ -29,9 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	const parsedData = JSON.parse(rawData);
-	console.log("Parsed message:", parsedData.message);
-	console.log("Parsed student data:", parsedData.student);
-	console.log("Parsed loginSuccess:", parsedData.loginSuccess);
+	console.log("Parsed message:", parsedData.data.message);
+	console.log("Parsed student data:", parsedData.data.student);
+	console.log("Parsed loginSuccess:", parsedData.data.loginSuccess);
 
 	// Elements to update
 	const nameElement = document.getElementById('studentDisplayName');
