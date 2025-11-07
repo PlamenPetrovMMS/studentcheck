@@ -1,9 +1,13 @@
 /* --- Auth/Login layout --- */
+/* Basic reset to prevent mobile overflow */
+html, body { margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+
 .auth-container {
 	width: 100%;
-	max-width: 420px;
-	margin: 0 auto; /* center horizontally */
-	padding: 24px;
+	max-width: 360px; /* smaller default to fit mobile comfortably */
+	margin: 24px auto; /* add a little top breathing room */
+	padding: 20px 20px;
 	background: #ffffff;
 	border-radius: 12px;
 	box-shadow: 0 10px 24px rgba(0,0,0,0.08);
@@ -53,10 +57,10 @@
 /* Button styles */
 
 .role-button {
-    margin-top: 20px;
-	font-size: 1.5rem; /* ~24px */
-	padding: 16px 32px;
-	min-width: 220px;
+	margin-top: 20px;
+	font-size: 1.4rem; /* slightly smaller for tighter box */
+	padding: 14px 28px;
+	min-width: 200px;
 	border-radius: 10px;
 	border: 2px solid #2563eb;
 	background-color: #3b82f6;
@@ -120,4 +124,18 @@
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
+}
+
+/* Responsive tweaks for very small screens */
+@media (max-width: 480px) {
+	.auth-container {
+		max-width: 320px;
+		padding: 18px 16px;
+		margin: 16px auto;
+	}
+	.role-button {
+		font-size: 1.25rem;
+		padding: 12px 24px;
+		min-width: 180px;
+	}
 }
