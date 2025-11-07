@@ -98,13 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		let qrData = JSON.stringify(payload);
 		console.log('QR (kjua) payload:', payload, 'length:', qrData.length);
 
-		let kjuaData = kjua({
-				render: 'svg',
-				text: qrData,
-				size: 256,
-				quiet: 2,
-				level: 'L'
-		});
+			let kjuaData = kjua({
+					render: 'svg',
+					text: qrData,
+					size: 384, // increased from 256 for a larger QR code
+					quiet: 2,
+					level: 'L'
+			});
 		
 		if (kjuaData) {
 			qrContainer.appendChild(kjuaData);
