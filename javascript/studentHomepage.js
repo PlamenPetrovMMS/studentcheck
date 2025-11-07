@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const facultyNumberElement = document.getElementById('studentFacultyNumber');
 
 	// Try to locate the student/user object in common shapes
-	const studentData = parsedData.student;
+	const studentData = JSON.parse(parsedData.student);
 	console.log("Extracted student data:", studentData);
 
 	// Determine a reasonable display name
