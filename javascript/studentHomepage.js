@@ -109,19 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (kjuaData) {
 			qrContainer.appendChild(kjuaData);
 		} else {
-			qrContainer.innerHTML = '';
-			var errorParagraph = document.createElement('p');
-			errorParagraph.style.color = 'red';
-			errorParagraph.textContent = 'Unable to generate QR code';
-			qrContainer.appendChild(errorParagraph);
+			displayErrorInQRContainer(qrContainer, 'Unable to generate QR code');
 		}
 	} else if (qrContainer) {
-		qrContainer.innerHTML = '';
-		var errorParagraph = document.createElement('p');
-		errorParagraph.style.color = 'red';
-		errorParagraph.textContent = 'QR library not loaded';
-		qrContainer.appendChild(errorParagraph);
+		displayErrorInQRContainer(qrContainer, 'QR library not loaded');
 	}
 });
 
-
+function displayErrorInQRContainer(qrContainer, message) {
+	qrContainer.innerHTML = '';
+	var errorParagraph = document.createElement('p');
+	errorParagraph.style.color = 'red';
+	errorParagraph.textContent = message;
+	qrContainer.appendChild(errorParagraph);
+}
