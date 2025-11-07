@@ -20,12 +20,12 @@ function deriveDisplayName(loginData) {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-	const rawData = null;
-	const parsedData = null;
-	const studentData = null;
+	var rawData = null;
+	var parsedData = null;
+	var studentData = null;
 
-	const nameElement = null;
-	const facultyNumberElement = null;
+	var nameElement = null;
+	var facultyNumberElement = null;
 
 	try{
 
