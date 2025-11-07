@@ -35,13 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
 	console.log("Loaded student homepage with data:", parsed);
 
 	// Elements to update
-	const nameEl = document.getElementById('studentDisplayName');
-	const fnEl = document.getElementById('studentFacultyNumber');
+	const nameElement = document.getElementById('studentDisplayName');
+	const facultyNumberElement = document.getElementById('studentFacultyNumber');
 
 	// Try to locate the student/user object in common shapes
-	const studentData = (
-		parsed.student
-	);
+	const studentData = parsed.student;
 
 	// Determine a reasonable display name
 	const displayName = deriveDisplayName(parsed) ||
@@ -49,9 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		 studentData.lastName || studentData.lastname || studentData.last_name]
 			.filter(Boolean).join(' ').trim() || 'Student';
 
-	if (nameEl) nameEl.textContent = displayName;
+	if (nameElement) nameElement.textContent = displayName;
 	const facultyNumber = studentData.facultyNumber || parsed.facultyNumber || studentData.faculty_number || '—';
-	if (fnEl) fnEl.textContent = facultyNumber;
+	if (facultyNumberElement) facultyNumberElement.textContent = facultyNumber;
 
 	// Wire up logout button
 	const logoutBtn = document.getElementById('logoutBtn');
