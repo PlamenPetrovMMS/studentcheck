@@ -98,16 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		let qrData = JSON.stringify(payload);
 		console.log('QR (kjua) payload:', payload, 'length:', qrData.length);
 
-		// kjua options: render as SVG for crisp scaling
-		function makeKjua(dataStr) {
-			return kjua({
-				
-			});
-		}
-
 		let kjuaData = kjua({
 				render: 'svg',
-				text: dataStr,
+				text: qrData,
 				size: 256,
 				quiet: 2,
 				level: 'L'
