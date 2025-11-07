@@ -56,12 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
         qrContainer.innerHTML = '';
         // Collect all user data from localStorage
         const user = {
-            first_name: localStorage.getItem('first_name'),
-            last_name: localStorage.getItem('last_name'),
-            email: localStorage.getItem('email'),
-            faculty_number: localStorage.getItem('faculty_number'),
-            studies_number: localStorage.getItem('studies_number'),
-            role: localStorage.getItem('role')
+            fullName: studentData.fullName,
+			facultyNumber: studentData.facultyNumber,
+			email: studentData.email
         };
         // Remove undefined/null fields
         Object.keys(user).forEach(key => {
