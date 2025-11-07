@@ -1,16 +1,14 @@
 /* Center content on the page (optional, tweak as needed) */
 .student-home {
-	display: grid;
-	justify-items: center;
-	gap: 16px;
-	padding: 16px;
+	display: flex;
+    flex-direction: column;
+	justify-content: center;
 }
 
 /* QR container and scalable sizing */
 #qrContainer {
-	display: grid;
+	display: flex;
 	place-items: center;
-	margin: 16px auto;
 }
 
 /* Scale the QR code via CSS */
