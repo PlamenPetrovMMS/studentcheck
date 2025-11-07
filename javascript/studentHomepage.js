@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		} else {
 			displayErrorInQRContainer(qrContainer, 'Unable to generate QR code');
 		}
+
 	} else if (qrContainer) {
 		displayErrorInQRContainer(qrContainer, 'QR library not loaded');
 	}
