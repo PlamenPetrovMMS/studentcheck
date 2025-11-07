@@ -1,7 +1,3 @@
-function safeJsonParse(str) {
-    try { return JSON.parse(str); } catch { return null; }
-}
-
 function deriveDisplayName(loginData) {
 	if (!loginData) return null;
 	// Try common locations for a name
@@ -24,25 +20,27 @@ function deriveDisplayName(loginData) {
 
 document.addEventListener('DOMContentLoaded', () => {
 	// Try both keys that might be used by the login flow
-	const raw = sessionStorage.getItem('studentData');
-	if (!raw) {
+	const rawData = sessionStorage.getItem('studentData');
+
+	if (!rawData) {
 		// No session data: send user back to login
 		window.location.replace('studentLogin.html');
 		return;
 	}
 
-	const parsed = safeJsonParse(raw);
-	console.log("Loaded student homepage with data:", parsed);
+	const parsedData = JSON.parse(rawData);
+	console.log("Loaded student homepage with data:", parsedData);
 
 	// Elements to update
 	const nameElement = document.getElementById('studentDisplayName');
 	const facultyNumberElement = document.getElementById('studentFacultyNumber');
 
 	// Try to locate the student/user object in common shapes
-	const studentData = parsed.student;
+	const studentData = parsedData.student;
+	console.log("Extracted student data:", studentData);
 
 	// Determine a reasonable display name
-	const displayName = deriveDisplayName(parsed) ||
+	const displayName = deriveDisplayName(parsedData) ||
 		[studentData.firstName || studentData.firstname || studentData.first_name,
 		 studentData.lastName || studentData.lastname || studentData.last_name]
 			.filter(Boolean).join(' ').trim() || 'Student';
