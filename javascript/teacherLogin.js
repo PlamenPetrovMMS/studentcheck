@@ -65,8 +65,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                     errorMessage.textContent = '';
                     errorMessage.style.display = 'none';
                 }
-                // Show loading only when credentials are confirmed correct
-                startLoadingAnimation();
+                // Ensure any loading overlay is stopped before navigating
+                stopLoadingAnimation();
                 window.location.href = 'teacherHomepage.html';
             } else {
                 if (errorMessage) {
