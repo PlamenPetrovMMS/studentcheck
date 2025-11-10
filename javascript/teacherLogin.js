@@ -53,8 +53,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         });
         const t1 = performance.now();
         console.log(`Response received from server in ${Math.round(t1 - t0)} ms`);
-
-        if (response.ok) {
+        
+            if (response.ok) {
             const data = await response.json();
             if (data.loginSuccess) {
                 try {
@@ -82,7 +82,9 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             }
         } else {
             stopLoadingAnimation();
+            console.log("Stopping animation")
             if (errorMessage) {
+                console.log("Found errorMessage element")
                 errorMessage.textContent = 'Login failed: Invalid credentials';
                 errorMessage.classList.remove('show');
                 void errorMessage.offsetWidth;
