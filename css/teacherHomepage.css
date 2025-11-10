@@ -23,3 +23,81 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
 }   
+
+/* Modal overlay and dialog */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.hidden { display: none; }
+
+.modal {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 12px;
+    width: min(92vw, 420px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    padding: 20px 22px 22px 22px;
+    box-sizing: border-box;
+}
+
+.modal h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.25rem;
+}
+
+.modal label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.modal input[type="text"] {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-sizing: border-box;
+    background: #f9fafb;
+}
+
+.modal input[type="text"]:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+    background: #ffffff;
+}
+
+.modal-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.modal-actions button {
+    padding: 8px 14px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-actions .secondary {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.modal-actions #createClassBtn {
+    background: #2563eb;
+    color: #ffffff;
+}
