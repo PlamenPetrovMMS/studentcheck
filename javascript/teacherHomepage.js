@@ -81,9 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
-            const first = s.firstName || s.first_name || '';
-            const last = s.lastName || s.last_name || '';
-            const name = (first + ' ' + last).trim() || s.name || s.fullName || 'Unnamed';
+            const name = s.full_name;
             const faculty = s.facultyNumber || s.faculty_number || s.fn || '';
             // Display only name and faculty number as requested
             li.textContent = faculty ? `${name} • ${faculty}` : name;
@@ -111,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Fetched students:', data);
             console.log('Rendering students...');
             const studentsData = data.students;
+            console.log('Students data to render:', studentsData);
             renderStudents(studentsData);
         } catch (err) {
             console.error('Failed to fetch students:', err);
