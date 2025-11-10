@@ -24,9 +24,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const attachNewClassButtonBehavior = (buttonEl) => {
         if (!buttonEl) return;
-        buttonEl.addEventListener('click', () => {
-            // Placeholder for future per-class action
-            console.log(buttonEl.textContent + ' button clicked.');
+        let pressTimer = null;
+        let longPressFired = false;
+        const getName = () => (buttonEl.textContent || '').trim();
+
+        const start = () => {
+            longPressFired = false;
+            pressTimer = window.setTimeout(() => {
+                longPressFired = true;
+                console.log('Long press on:', getName());
+            }, 700); // long-press threshold (ms)
+        };
+
+        const cancel = () => {
+            if (pressTimer !== null) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        };
+
+        // Mouse and touch support for long-press
+        buttonEl.addEventListener('mousedown', start);
+        buttonEl.addEventListener('touchstart', start, { passive: true });
+        buttonEl.addEventListener('mouseup', cancel);
+        buttonEl.addEventListener('mouseleave', cancel);
+        buttonEl.addEventListener('touchend', cancel);
+        buttonEl.addEventListener('touchcancel', cancel);
+
+        // Regular click; suppress if it followed a long press
+        buttonEl.addEventListener('click', (e) => {
+            if (longPressFired) {
+                e.preventDefault();
+                e.stopPropagation();
+                longPressFired = false;
+                return;
+            }
+            console.log(getName(), 'button clicked.');
         });
     };
 
