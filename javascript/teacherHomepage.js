@@ -3,115 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const classList = document.getElementById('classList');
     const addBtn = document.getElementById('addClassBtn');
     // Determine current teacher email from session
-    let teacherEmail = null;
+    
+
     // Prefer sessionStorage (current login); fallback to lastTeacherEmail in localStorage.
     try {
-        const raw = sessionStorage.getItem('teacherData');
-        teacherEmail = raw ? (JSON.parse(raw)?.email || null) : null;
-        if (!teacherEmail) {
-            const fallback = localStorage.getItem('lastTeacherEmail');
-            if (fallback) teacherEmail = fallback;
-        }
-    } catch (e) {
-        console.warn('Failed to parse teacherData from storage:', e);
-        if (!teacherEmail) {
-            const fallback = localStorage.getItem('lastTeacherEmail');
-            if (fallback) teacherEmail = fallback;
-        }
+        const raw = localStorage.getItem('teacherData');
+        console.log(raw)
+    }catch (e) {
+        console.error('Error retrieving teacher data:', e);
     }
-
-    const storageKey = (email) => email ? `teacher:classes:${email}` : null;
-
-    const attachNewClassButtonBehavior = (buttonEl) => {
-        if (!buttonEl) return;
-        let pressTimer = null;
-        let longPressFired = false;
-        const getName = () => (buttonEl.textContent || '').trim();
-
-        const start = (ev) => {
-            // Only primary/pen/finger presses
-            if (ev && typeof ev.button === 'number' && ev.button !== 0) return;
-            longPressFired = false;
-            // Visual hint (optional style if added in CSS)
-            buttonEl.classList.add('pressing');
-            pressTimer = window.setTimeout(() => {
-                longPressFired = true;
-                console.log('Long press on:', getName());
-            }, 500); // threshold in ms
-        };
-
-        const clear = () => {
-            buttonEl.classList.remove('pressing');
-            if (pressTimer !== null) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-            }
-        };
-
-        // Use Pointer Events for unified mouse/touch/pen handling
-        buttonEl.addEventListener('pointerdown', start);
-        buttonEl.addEventListener('pointerup', clear);
-        buttonEl.addEventListener('pointercancel', clear);
-        buttonEl.addEventListener('pointerleave', clear);
-
-        // Prevent the context menu from interfering right after a long press
-        buttonEl.addEventListener('contextmenu', (e) => {
-            if (pressTimer) clear();
-            if (longPressFired) {
-                e.preventDefault();
-                longPressFired = false;
-            }
-        });
-
-        // Regular click; suppress if it followed a long press
-        buttonEl.addEventListener('click', (e) => {
-            if (longPressFired) {
-                e.preventDefault();
-                e.stopPropagation();
-                longPressFired = false;
-                return;
-            }
-            console.log(getName(), 'button clicked.');
-        });
-    };
-
-    const persistClasses = () => {
-        if (!teacherEmail) return;
-        const key = storageKey(teacherEmail);
-        const names = Array.from(classList?.querySelectorAll('.newClassBtn') || [])
-            .map(btn => (btn.textContent || '').trim())
-            .filter(Boolean);
-        try {
-            localStorage.setItem(key, JSON.stringify(names));
-        } catch (e) {
-            console.warn('Failed to persist classes:', e);
-        }
-    };
-
-    const renderClassItem = (name) => {
-        const li = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.className = 'newClassBtn';
-        btn.textContent = name;
-        attachNewClassButtonBehavior(btn);
-        li.appendChild(btn);
-        classList?.appendChild(li);
-    };
-
-    const loadClasses = () => {
-        if (!teacherEmail) return;
-        const key = storageKey(teacherEmail);
-        try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return;
-            const names = JSON.parse(raw);
-            if (Array.isArray(names)) {
-                names.forEach(renderClassItem);
-            }
-        } catch (e) {
-            console.warn('Failed to load classes:', e);
-        }
-    };
 
     // Build a reusable overlay + modal dialog dynamically (no HTML changes needed)
     let overlay = document.getElementById('classOverlay');
