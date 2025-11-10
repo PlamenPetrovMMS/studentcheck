@@ -98,11 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = studentsOverlay.querySelector('#studentsContent');
         if (container) container.innerHTML = '<p>Loading...</p>';
         try {
-            // Use dev proxy in local environment to avoid CORS issues; adjust base as needed.
-            const base = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
-                ? 'http://127.0.0.1:3001/api'
-                : 'https://studentcheck-server.onrender.com';
-            const resp = await fetch(`${base}/students`, {
+            const resp = await fetch('https://studentcheck-server.onrender.com/students', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
