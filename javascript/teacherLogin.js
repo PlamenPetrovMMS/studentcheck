@@ -44,6 +44,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     const submitBtn = form?.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     const t0 = performance.now();
+    startLoadingAnimation();
     try {
         const response = await fetch("https://studentcheck-server.onrender.com/teacherLogin", {
             method: 'POST',
@@ -52,8 +53,6 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         });
         const t1 = performance.now();
         console.log(`Response received from server in ${Math.round(t1 - t0)} ms`);
-
-        startLoadingAnimation();
 
         if (response.ok) {
             const data = await response.json();
@@ -72,6 +71,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 window.location.href = 'teacherHomepage.html';
                 stopLoadingAnimation();
             } else {
+                stopLoadingAnimation();
                 if (errorMessage) {
                     errorMessage.textContent = 'Login failed: ' + (data.message || 'Invalid credentials');
                     errorMessage.classList.remove('show');
@@ -81,6 +81,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 // Do not show loading overlay for wrong credentials
             }
         } else {
+            stopLoadingAnimation();
             if (errorMessage) {
                 errorMessage.textContent = 'Login failed: Invalid credentials';
                 errorMessage.classList.remove('show');
@@ -90,6 +91,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             // Do not show loading overlay for wrong credentials
         }
     } catch (err) {
+        stopLoadingAnimation();
         console.error('Login request failed:', err);
         if (errorMessage) {
             errorMessage.textContent = 'Login failed: Network error or unavailable server.';
