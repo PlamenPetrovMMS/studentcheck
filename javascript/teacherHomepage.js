@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const styleTag = document.createElement('style');
             styleTag.id = 'studentSelectStyles';
             styleTag.textContent = `
-                .student-item { transition: background-color 140ms ease, box-shadow 140ms ease; }
+                .student-item { display: flex; align-items: center; transition: background-color 140ms ease, box-shadow 140ms ease; }
                 .student-item.selected { background: #eef6ff; box-shadow: inset 0 0 0 1px #93c5fd; }
                 .student-item label { cursor: pointer; }
                 .student-item input[type="checkbox"] { vertical-align: middle; }
