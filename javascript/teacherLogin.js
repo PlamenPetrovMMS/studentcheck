@@ -53,6 +53,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         const t1 = performance.now();
         console.log(`Response received from server in ${Math.round(t1 - t0)} ms`);
 
+        startLoadingAnimation();
+
         if (response.ok) {
             const data = await response.json();
             if (data.loginSuccess) {
@@ -65,7 +67,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                     errorMessage.textContent = '';
                     errorMessage.style.display = 'none';
                 }
-                startLoadingAnimation();
+                
                 // Ensure any loading overlay is stopped before navigating
                 window.location.href = 'teacherHomepage.html';
                 stopLoadingAnimation();
