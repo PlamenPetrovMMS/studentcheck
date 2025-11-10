@@ -91,13 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
         list.style.margin = '0';
         students.forEach((s, idx) => {
             const li = document.createElement('li');
+            li.style.width = '100%';
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
             li.className = 'student-item';
-            const first = s.firstName || s.first_name || '';
-            const last = s.lastName || s.last_name || '';
-            const name = (first + ' ' + last).trim() || s.name || s.fullName || 'Unnamed';
-            const faculty = s.facultyNumber || s.faculty_number || s.fn || '';
+            const fullName = s.full_name;
+           const faculty = s.facultyNumber;
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -105,11 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkboxId = `studentSelect_${idx}`;
             checkbox.id = checkboxId;
             if (faculty) checkbox.dataset.facultyNumber = faculty;
-            checkbox.dataset.name = name;
+            checkbox.dataset.name = fullName;
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
             label.style.marginLeft = '6px';
-            label.textContent = faculty ? `${name} • ${faculty}` : name;
+            label.textContent = faculty ? `${fullName} • ${faculty}` : fullName;
             li.appendChild(checkbox);
             li.appendChild(label);
 
