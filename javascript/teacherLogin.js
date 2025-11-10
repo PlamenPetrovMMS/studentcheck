@@ -65,9 +65,10 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                     errorMessage.textContent = '';
                     errorMessage.style.display = 'none';
                 }
+                startLoadingAnimation();
                 // Ensure any loading overlay is stopped before navigating
-                stopLoadingAnimation();
                 window.location.href = 'teacherHomepage.html';
+                stopLoadingAnimation();
             } else {
                 if (errorMessage) {
                     errorMessage.textContent = 'Login failed: ' + (data.message || 'Invalid credentials');
