@@ -28,28 +28,40 @@ document.addEventListener('DOMContentLoaded', () => {
         let longPressFired = false;
         const getName = () => (buttonEl.textContent || '').trim();
 
-        const start = () => {
+        const start = (ev) => {
+            // Only primary/pen/finger presses
+            if (ev && typeof ev.button === 'number' && ev.button !== 0) return;
             longPressFired = false;
+            // Visual hint (optional style if added in CSS)
+            buttonEl.classList.add('pressing');
             pressTimer = window.setTimeout(() => {
                 longPressFired = true;
                 console.log('Long press on:', getName());
-            }, 700); // long-press threshold (ms)
+            }, 500); // threshold in ms
         };
 
-        const cancel = () => {
+        const clear = () => {
+            buttonEl.classList.remove('pressing');
             if (pressTimer !== null) {
                 clearTimeout(pressTimer);
                 pressTimer = null;
             }
         };
 
-        // Mouse and touch support for long-press
-        buttonEl.addEventListener('mousedown', start);
-        buttonEl.addEventListener('touchstart', start, { passive: true });
-        buttonEl.addEventListener('mouseup', cancel);
-        buttonEl.addEventListener('mouseleave', cancel);
-        buttonEl.addEventListener('touchend', cancel);
-        buttonEl.addEventListener('touchcancel', cancel);
+        // Use Pointer Events for unified mouse/touch/pen handling
+        buttonEl.addEventListener('pointerdown', start);
+        buttonEl.addEventListener('pointerup', clear);
+        buttonEl.addEventListener('pointercancel', clear);
+        buttonEl.addEventListener('pointerleave', clear);
+
+        // Prevent the context menu from interfering right after a long press
+        buttonEl.addEventListener('contextmenu', (e) => {
+            if (pressTimer) clear();
+            if (longPressFired) {
+                e.preventDefault();
+                longPressFired = false;
+            }
+        });
 
         // Regular click; suppress if it followed a long press
         buttonEl.addEventListener('click', (e) => {
