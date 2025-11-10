@@ -32,6 +32,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     if (!email || !password) {
         if (errorMessage) {
             errorMessage.textContent = 'Email and Password are required.';
+            // Ensure inline styles don't keep it hidden
+            errorMessage.style.removeProperty('display');
             errorMessage.classList.remove('show');
             // force reflow to restart animation if same message repeats
             void errorMessage.offsetWidth;
@@ -64,7 +66,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 }
                 if (errorMessage) {
                     errorMessage.textContent = '';
-                    errorMessage.style.display = 'none';
+                    errorMessage.classList.remove('show');
+                    errorMessage.style.removeProperty('display');
                 }
                 
                 // Ensure any loading overlay is stopped before navigating
@@ -74,6 +77,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 stopLoadingAnimation();
                 if (errorMessage) {
                     errorMessage.textContent = 'Login failed: ' + (data.message || 'Invalid credentials');
+                    errorMessage.style.removeProperty('display');
                     errorMessage.classList.remove('show');
                     void errorMessage.offsetWidth;
                     errorMessage.classList.add('show');
@@ -84,6 +88,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             stopLoadingAnimation();
             if (errorMessage) {
                 errorMessage.textContent = 'Login failed: Invalid credentials';
+                errorMessage.style.removeProperty('display');
                 errorMessage.classList.remove('show');
                 void errorMessage.offsetWidth;
                 errorMessage.classList.add('show');
@@ -95,6 +100,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         console.error('Login request failed:', err);
         if (errorMessage) {
             errorMessage.textContent = 'Login failed: Network error or unavailable server.';
+            errorMessage.style.removeProperty('display');
             errorMessage.classList.remove('show');
             void errorMessage.offsetWidth;
             errorMessage.classList.add('show');
