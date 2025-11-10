@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			let kjuaData = kjua({
 					render: 'svg',
 					text: qrData,
-					size: 384, // increased from 256 for a larger QR code
+					size: 256,
 					quiet: 2,
 					level: 'L'
 			});
