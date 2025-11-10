@@ -77,14 +77,28 @@ document.addEventListener('DOMContentLoaded', () => {
         list.style.listStyle = 'none';
         list.style.padding = '0';
         list.style.margin = '0';
-        students.forEach((s) => {
+        students.forEach((s, idx) => {
             const li = document.createElement('li');
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
-            const name = s.full_name;
+            const first = s.firstName || s.first_name || '';
+            const last = s.lastName || s.last_name || '';
+            const name = (first + ' ' + last).trim() || s.name || s.fullName || 'Unnamed';
             const faculty = s.facultyNumber || s.faculty_number || s.fn || '';
-            // Display only name and faculty number as requested
-            li.textContent = faculty ? `${name} • ${faculty}` : name;
+            // Checkbox + label for selection
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'studentSelect';
+            const checkboxId = `studentSelect_${idx}`;
+            checkbox.id = checkboxId;
+            if (faculty) checkbox.dataset.facultyNumber = faculty;
+            checkbox.dataset.name = name;
+            const label = document.createElement('label');
+            label.htmlFor = checkboxId;
+            label.style.marginLeft = '6px';
+            label.textContent = faculty ? `${name} • ${faculty}` : name;
+            li.appendChild(checkbox);
+            li.appendChild(label);
             list.appendChild(li);
         });
         container.appendChild(list);
@@ -93,8 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
         openStudentsOverlay();
-        const container = studentsOverlay.querySelector('#studentsContent');
-        if (container) container.innerHTML = '<p>Loading...</p>';
         try {
             const resp = await fetch('https://studentcheck-server.onrender.com/students', {
                 method: 'GET',
