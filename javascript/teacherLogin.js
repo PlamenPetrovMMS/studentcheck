@@ -37,7 +37,9 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         return;
     }
 
-    startLoadingAnimation();
+    const form = document.getElementById('teacherLoginForm');
+    const submitBtn = form?.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
     const t0 = performance.now();
     try {
         const response = await fetch("https://studentcheck-server.onrender.com/teacherLogin", {
@@ -60,21 +62,22 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                     errorMessage.textContent = '';
                     errorMessage.style.display = 'none';
                 }
-                stopLoadingAnimation();
+                // Show loading only when credentials are confirmed correct
+                startLoadingAnimation();
                 window.location.href = 'teacherHomepage.html';
             } else {
                 if (errorMessage) {
                     errorMessage.textContent = 'Login failed: ' + (data.message || 'Invalid credentials');
                     errorMessage.style.display = 'block';
                 }
-                stopLoadingAnimation();
+                // Do not show loading overlay for wrong credentials
             }
         } else {
             if (errorMessage) {
                 errorMessage.textContent = 'Login failed: Invalid credentials';
                 errorMessage.style.display = 'block';
             }
-            stopLoadingAnimation();
+            // Do not show loading overlay for wrong credentials
         }
     } catch (err) {
         console.error('Login request failed:', err);
@@ -82,6 +85,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             errorMessage.textContent = 'Login failed: Network error or unavailable server.';
             errorMessage.style.display = 'block';
         }
-        stopLoadingAnimation();
+        // Do not show loading overlay for errors
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
     }
 });
