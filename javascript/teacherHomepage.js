@@ -96,10 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
             li.style.borderBottom = '1px solid #e5e7eb';
             li.className = 'student-item';
             const fullName = s.full_name;
-           const faculty = s.facultyNumber;
+            const faculty = s.facultyNumber;
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
+            checkbox.textContent = 'RANDOM';
             checkbox.className = 'studentSelect';
             const checkboxId = `studentSelect_${idx}`;
             checkbox.id = checkboxId;
