@@ -61,6 +61,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             if (data.loginSuccess) {
                 try {
                     sessionStorage.setItem('teacherData', JSON.stringify({ email: teacherData.email }));
+                    // Remember last logged-in teacher across browser restarts
+                    localStorage.setItem('lastTeacherEmail', teacherData.email);
                 } catch (e) {
                     console.warn('Failed to persist teacher session data:', e);
                 }

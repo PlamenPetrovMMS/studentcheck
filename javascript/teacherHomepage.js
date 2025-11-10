@@ -4,11 +4,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('addClassBtn');
     // Determine current teacher email from session
     let teacherEmail = null;
+    // Prefer sessionStorage (current login); fallback to lastTeacherEmail in localStorage.
     try {
         const raw = sessionStorage.getItem('teacherData');
         teacherEmail = raw ? (JSON.parse(raw)?.email || null) : null;
+        if (!teacherEmail) {
+            const fallback = localStorage.getItem('lastTeacherEmail');
+            if (fallback) teacherEmail = fallback;
+        }
     } catch (e) {
-        console.warn('Failed to parse teacherData from sessionStorage:', e);
+        console.warn('Failed to parse teacherData from storage:', e);
+        if (!teacherEmail) {
+            const fallback = localStorage.getItem('lastTeacherEmail');
+            if (fallback) teacherEmail = fallback;
+        }
     }
 
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
