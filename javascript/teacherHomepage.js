@@ -109,7 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await resp.json();
             console.log('Fetched students:', data);
-            renderStudents(data);
+            console.log('Rendering students...');
+            const studentsData = data.students;
+            renderStudents(studentsData);
         } catch (err) {
             console.error('Failed to fetch students:', err);
             if (container) container.innerHTML = `<p style="color:#b91c1c;">Failed to load students. It may be blocked by CORS or the server is unavailable.</p>`;
