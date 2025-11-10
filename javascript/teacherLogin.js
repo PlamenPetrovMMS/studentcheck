@@ -43,7 +43,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     const form = document.getElementById('teacherLoginForm');
     const submitBtn = form?.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
-    
+    const t0 = performance.now();
     try {
         const response = await fetch("https://studentcheck-server.onrender.com/teacherLogin", {
             method: 'POST',
