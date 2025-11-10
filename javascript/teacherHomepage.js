@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Add Class button clicked.");
         var ul = document.getElementById("classList");
         var li = document.createElement("li");
-        li.textContent = "New Class Item";
+        li.innerHTML = `<button class="newClassBtn">New Class</button>`;
         ul.appendChild(li);
     });
 });
