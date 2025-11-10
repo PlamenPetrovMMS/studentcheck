@@ -138,3 +138,70 @@
 	font-weight: 900;
 	margin-right: 8px;
 }
+
+/* Fade-in animation for error message */
+.error-message.show {
+	display: block;
+	animation: errorFade 220ms ease-out;
+}
+
+@keyframes errorFade {
+	from { opacity: 0; transform: translateY(-4px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* Password toggle */
+.password-wrapper {
+	position: relative;
+	display: block; /* ensure input takes full width */
+	width: 100%;
+}
+
+.password-wrapper input[type="password"],
+.password-wrapper input[type="text"] {
+	width: 100%;
+	/* Reserve space so text doesn't sit under the eye icon */
+	padding-right: 56px;
+	box-sizing: border-box;
+}
+
+.toggle-password {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	/* Larger click target for accessibility */
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+	padding: 0;
+	border-radius: 8px;
+	color: #374151; /* gray-700 */
+	transition: background-color 0.15s ease, color 0.15s ease;
+	z-index: 1; /* ensure it sits above the input */
+}
+
+.toggle-password img {
+	width: 20px;
+	height: 20px;
+	pointer-events: none; /* allow button to receive clicks, not img */
+}
+
+.toggle-password:hover {
+	background: #f3f4f6; /* gray-100 */
+}
+
+.toggle-password:focus-visible {
+	outline: 2px solid #2563eb;
+	outline-offset: 2px;
+}
+
+.toggle-password[aria-pressed="true"] {
+	color: #2563eb;
+}
