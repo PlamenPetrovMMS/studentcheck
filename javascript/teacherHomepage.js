@@ -73,6 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '<p>No students found.</p>';
             return;
         }
+        // Inject a tiny style block once for selected highlighting if not present
+        if (!document.getElementById('studentSelectStyles')) {
+            const styleTag = document.createElement('style');
+            styleTag.id = 'studentSelectStyles';
+            styleTag.textContent = `
+                .student-item { transition: background-color 140ms ease, box-shadow 140ms ease; }
+                .student-item.selected { background: #eef6ff; box-shadow: inset 0 0 0 1px #93c5fd; }
+                .student-item label { cursor: pointer; }
+                .student-item input[type="checkbox"] { vertical-align: middle; }
+            `;
+            document.head.appendChild(styleTag);
+        }
         const list = document.createElement('ul');
         list.style.listStyle = 'none';
         list.style.padding = '0';
@@ -81,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
+            li.className = 'student-item';
             const first = s.firstName || s.first_name || '';
             const last = s.lastName || s.last_name || '';
             const name = (first + ' ' + last).trim() || s.name || s.fullName || 'Unnamed';
@@ -99,6 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
             label.textContent = faculty ? `${name} • ${faculty}` : name;
             li.appendChild(checkbox);
             li.appendChild(label);
+
+            // Highlight on selection
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    li.classList.add('selected');
+                } else {
+                    li.classList.remove('selected');
+                }
+            });
             list.appendChild(li);
         });
         container.appendChild(list);
