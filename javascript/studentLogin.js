@@ -53,10 +53,8 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
             },
             body: JSON.stringify(studentData)
         });
-
         const t1 = performance.now();
         console.log(`Response received from server in ${Math.round(t1 - t0)} ms`);
-
         if (response.ok) {
             const data = await response.json();
             if(data.loginSuccess) {
