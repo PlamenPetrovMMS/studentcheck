@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.className = 'student-item';
 
             const fullName = s.full_name;
-            const faculty = s.faculty_number;
+            const facultyNumber = s.faculty_number;
 
             const div = document.createElement('div');
             div.style.display = 'flex';
@@ -111,12 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
             checkbox.className = 'studentSelect';
             const checkboxId = `studentSelect_${idx}`;
             checkbox.id = checkboxId;
-            if (faculty) checkbox.dataset.facultyNumber = faculty;
+            if (facultyNumber) checkbox.dataset.facultyNumber = facultyNumber;
             checkbox.dataset.name = fullName;
             
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
-            label.textContent = `${fullName}  ${faculty}`;
+            label.textContent = `${fullName}  ${facultyNumber}`;
 
             div.appendChild(checkbox);
             div.appendChild(label);
