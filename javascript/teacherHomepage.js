@@ -286,13 +286,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem(key);
             if (!raw) return;
             const names = JSON.parse(raw);
+
+            console.log('Loaded classes from storage:', names);
+
             if (Array.isArray(names)) {
                 names.forEach(renderClassItem);
             }
+            
         } catch (e) {
             console.warn('Failed to load classes:', e);
         }
     };
+
+    const loadClassesStudents = () => {
+        var classes = localStorage.getItem(storageKey(teacherEmail));
+        if(!classes){
+            console.error("No classes found for this teacher.");
+            return;
+        }
+        for(var i = 0; i < classes.length; i++){
+            
+        }
+    }
 
     // Build a reusable overlay + modal dialog dynamically (no HTML changes needed)
     let overlay = document.getElementById('classOverlay');
@@ -334,6 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load any previously saved classes for this teacher
     loadClasses();
+
+    loadClassesStudents();
 
     addBtn?.addEventListener('click', () => {
         openModal();
