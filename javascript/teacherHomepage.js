@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
             label.textContent = `${fullName}  ${facultyNumber}`;
+            label.style.margin = '0px';
 
             div.appendChild(checkbox);
             div.appendChild(label);
