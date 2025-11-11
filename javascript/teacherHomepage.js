@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let studentsOverlay = document.getElementById('studentsOverlayTemplate');
 
     const openStudentsOverlay = () => {
-        ensureStudentsOverlay();
         studentsOverlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     };
