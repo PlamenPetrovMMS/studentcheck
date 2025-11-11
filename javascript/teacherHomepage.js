@@ -98,7 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
             li.className = 'student-item';
 
             const fullName = s.full_name;
-            const faculty = s.facultyNumber;
+            const faculty = s.faculty_number;
+
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
 
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
@@ -109,12 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
             checkbox.id = checkboxId;
             if (faculty) checkbox.dataset.facultyNumber = faculty;
             checkbox.dataset.name = fullName;
+            
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
-            label.style.marginLeft = '6px';
-            label.textContent = faculty ? `${fullName} • ${faculty}` : fullName;
-            li.appendChild(checkbox);
-            li.appendChild(label);
+            label.textContent = `${fullName}  ${faculty}`;
+
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            li.appendChild(div);
 
             // Highlight on selection
             checkbox.addEventListener('change', () => {
