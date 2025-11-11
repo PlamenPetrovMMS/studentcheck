@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.style.display = 'flex';
             div.style.alignItems = 'center';
+            div.style.justifyContent = 'center';
 
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
