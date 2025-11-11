@@ -31,7 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
         studentsOverlay.className = 'overlay hidden';
         studentsOverlay.innerHTML = `
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
-                <h2 id="studentsTitle" style="margin-top:0;margin-bottom:10px;">Students</h2>
+                <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
+                    <h2 id="studentsTitle" style="margin:0;">Students</h2>
+                    <input id="studentSearchInput" type="text" placeholder="Search students..." aria-label="Search students" style="flex:1 1 220px; min-width:160px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px;" />
+                </div>
                 <div id="studentsContent" style="max-height:50vh; overflow:auto;">
                     <p>Loading...</p>
                 </div>
@@ -65,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
+    let lastStudentsData = [];
     const renderStudents = (students) => {
         const container = studentsOverlay.querySelector('#studentsContent');
         if (!container) return;
@@ -73,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '<p>No students found.</p>';
             return;
         }
+        lastStudentsData = students;
         // Inject a tiny style block once for selected highlighting if not present
         if (!document.getElementById('studentSelectStyles')) {
             const styleTag = document.createElement('style');
@@ -138,9 +143,29 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(list);
     };
 
+    // Filter function for search input
+    const applyStudentSearchFilter = (query) => {
+        const q = query.trim().toLowerCase();
+        if (!studentsOverlay || !studentsOverlay.querySelector('#studentsContent')) return;
+        if (!q) {
+            renderStudents(lastStudentsData);
+            return;
+        }
+        const filtered = lastStudentsData.filter(s => {
+            const nameCombined = `${s.full_name || ''}`.toLowerCase();
+            const facultyStr = `${s.faculty_number || ''}`.toLowerCase();
+            return nameCombined.includes(q) || facultyStr.includes(q);
+        });
+        renderStudents(filtered);
+        // Restore the query after rerender
+        const searchInput = studentsOverlay.querySelector('#studentSearchInput');
+        if (searchInput) searchInput.value = query;
+    };
+
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
         openStudentsOverlay();
+        const container = studentsOverlay.querySelector('#studentsContent');
         try {
             const resp = await fetch('https://studentcheck-server.onrender.com/students', {
                 method: 'GET',
@@ -157,6 +182,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const studentsData = data.students;
             console.log('Students data to render:', studentsData);
             renderStudents(studentsData);
+            // Wire up search after initial render
+            const searchInput = studentsOverlay.querySelector('#studentSearchInput');
+            if (searchInput && !searchInput.dataset.bound) {
+                searchInput.addEventListener('input', (e) => {
+                    applyStudentSearchFilter(e.target.value);
+                });
+                searchInput.dataset.bound = 'true';
+            }
+            // If there is already a query present, apply it
+            if (searchInput && searchInput.value) {
+                applyStudentSearchFilter(searchInput.value);
+            }
         } catch (err) {
             console.error('Failed to fetch students:', err);
             if (container) container.innerHTML = `<p style="color:#b91c1c;">Failed to load students. It may be blocked by CORS or the server is unavailable.</p>`;
