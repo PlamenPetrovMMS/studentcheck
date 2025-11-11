@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         list.style.margin = '0';
         students.forEach((s, idx) => {
             const li = document.createElement('li');
-            li.style.width = '100%';
+            // li.style.width = '100%';
             li.style.display = 'flex';
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const facultyNumber = s.faculty_number;
 
             const div = document.createElement('div');
+            div.style.width = '100%';
             div.style.display = 'flex';
             div.style.alignItems = 'center';
             div.style.justifyContent = 'center';
