@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create/upgrade overlay lazily if missing or incomplete
     const ensureStudentsOverlay = () => {
+        const studentsOverlay = document.getElementById('overlay');
         const buildMarkup = () => `
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
                 <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
 
+            console.log("Attempting to create or upgrade students overlay.");
         if (!studentsOverlay) {
             studentsOverlay = document.createElement('div');
             studentsOverlay.id = 'studentsOverlay';
@@ -48,17 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(studentsOverlay);
         } else {
             // If we found a template or an incomplete node, upgrade it
-            if (studentsOverlay.id === 'studentsOverlayTemplate') {
-                studentsOverlay.id = 'studentsOverlay';
-            }
-            studentsOverlay.classList.add('overlay', 'hidden');
-            // If required children are missing, inject markup
-            if (!studentsOverlay.querySelector('#studentsContent')) {
-                studentsOverlay.innerHTML = buildMarkup();
-            }
-            if (!studentsOverlay.parentElement) {
-                document.body.appendChild(studentsOverlay);
-            }
+            console.log("Upgrading existing overlay element.");
+            studentsOverlay.style.visibility = 'visible';
         }
 
         // Ensure close handlers are wired (idempotent due to identical function references)
