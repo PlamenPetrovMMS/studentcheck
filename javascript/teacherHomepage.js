@@ -95,29 +95,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         lastStudentsData = students;
-        // Inject a tiny style block once for selected highlighting if not present
-        if (!document.getElementById('studentSelectStyles')) {
-            const styleTag = document.createElement('style');
-            styleTag.id = 'studentSelectStyles';
-            styleTag.textContent = `
-                .student-item { display: flex; align-items: center; transition: background-color 140ms ease, box-shadow 140ms ease; }
-                .student-item.selected { background: #eef6ff; box-shadow: inset 0 0 0 1px #93c5fd; }
-                .student-item label { cursor: pointer; }
-                .student-item input[type="checkbox"] { vertical-align: middle; }
-            `;
-            document.head.appendChild(styleTag);
-        }
+        
         const list = document.createElement('ul');
         list.style.listStyle = 'none';
         list.style.padding = '0';
         list.style.margin = '0';
+        
         students.forEach((s, idx) => {
             const li = document.createElement('li');
             // li.style.width = '100%';
             li.style.display = 'flex';
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
-            li.className = 'student-item';
+            li.className = 'list-item';
 
             const fullName = s.full_name;
             const facultyNumber = s.faculty_number;
@@ -157,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             list.appendChild(li);
         });
-        container.appendChild(list);
     };
 
     // Filter function for search input
