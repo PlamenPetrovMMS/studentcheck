@@ -168,10 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function addStudentsFromDatabase() {
         openStudentsOverlay();
         ensureStudentsOverlay();
-        console.log("Overlay applied")
         const container = studentsOverlay.querySelector('#studentsContent');
         if (container) container.innerHTML = '<p>Loading...</p>';
         try {
+            console.log("Overlay applied")
             const resp = await fetch('https://studentcheck-server.onrender.com/students', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
