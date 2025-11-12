@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    let studentsOverlay = document.getElementById('studentsOverlay') || document.getElementById('studentsOverlayTemplate');
 
     // Create/upgrade overlay lazily if missing or incomplete
     const ensureStudentsOverlay = () => {
@@ -77,9 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const openStudentsOverlay = () => {
+        const overlay_div = document.getElementsByClassName('overlay')[0];
+        overlay_div.style.visibility = 'visible';
         ensureStudentsOverlay();
-        studentsOverlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+        
     };
 
     const closeStudentsOverlay = () => {

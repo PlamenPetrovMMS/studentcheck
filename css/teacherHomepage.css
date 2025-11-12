@@ -109,3 +109,8 @@
     align-items: center;
     padding: 00px;
 }
+
+.overlay {
+    visibility: hidden;
+    background: rgba(0, 0, 0, 0.5);
+}

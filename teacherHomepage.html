@@ -8,35 +8,16 @@
 </head>
 <body>
     <main class="main-container">
-        <div>
+        <div class="overlay"></div>
+        <div class="page-items-container">
             <h1>Classes</h1>
             <ul id="classList">
                 <li>
-                    <button id="addClassBtn"> + </button>
+                    <button id="addClassBtn" type="button"> + </button>
                 </li>   
             </ul>
         </div>
     </main>
-
-    <template id="studentsOverlayTemplate">
-        <div id="studentsOverlay" class="overlay hidden">
-            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
-            <div class="modal-header">
-                <h2 id="studentsTitle">Students</h2>
-                <input id="studentSearchInput" type="text" placeholder="Search students..." aria-label="Search students" />
-            </div>
-            <div id="studentsContent">
-                <p>Loading...</p>
-            </div>
-            <div class="modal-actions">
-                <button id="applyStudentsBtn" class="secondary">Apply</button>
-                <button id="closeStudentsBtn" class="secondary">Close</button>
-            </div>
-            </div>
-        </div>
-    </template>
-    
-    
     <script src="javascript/teacherHomepage.js"></script>
 </body>
 </html>
