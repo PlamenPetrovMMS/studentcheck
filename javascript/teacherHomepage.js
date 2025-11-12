@@ -25,13 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Students overlay (blurred background) and fetch/display logic ---
     let studentsOverlay = document.getElementById('studentsOverlay') || document.getElementById('studentsOverlayTemplate');
 
-    // Create overlay lazily if missing
+    // Create/upgrade overlay lazily if missing or incomplete
     const ensureStudentsOverlay = () => {
-        if (studentsOverlay) return studentsOverlay;
-        studentsOverlay = document.createElement('div');
-        studentsOverlay.id = 'studentsOverlay';
-        studentsOverlay.className = 'overlay hidden';
-        studentsOverlay.innerHTML = `
+        const buildMarkup = () => `
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
                 <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
                     <h2 id="studentsTitle" style="margin:0;">Students</h2>
@@ -44,8 +40,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" id="closeStudentsBtn" class="secondary">Close</button>
                 </div>
             </div>`;
-        document.body.appendChild(studentsOverlay);
 
+        if (!studentsOverlay) {
+            studentsOverlay = document.createElement('div');
+            studentsOverlay.id = 'studentsOverlay';
+            studentsOverlay.className = 'overlay hidden';
+            studentsOverlay.innerHTML = buildMarkup();
+            document.body.appendChild(studentsOverlay);
+        } else {
+            // If we found a template or an incomplete node, upgrade it
+            if (studentsOverlay.id === 'studentsOverlayTemplate') {
+                studentsOverlay.id = 'studentsOverlay';
+            }
+            studentsOverlay.classList.add('overlay', 'hidden');
+            // If required children are missing, inject markup
+            if (!studentsOverlay.querySelector('#studentsContent')) {
+                studentsOverlay.innerHTML = buildMarkup();
+            }
+            if (!studentsOverlay.parentElement) {
+                document.body.appendChild(studentsOverlay);
+            }
+        }
+
+        // Ensure close handlers are wired (idempotent due to identical function references)
         const closeBtn = studentsOverlay.querySelector('#closeStudentsBtn');
         closeBtn?.addEventListener('click', () => closeStudentsOverlay());
         studentsOverlay.addEventListener('click', (e) => {
