@@ -123,6 +123,7 @@
 }
 
 .overlay-content-top-section {
+    height: 50px;
     display: flex;
     justify-content: space-between;
 }
@@ -140,4 +141,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+#closeOverlayBtn {
+    height: 30px;
+    width: 50px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    background: none;
+    cursor: pointer;
 }
