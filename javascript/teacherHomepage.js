@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function addStudentsFromDatabase() {
         openStudentsOverlay();
         ensureStudentsOverlay();
+        console.log("Overlay applied")
         const container = studentsOverlay.querySelector('#studentsContent');
         if (container) container.innerHTML = '<p>Loading...</p>';
         try {
