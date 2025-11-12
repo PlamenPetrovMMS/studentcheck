@@ -109,6 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
             li.style.borderBottom = '1px solid #e5e7eb';
             li.className = 'list-item';
 
+            console.log('Rendering student:', s);
+
             const fullName = s.full_name;
             const facultyNumber = s.faculty_number;
 
@@ -117,6 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.display = 'flex';
             div.style.alignItems = 'center';
             div.style.justifyContent = 'center';
+
+            console.log("Creating div to store checkbox and label...");
 
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
@@ -135,7 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             div.appendChild(checkbox);
             div.appendChild(label);
+
+            console.log("Appending checkbox and label to div...");
+
             li.appendChild(div);
+
+            console.log("Appending div to list...");
 
             // Highlight on selection
             checkbox.addEventListener('change', () => {
@@ -145,7 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     li.classList.remove('selected');
                 }
             });
+
+            console.log("Added eventListener to checkbox...");
+
             list.appendChild(li);
+
+            console.log("<li> appended to list");
         });
     };
 
