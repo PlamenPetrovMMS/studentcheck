@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Ensure close handlers are wired (idempotent due to identical function references)
-        
+        const closeBtn = studentsOverlay.querySelector('#closeOverlayBtn');
         closeBtn?.addEventListener('click', () => closeStudentsOverlay());
         studentsOverlay.addEventListener('click', (e) => {
             if (e.target === studentsOverlay) closeStudentsOverlay();
@@ -219,53 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (container) container.innerHTML = `<p style="color:#b91c1c;">Failed to load students. It may be blocked by CORS or the server is unavailable.</p>`;
         }
     }
-
-    // Lazy-create a generic action popup overlay
-    let actionOverlay = document.getElementById('classActionOverlay');
-    const ensureActionOverlay = () => {
-        if (actionOverlay) return actionOverlay;
-        actionOverlay = document.createElement('div');
-        actionOverlay.id = 'classActionOverlay';
-        actionOverlay.className = 'overlay hidden';
-        actionOverlay.innerHTML = `
-            <div class="modal" role="dialog" aria-modal="true">
-                <div class="modal-body">
-                    <h2 id="classActionTitle" style="margin-top:0;margin-bottom:10px;font-size:1.15rem;">Class</h2>
-                    <p id="classActionText" style="margin:0 0 8px 0; color:#374151;">Choose an action for this class.</p>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="closeClassActionBtn" class="secondary">Close</button>
-                </div>
-            </div>`;
-        document.body.appendChild(actionOverlay);
-
-        const closeBtn = document.getElementById('closeOverlayBtn');
-        closeBtn?.addEventListener('click', () => closeActionOverlay());
-        actionOverlay.addEventListener('click', (e) => {
-            if (e.target === actionOverlay) closeActionOverlay();
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !actionOverlay.classList.contains('hidden')) {
-                closeActionOverlay();
-            }
-        });
-        return actionOverlay;
-    };
-
-    const openActionOverlay = (className) => {
-        ensureActionOverlay();
-        const title = actionOverlay.querySelector('#classActionTitle');
-        const text = actionOverlay.querySelector('#classActionText');
-        if (title) title.textContent = `Class: ${className}`;
-        if (text) text.textContent = `You clicked on "${className}".`;
-        actionOverlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    };
-
-    const closeActionOverlay = () => {
-        actionOverlay?.classList.add('hidden');
-        document.body.style.overflow = '';
-    };
 
     const attachNewClassButtonBehavior = (buttonEl) => {
         if (!buttonEl) return;
