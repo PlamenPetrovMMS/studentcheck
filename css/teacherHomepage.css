@@ -154,6 +154,6 @@
     background: rgb(90, 90, 224);
     border-radius: 10px;
     border: none;
-    box-shadow: 0 0 5px black;
+    /* box-shadow: 0 0 5px black; */
     cursor: pointer;
 }
