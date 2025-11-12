@@ -101,3 +101,11 @@
     background: #2563eb;
     color: #ffffff;
 }
+
+#main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 00px;
+}
