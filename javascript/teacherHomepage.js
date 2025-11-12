@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.justifyContent = 'center';
 
             console.log("Creating div to store checkbox and label...");
+            console.log(div);
 
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
@@ -141,10 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
             div.appendChild(label);
 
             console.log("Appending checkbox and label to div...");
+            console.log(div)
 
             li.appendChild(div);
 
             console.log("Appending div to list...");
+            console.log(li);
 
             // Highlight on selection
             checkbox.addEventListener('change', () => {
@@ -160,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             list.appendChild(li);
 
             console.log("<li> appended to list");
+            console.log(li);
         });
     };
 
