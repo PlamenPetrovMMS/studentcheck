@@ -78,12 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const openStudentsOverlay = () => {
         const overlay_div = document.getElementsByClassName('overlay')[0];
         overlay_div.style.visibility = 'visible';
+        console.log("Overlay visibility applied:", overlay_div);
         ensureStudentsOverlay();
         
     };
 
     const closeStudentsOverlay = () => {
-        studentsOverlay?.classList.add('hidden');
+        const overlay_div = document.getElementsByClassName('overlay')[0];
+        overlay_div.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 
