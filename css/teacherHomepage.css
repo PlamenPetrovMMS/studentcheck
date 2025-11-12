@@ -149,11 +149,12 @@
 #closeOverlayBtn {
     height: 50px;
     width: 100px;
+    color: white;
     font-size: 1.5rem;
     font-weight: bold;
-    background: rgb(90, 90, 224);
+    background: rgb(34, 11, 19);
     border-radius: 10px;
     border: none;
-    /* box-shadow: 0 0 5px black; */
+    box-shadow: 0 6px 16px black;
     cursor: pointer;
 }
