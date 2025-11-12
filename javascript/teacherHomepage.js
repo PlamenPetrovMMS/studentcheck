@@ -23,9 +23,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    let studentsOverlay = document.getElementById('studentsOverlayTemplate');
+    let studentsOverlay = document.getElementById('studentsOverlay') || document.getElementById('studentsOverlayTemplate');
+
+    // Create overlay lazily if missing
+    const ensureStudentsOverlay = () => {
+        if (studentsOverlay) return studentsOverlay;
+        studentsOverlay = document.createElement('div');
+        studentsOverlay.id = 'studentsOverlay';
+        studentsOverlay.className = 'overlay hidden';
+        studentsOverlay.innerHTML = `
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
+                <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
+                    <h2 id="studentsTitle" style="margin:0;">Students</h2>
+                    <input id="studentSearchInput" type="text" placeholder="Search students..." aria-label="Search students" style="flex:1 1 220px; min-width:160px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px;" />
+                </div>
+                <div id="studentsContent" style="max-height:50vh; overflow:auto;">
+                    <p>Loading...</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="closeStudentsBtn" class="secondary">Close</button>
+                </div>
+            </div>`;
+        document.body.appendChild(studentsOverlay);
+
+        const closeBtn = studentsOverlay.querySelector('#closeStudentsBtn');
+        closeBtn?.addEventListener('click', () => closeStudentsOverlay());
+        studentsOverlay.addEventListener('click', (e) => {
+            if (e.target === studentsOverlay) closeStudentsOverlay();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !studentsOverlay.classList.contains('hidden')) {
+                closeStudentsOverlay();
+            }
+        });
+        return studentsOverlay;
+    };
 
     const openStudentsOverlay = () => {
+        ensureStudentsOverlay();
         studentsOverlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     };
@@ -132,7 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
         openStudentsOverlay();
+        ensureStudentsOverlay();
         const container = studentsOverlay.querySelector('#studentsContent');
+        if (container) container.innerHTML = '<p>Loading...</p>';
         try {
             const resp = await fetch('https://studentcheck-server.onrender.com/students', {
                 method: 'GET',
