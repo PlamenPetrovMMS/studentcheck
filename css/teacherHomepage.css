@@ -125,8 +125,9 @@
 .overlay-content-top-section {
     height: 50px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    padding: 20px;
 }
 
 #overlaySearchInput {
@@ -142,6 +143,7 @@
 .overlay-content-bottom-section {
     display: flex;
     justify-content: flex-end;
+    padding: 20px;
 }
 
 #closeOverlayBtn {
