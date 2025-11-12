@@ -60,7 +60,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             const data = await response.json();
             if (data.loginSuccess) {
                 try {
-                    sessionStorage.setItem('teacherData', JSON.stringify({ email: teacherData.email }));
+                    localStorage.setItem(`${teacherData.email}`, teacherData);
                     // Remember last logged-in teacher across browser restarts
                     localStorage.setItem('lastTeacherEmail', teacherData.email);
                 } catch (e) {
@@ -73,8 +73,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 }
                 
                 // Ensure any loading overlay is stopped before navigating
-                window.location.href = 'teacherHomepage.html';
                 stopLoadingAnimation();
+                window.location.href = 'teacherHomepage.html';
             } else {
                 stopLoadingAnimation();
                 if (errorMessage) {
