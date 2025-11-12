@@ -86,11 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lastStudentsData = [];
     const renderStudents = (students) => {
-        const container = studentsOverlay.querySelector('#studentsContent');
-        if (!container) return;
-        container.innerHTML = '';
+        console.log('Rendering students:', students);
+        const main_section_body = document.getElementById('overlayMainSectionBody');
+        if (!main_section_body) return;
+        main_section_body.innerHTML = '';
         if (!Array.isArray(students) || students.length === 0) {
-            container.innerHTML = '<p>No students found.</p>';
+            main_section_body.innerHTML = '<p>No students found.</p>';
             return;
         }
         lastStudentsData = students;
