@@ -155,11 +155,18 @@
     background: rgb(34, 11, 19);
     border-radius: 10px;
     border: none;
-    box-shadow: 0 6px 16px black;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7);
     cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+    will-change: transform;
 }
 
 #closeOverlayBtn:hover {
-    transform: scale(1.05);
-    transition: 0.2s;
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.35);
+}
+
+#closeOverlayBtn:active {
+    transform: translateY(-1px) scale(0.997);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.35);
 }
