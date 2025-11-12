@@ -41,8 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
 
-            console.log("Attempting to create or upgrade students overlay.");
+        console.log("Attempting to create or upgrade students overlay.");
         if (!studentsOverlay) {
+            console.log("Creating new overlay element.");
             studentsOverlay = document.createElement('div');
             studentsOverlay.id = 'studentsOverlay';
             studentsOverlay.className = 'overlay hidden';
@@ -50,8 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(studentsOverlay);
         } else {
             // If we found a template or an incomplete node, upgrade it
-            console.log("Upgrading existing overlay element.");
-            studentsOverlay.style.visibility = 'visible';
+            console.log("Upgrading existing overlay element if needed:");
+            if(studentsOverlay.style.visibility !== 'visible'){
+                studentsOverlay.style.visibility = 'visible';
+                console.log("YES");
+            }
         }
 
         // Ensure close handlers are wired (idempotent due to identical function references)
@@ -72,8 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlay_div = document.getElementsByClassName('overlay')[0];
         overlay_div.style.visibility = 'visible';
         console.log("Overlay visibility applied:", overlay_div);
-        ensureStudentsOverlay();
-        
     };
 
     const closeStudentsOverlay = () => {
