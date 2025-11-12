@@ -158,3 +158,8 @@
     box-shadow: 0 6px 16px black;
     cursor: pointer;
 }
+
+#closeOverlayBtn:hover {
+    scale: 1.05;
+    transition: 0.2s;
+}
