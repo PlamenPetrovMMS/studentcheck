@@ -126,3 +126,18 @@
     justify-content: space-between;
     padding: 20px;
 }
+
+.overlay-content-top-section #overlaySearchInput {
+    height: 40px;
+    width: 70%;
+}
+
+.overlay-content-main-section {
+    
+}
+
+.overlay-content-bottom-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
