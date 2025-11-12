@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         document.body.appendChild(actionOverlay);
 
-        const closeBtn = actionOverlay.querySelector('#closeClassActionBtn');
+        const closeBtn = document.getElementById('closeOverlayBtn');
         closeBtn?.addEventListener('click', () => closeActionOverlay());
         actionOverlay.addEventListener('click', (e) => {
             if (e.target === actionOverlay) closeActionOverlay();
