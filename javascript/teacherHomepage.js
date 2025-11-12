@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
     // --- Students overlay (blurred background) and fetch/display logic ---
+    const studentsOverlay = document.getElementById('overlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     const ensureStudentsOverlay = () => {
-        const studentsOverlay = document.getElementById('overlay');
         const buildMarkup = () => `
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
                 <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Ensure close handlers are wired (idempotent due to identical function references)
-        const closeBtn = studentsOverlay.querySelector('#closeStudentsBtn');
+        
         closeBtn?.addEventListener('click', () => closeStudentsOverlay());
         studentsOverlay.addEventListener('click', (e) => {
             if (e.target === studentsOverlay) closeStudentsOverlay();
