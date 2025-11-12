@@ -127,7 +127,7 @@
     padding: 20px;
 }
 
-.overlay-content-top-section #overlaySearchInput {
+#overlaySearchInput {
     height: 40px;
     width: 70%;
 }
