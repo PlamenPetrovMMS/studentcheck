@@ -10,11 +10,22 @@
     <main class="main-container">
         <div class="overlay" id="overlay">
             <div class="overlay-content" id="overlayContent">
-                <button id="closeOverlayBtn" class="close-overlay-btn" aria-label="Close Overlay">&times;</button>
-                <h2 id="overlayTitle">Overlay Title</h2>
-                <div id="overlayBody">
-                    Overlay Body Content
+
+                <div class="overlay-content-top-section" id="overlayContentTopSection">
+                    <h2 id="overlayTitle">Overlay Title</h2>
+                    <input type="text" id="overlaySearchInput" placeholder="Search..." />
                 </div>
+
+                <div class="overlay-content-main-section" id="overlayContentMainSection">
+                    <div id="overlayBody">
+                        Overlay Body Content
+                    </div>
+                </div>
+
+                <div class="overlay-content-bottom-section" id="overlayContentBottomSection">
+                    <button id="closeOverlayBtn" class="role-button" type="button">Close</button>
+                </div>
+
             </div>
         </div>
         <div class="page-items-container">
