@@ -38,47 +38,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function splitStudentNames(student) {
-        let names;
-        try{
-            names = student.full_name.split(' ');
-        }catch(e){
-            console.error("Error during splitting student names.", e);
-            return student;
+    // Robust helper: accepts a student object or a raw full name string.
+    // Returns both an object with parts and an array of parts for flexible usage.
+    function splitStudentNames(input) {
+        const raw = (typeof input === 'string') ? input : (input?.full_name || '');
+        if (!raw) {
+            return { parts: [], firstName: '', middleName: '', lastName: '', fullName: '' };
         }
-        
-        switch(names.length){
-            case 0:
-                return;
-            case 1:
-                fullName = names[0];
-                break;
-            case 2:
-                firstName = names[0];
-                lastName = names[1];
-                fullName = `${firstName} ${lastName}`;
-                break;
-            case 3:
-                firstName = names[0];
-                middleName = names[1];
-                lastName = names[2];
-                fullName = `${firstName} ${middleName} ${lastName}`;
-                break;
+        const parts = raw.trim().split(/\s+/).filter(Boolean);
+        let firstName = '';
+        let middleName = '';
+        let lastName = '';
+        if (parts.length === 1) {
+            firstName = parts[0];
+        } else if (parts.length === 2) {
+            [firstName, lastName] = parts;
+        } else if (parts.length >= 3) {
+            firstName = parts[0];
+            lastName = parts[parts.length - 1];
+            middleName = parts.slice(1, -1).join(' ');
         }
-
-        if(names.length > 3){
-            firstName = names[0];
-            lastName = names[names.length - 1];
-            middleName = names.slice(1, names.length - 1).join(' ');
-            fullName = `${firstName} ${middleName} ${lastName}`;
-        }
-
-        return {
-            firstName,
-            middleName,
-            lastName,
-            fullName
-        };
+        const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+        return { parts, firstName, middleName, lastName, fullName };
     }
 
 
@@ -126,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.style.borderBottom = '1px solid #e5e7eb';
             li.className = 'list-item';
 
-            var splitNames = splitStudentNames(s);
+            const splitNames = splitStudentNames(s);
 
             const facultyNumber = s.faculty_number;
 
@@ -143,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkboxId = `studentSelect_${idx}`;
             checkbox.id = checkboxId;
             if (facultyNumber) checkbox.dataset.facultyNumber = facultyNumber;
-            checkbox.dataset.name = fullName;
+            checkbox.dataset.name = splitNames.fullName;
             
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
@@ -179,36 +160,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Filter function for search input
+    // Filter function for search input (multi-token, case-insensitive, matches name or faculty number).
     const applyStudentSearchFilter = (query) => {
-        var queryNames = splitStudentNames(query.trim().toLowerCase());
-        console.log("Applying student search filter for query:", queryNames);
-        const bodyEl = document.getElementById('overlayMainSectionBody');
-        if (!studentsOverlay || !bodyEl) return;
-        if (!queryNames) {
-            console.log("No query names provided, rendering all students.");
+        const q = query.trim();
+        const searchInput = studentsOverlay?.querySelector('#overlaySearchInput');
+        if (searchInput && searchInput.value !== query) {
+            // Ensure consistent value if called programmatically
+            searchInput.value = query;
+        }
+        if (!q) {
             renderStudents(lastStudentsData);
             return;
         }
-
+        // Tokenize: split on whitespace, ignore empty tokens
+        const tokens = q.toLocaleLowerCase('bg').split(/\s+/).filter(Boolean);
+        if (!tokens.length) {
+            renderStudents(lastStudentsData);
+            return;
+        }
         const filtered = lastStudentsData.filter(s => {
-            var studentNames = splitStudentNames(s.full_name);
-            console.log("Student names length:", studentNames.length);
-            for(let i = 0; i < studentNames.length; i++){
-                for(let j = 0; j < queryNames.length; j++){
-                    if(studentNames[i].toLowerCase().includes(queryNames[j])){
-                        return true;
-                    }
-                }
-            }
-            return false;
+            const name = (s.full_name || '').toLocaleLowerCase('bg');
+            const faculty = (s.faculty_number || '').toLowerCase();
+            // All tokens must be found in either name or faculty number
+            return tokens.every(t => name.includes(t) || faculty.includes(t));
         });
-
-        console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
-        // Restore the query after rerender
-        const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
-        if (searchInput) searchInput.value = query;
+    };
+
+    // Expose selected students helper (adjacent improvement)
+    window.getSelectedStudents = function() {
+        return Array.from(document.querySelectorAll('.studentSelect:checked')).map(cb => ({
+            fullName: cb.dataset.name || '',
+            facultyNumber: cb.dataset.facultyNumber || ''
+        }));
     };
 
 
@@ -235,9 +219,15 @@ document.addEventListener('DOMContentLoaded', () => {
             renderStudents(data.students);
             // Wire up search after initial render
             const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
+            if (searchInput) {
+                searchInput.setAttribute('aria-label', 'Search students by name or faculty number');
+            }
             if (searchInput && !searchInput.dataset.bound) {
+                let debounceTimer = null;
                 searchInput.addEventListener('input', (e) => {
-                    applyStudentSearchFilter(e.target.value);
+                    const value = e.target.value;
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => applyStudentSearchFilter(value), 180);
                 });
                 searchInput.dataset.bound = 'true';
             }

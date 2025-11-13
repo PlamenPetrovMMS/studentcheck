@@ -122,22 +122,63 @@
     border-radius: 8px;
 }
 
+/* Top section with title + search becomes responsive */
 .overlay-content-top-section {
-    height: 50px;
+    min-height: 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     padding: 20px;
+    flex-wrap: wrap; /* Allow wrapping on narrow viewports */
 }
 
+/* Search input responsive styles */
 #overlaySearchInput {
-    height: 30px;
+    height: 36px;
     width: 300px;
     font-size: 1rem;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    outline: none;
+    flex: 2 1 280px;
+}
+
+#overlaySearchInput:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+
+/* Make search bar full width below 640px and stack under title */
+@media (max-width: 640px) {
+    .overlay-content-top-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #overlaySearchInput {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+}
+
+/* Extra small devices: reduce padding and font size */
+@media (max-width: 420px) {
+    .overlay-content-top-section {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+    #overlaySearchInput {
+        height: 34px;
+        font-size: 0.95rem;
+        padding: 5px 9px;
+    }
 }
 
 .overlay-content-main-section {
-    
+    padding: 0 20px 10px 20px; /* Provide spacing; previously empty rule */
 }
 
 .overlay-content-bottom-section {
@@ -159,6 +200,9 @@
     cursor: pointer;
     transition: transform 160ms ease, box-shadow 160ms ease;
     will-change: transform;
+}
+#addStudentsOverlayBtn {
+    font-size: 1rem;
 }
 
 .role-button:hover {
