@@ -233,8 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const data = await resp.json();
-            console.log(data);
-            renderStudents(data.studentsData);
+            renderStudents(data.students);
             // Wire up search after initial render
             const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
             if (searchInput && !searchInput.dataset.bound) {
