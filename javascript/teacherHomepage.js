@@ -186,11 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const bodyEl = document.getElementById('overlayMainSectionBody');
         if (!studentsOverlay || !bodyEl) return;
         if (!queryNames) {
+            console.log("No query names provided, rendering all students.");
             renderStudents(lastStudentsData);
             return;
         }
-
-        console.log("Query names length:", queryNames.arra);
 
         const filtered = lastStudentsData.filter(s => {
             var studentNames = splitStudentNames(s.full_name);
