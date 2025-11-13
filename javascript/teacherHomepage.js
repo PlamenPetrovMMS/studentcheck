@@ -198,6 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Filtering student:", s);
             console.log(s.full_name);
             console.log(s.faculty_number);
+            console.log("s.full_name.includes(q):", s.full_name.includes(q));
+            console.log("s.faculty_number.includes(q):", s.faculty_number.includes(q));
             return s.full_name.includes(q) || s.faculty_number.includes(q);
         });
         console.log(`Filtered students count: ${filtered.length}`);
