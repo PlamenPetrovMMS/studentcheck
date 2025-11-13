@@ -186,11 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filter function for search input
     const applyStudentSearchFilter = (query) => {
-        const q = query.trim().toLowerCase();
-        console.log("Applying student search filter for query:", q);
+        var queryNames = splitStudentNames(query.trim().toLowerCase());
+        console.log("Applying student search filter for query:", queryNames);
         const bodyEl = document.getElementById('overlayMainSectionBody');
         if (!studentsOverlay || !bodyEl) return;
-        if (!q) {
+        if (!queryNames) {
             renderStudents(lastStudentsData);
             return;
         }
@@ -198,14 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Filtering student:", s);
             console.log(s.full_name);
             console.log(s.faculty_number);
-            const nameLower = (s.full_name || '').toLowerCase();
-            const facultyLower = (s.faculty_number || '').toLowerCase();
-            const nameMatch = nameLower.includes(q);
-            const facultyMatch = facultyLower.includes(q);
-            console.log("nameLower.includes(q):", nameMatch);
-            console.log("facultyLower.includes(q):", facultyMatch);
-            return nameMatch || facultyMatch;
+            var studentNames = splitStudentNames(s.full_name);
+            console.log("Student names split:", studentNames);
+
+            for(let i = 0; i < studentNames.length; i++){
+                for(let j = 0; j < queryNames.length; j++){
+                    console.log("Comparing student name part:", studentNames[i], "with query part:", queryNames[j]);
+                    if(studentNames[i].toLowerCase().includes(queryNames[j])){
+                        return true;
+                    }
+                }
+            }
+            return false;
         });
+
         console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
         // Restore the query after rerender
