@@ -198,9 +198,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Filtering student:", s);
             console.log(s.full_name);
             console.log(s.faculty_number);
-            console.log("s.full_name.includes(q):", s.full_name.includes(q));
-            console.log("s.faculty_number.includes(q):", s.faculty_number.includes(q));
-            return s.full_name.includes(q) || s.faculty_number.includes(q);
+            const nameLower = (s.full_name || '').toLowerCase();
+            const facultyLower = (s.faculty_number || '').toLowerCase();
+            const nameMatch = nameLower.includes(q);
+            const facultyMatch = facultyLower.includes(q);
+            console.log("nameLower.includes(q):", nameMatch);
+            console.log("facultyLower.includes(q):", facultyMatch);
+            return nameMatch || facultyMatch;
         });
         console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
