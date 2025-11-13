@@ -79,13 +79,64 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Overlay visibility applied:", studentsOverlay);
     };
 
+
+
+
+    function splitStudentNames(student) {
+        let names = student.full_name.split(' ');
+        
+        switch(names.length){
+            case 0:
+                return;
+            case 1:
+                fullName = names[0];
+                break;
+            case 2:
+                firstName = names[0];
+                lastName = names[1];
+                fullName = `${firstName} ${lastName}`;
+                break;
+            case 3:
+                firstName = names[0];
+                middleName = names[1];
+                lastName = names[2];
+                fullName = `${firstName} ${middleName} ${lastName}`;
+                break;
+        }
+
+        if(names.length > 3){
+            firstName = names[0];
+            lastName = names[names.length - 1];
+            middleName = names.slice(1, names.length - 1).join(' ');
+            fullName = `${firstName} ${middleName} ${lastName}`;
+        }
+
+        return {
+            firstName,
+            middleName,
+            lastName,
+            fullName
+        };
+    }
+
+
+
+
+
+
     const closeStudentsOverlay = () => {
         if (!studentsOverlay) return;
         studentsOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 
+
+
+
+
+
     let lastStudentsData = [];
+    
     const renderStudents = (students) => {
         console.log('Rendering students:', students);
         const main_section_body = document.getElementById('overlayMainSectionBody');
@@ -101,10 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
         list.style.listStyle = 'none';
         list.style.padding = '0';
         list.style.margin = '0';
+
+        
         
         students.forEach((s, idx) => {
+
             const li = document.createElement('li');
-            // li.style.width = '100%';
+            li.style.width = '100%';
             li.style.display = 'flex';
             li.style.padding = '8px 0';
             li.style.borderBottom = '1px solid #e5e7eb';
@@ -112,7 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Rendering student:', s);
 
-            const fullName = s.full_name;
+            var splitNames = splitStudentNames(s);
+
             const facultyNumber = s.faculty_number;
 
             const div = document.createElement('div');
@@ -127,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.textContent = 'RANDOM';
             checkbox.className = 'studentSelect';
             const checkboxId = `studentSelect_${idx}`;
             checkbox.id = checkboxId;
@@ -136,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
-            label.textContent = `${fullName}  ${facultyNumber}`;
+            label.textContent = `${splitNames.fullName}  ${facultyNumber}`;
             label.style.margin = '0px';
 
             div.appendChild(checkbox);
@@ -170,9 +224,14 @@ document.addEventListener('DOMContentLoaded', () => {
         main_section_body.appendChild(list);
     };
 
+
+
+
+
     // Filter function for search input
     const applyStudentSearchFilter = (query) => {
         const q = query.trim().toLowerCase();
+        console.log("Applying student search filter for query:", q);
         const bodyEl = document.getElementById('overlayMainSectionBody');
         if (!studentsOverlay || !bodyEl) return;
         if (!q) {
@@ -180,19 +239,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const filtered = lastStudentsData.filter(s => {
-            const nameCombined = `${s.full_name || ''}`.toLowerCase();
+            var splitNames = splitStudentNames(s);
+            const firstName = `${splitNames.full_name || ''}`.toLowerCase();
+            const middleName = `${splitNames.middle_name || ''}`.toLowerCase();
+            const lastName = `${splitNames.last_name || ''}`.toLowerCase();
+            const nameCombined = `${firstName} ${middleName} ${lastName}`.trim();
             const facultyStr = `${s.faculty_number || ''}`.toLowerCase();
-            return nameCombined.includes(q) || facultyStr.includes(q);
+            return nameCombined.contains(q) || facultyStr.contains(q);
         });
+        console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
         // Restore the query after rerender
         const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
         if (searchInput) searchInput.value = query;
     };
 
+
+
+
+
+
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
-    ensureStudentsOverlay();
+    // ensureStudentsOverlay();
     openStudentsOverlay();
     const container = document.getElementById('overlayMainSectionBody');
     if (container) container.innerHTML = '<p>Loading...</p>';
