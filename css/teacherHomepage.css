@@ -146,7 +146,7 @@
     padding: 20px;
 }
 
-#closeOverlayBtn {
+.role-button {
     height: 50px;
     width: 100px;
     color: white;
@@ -161,13 +161,13 @@
     will-change: transform;
 }
 
-#closeOverlayBtn:hover {
+.role-button:hover {
     /* Remove scale to keep text crisp; lift with translateY and shadow only */
     transform: translateY(-4px);
     box-shadow: 0 12px 26px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.35);
 }
 
-#closeOverlayBtn:active {
+.role-button:active {
     transform: translateY(-1px);
     box-shadow: 0 8px 18px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.35);
 }
