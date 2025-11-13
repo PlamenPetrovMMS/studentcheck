@@ -39,7 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function splitStudentNames(student) {
-        let names = student.full_name.split(' ');
+        let names;
+        try{
+            names = student.full_name.split(' ');
+        }catch(e){
+            console.error("Error during splitting student names.", e);
+            return student;
+        }
         
         switch(names.length){
             case 0:
