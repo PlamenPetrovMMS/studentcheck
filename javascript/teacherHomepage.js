@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    const studentsOverlay = document.getElementById('overlay');
+    let studentsOverlay = document.getElementById('overlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     const ensureStudentsOverlay = () => {
@@ -73,14 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const openStudentsOverlay = () => {
-        const overlay_div = document.getElementsByClassName('overlay')[0];
-        overlay_div.style.visibility = 'visible';
-        console.log("Overlay visibility applied:", overlay_div);
+        if (!studentsOverlay) return;
+        studentsOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+        console.log("Overlay visibility applied:", studentsOverlay);
     };
 
     const closeStudentsOverlay = () => {
-        const overlay_div = document.getElementsByClassName('overlay')[0];
-        overlay_div.style.visibility = 'hidden';
+        if (!studentsOverlay) return;
+        studentsOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 
@@ -165,12 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("<li> appended to list");
             console.log(li);
         });
+        // Append the built list into the overlay body
+        main_section_body.appendChild(list);
     };
 
     // Filter function for search input
     const applyStudentSearchFilter = (query) => {
         const q = query.trim().toLowerCase();
-        if (!studentsOverlay || !studentsOverlay.querySelector('#studentsContent')) return;
+        const bodyEl = document.getElementById('overlayMainSectionBody');
+        if (!studentsOverlay || !bodyEl) return;
         if (!q) {
             renderStudents(lastStudentsData);
             return;
@@ -182,16 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         renderStudents(filtered);
         // Restore the query after rerender
-        const searchInput = studentsOverlay.querySelector('#studentSearchInput');
+        const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
         if (searchInput) searchInput.value = query;
     };
 
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
-        openStudentsOverlay();
-        ensureStudentsOverlay();
-        const container = studentsOverlay.querySelector('#studentsContent');
-        if (container) container.innerHTML = '<p>Loading...</p>';
+    ensureStudentsOverlay();
+    openStudentsOverlay();
+    const container = document.getElementById('overlayMainSectionBody');
+    if (container) container.innerHTML = '<p>Loading...</p>';
         try {
             console.log("Overlay applied")
             const resp = await fetch('https://studentcheck-server.onrender.com/students', {
@@ -210,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Students data to render:', studentsData);
             renderStudents(studentsData);
             // Wire up search after initial render
-            const searchInput = studentsOverlay.querySelector('#studentSearchInput');
+            const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
             if (searchInput && !searchInput.dataset.bound) {
                 searchInput.addEventListener('input', (e) => {
                     applyStudentSearchFilter(e.target.value);
