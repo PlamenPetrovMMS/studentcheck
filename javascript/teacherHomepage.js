@@ -195,13 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const filtered = lastStudentsData.filter(s => {
-            var splitNames = splitStudentNames(s);
-            const firstName = `${splitNames.full_name || ''}`.toLowerCase();
-            const middleName = `${splitNames.middle_name || ''}`.toLowerCase();
-            const lastName = `${splitNames.last_name || ''}`.toLowerCase();
-            const nameCombined = `${firstName} ${middleName} ${lastName}`.trim();
-            const facultyStr = `${s.faculty_number || ''}`.toLowerCase();
-            return nameCombined.includes(q) || facultyStr.includes(q);
+            return s.fullName.includes(q) || s.facultyNumber.includes(q);
         });
         console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
