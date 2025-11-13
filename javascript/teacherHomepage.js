@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.width = '100%';
             div.style.display = 'flex';
             div.style.alignItems = 'center';
-            div.style.justifyContent = 'center';
+            div.style.justifyContent = 'start';
 
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
@@ -145,13 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (facultyNumber) checkbox.dataset.facultyNumber = facultyNumber;
             checkbox.dataset.name = fullName;
             
-            // const label = document.createElement('label');
-            // label.htmlFor = checkboxId;
-            // label.textContent = `${splitNames.fullName}  ${facultyNumber}`;
-            // label.style.margin = '0px';
+            const label = document.createElement('label');
+            label.htmlFor = checkboxId;
+            label.textContent = `${splitNames.fullName}  ${facultyNumber}`;
+            label.style.margin = '0px';
 
             div.appendChild(checkbox);
-            // div.appendChild(label);
+            div.appendChild(label);
 
             li.appendChild(div);
 
