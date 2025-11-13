@@ -195,10 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const filtered = lastStudentsData.filter(s => {
-            console.log(s.fullName);
-            console.log(s.facultyNumber);
+            console.log(s.full_name);
+            console.log(s.faculty_number);
             console.log("Filtering student:", s);
-            return s.fullName.contains(q) || s.facultyNumber.contains(q);
+            return s.full_name.includes(q) || s.faculty_number.includes(q);
         });
         console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
