@@ -126,8 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
             li.style.borderBottom = '1px solid #e5e7eb';
             li.className = 'list-item';
 
-            console.log('Rendering student:', s);
-
             var splitNames = splitStudentNames(s);
 
             const facultyNumber = s.faculty_number;
@@ -137,9 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.display = 'flex';
             div.style.alignItems = 'center';
             div.style.justifyContent = 'center';
-
-            console.log("Creating div to store checkbox and label...");
-            console.log(div);
 
             // Checkbox + label for selection
             const checkbox = document.createElement('input');
@@ -158,13 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.appendChild(checkbox);
             div.appendChild(label);
 
-            console.log("Appending checkbox and label to div...");
-            console.log(div)
-
             li.appendChild(div);
-
-            console.log("Appending div to list...");
-            console.log(li);
 
             // Highlight on selection
             checkbox.addEventListener('change', () => {
@@ -200,16 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
             renderStudents(lastStudentsData);
             return;
         }
-        const filtered = lastStudentsData.filter(s => {
-            console.log("Filtering student:", s);
-            console.log(s.full_name);
-            console.log(s.faculty_number);
-            var studentNames = splitStudentNames(s.full_name);
-            console.log("Student names split:", studentNames);
 
+        console.log("Query names length:", queryNames.length);
+
+        const filtered = lastStudentsData.filter(s => {
+            var studentNames = splitStudentNames(s.full_name);
+            console.log("Student names length:", studentNames.length);
             for(let i = 0; i < studentNames.length; i++){
                 for(let j = 0; j < queryNames.length; j++){
-                    console.log("Comparing student name part:", studentNames[i], "with query part:", queryNames[j]);
                     if(studentNames[i].toLowerCase().includes(queryNames[j])){
                         return true;
                     }
@@ -232,11 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
-    openStudentsOverlay();
-    const container = document.getElementById('overlayMainSectionBody');
-    if (container) container.innerHTML = '<p>Loading...</p>';
+        openStudentsOverlay();
+        const container = document.getElementById('overlayMainSectionBody');
+        if (container) container.innerHTML = '<p>Loading...</p>';
         try {
-            console.log("Overlay applied")
             const resp = await fetch('https://studentcheck-server.onrender.com/students', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
@@ -247,10 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const data = await resp.json();
-            console.log('Fetched students:', data);
-            console.log('Rendering students...');
-            const studentsData = data.students;
-            console.log('Students data to render:', studentsData);
             renderStudents(studentsData);
             // Wire up search after initial render
             const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
