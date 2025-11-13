@@ -26,51 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let studentsOverlay = document.getElementById('overlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
-    const ensureStudentsOverlay = () => {
-        const buildMarkup = () => `
-            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentsTitle">
-                <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
-                    <h2 id="studentsTitle" style="margin:0;">Students</h2>
-                    <input id="studentSearchInput" type="text" placeholder="Search students..." aria-label="Search students" style="flex:1 1 220px; min-width:160px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px;" />
-                </div>
-                <div id="studentsContent" style="max-height:50vh; overflow:auto;">
-                    <p>Loading...</p>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="closeStudentsBtn" class="secondary">Close</button>
-                </div>
-            </div>`;
-
-        console.log("Attempting to create or upgrade students overlay.");
-        if (!studentsOverlay) {
-            console.log("Creating new overlay element.");
-            studentsOverlay = document.createElement('div');
-            studentsOverlay.id = 'studentsOverlay';
-            studentsOverlay.className = 'overlay hidden';
-            studentsOverlay.innerHTML = buildMarkup();
-            document.body.appendChild(studentsOverlay);
-        } else {
-            // If we found a template or an incomplete node, upgrade it
-            console.log("Upgrading existing overlay element if needed:");
-            if(studentsOverlay.style.visibility !== 'visible'){
-                studentsOverlay.style.visibility = 'visible';
-                console.log("YES");
-            }
-        }
-
-        // Ensure close handlers are wired (idempotent due to identical function references)
-        const closeBtn = studentsOverlay.querySelector('#closeOverlayBtn');
-        closeBtn?.addEventListener('click', () => closeStudentsOverlay());
-        studentsOverlay.addEventListener('click', (e) => {
-            if (e.target === studentsOverlay) closeStudentsOverlay();
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !studentsOverlay.classList.contains('hidden')) {
-                closeStudentsOverlay();
-            }
-        });
-        return studentsOverlay;
-    };
+    
 
     const openStudentsOverlay = () => {
         if (!studentsOverlay) return;
@@ -261,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
-    // ensureStudentsOverlay();
     openStudentsOverlay();
     const container = document.getElementById('overlayMainSectionBody');
     if (container) container.innerHTML = '<p>Loading...</p>';
@@ -300,6 +255,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+
+
+
+
     const attachNewClassButtonBehavior = (buttonEl) => {
         if (!buttonEl) return;
         buttonEl.addEventListener('click', (e) => {
@@ -308,6 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
             addStudentsFromDatabase();
         });
     };
+
+
+
+
+
 
     const persistClasses = () => {
         if (!teacherEmail) return;
@@ -322,6 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+
+
+
+
     const renderClassItem = (name) => {
         const li = document.createElement('li');
         const btn = document.createElement('button');
@@ -331,6 +300,10 @@ document.addEventListener('DOMContentLoaded', () => {
         li.appendChild(btn);
         classList?.appendChild(li);
     };
+
+
+
+
 
     const loadClasses = () => {
         if (!teacherEmail) return;
@@ -351,6 +324,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+
+
+
+
+
     const loadClassesStudents = () => {
         var classes = localStorage.getItem(storageKey(teacherEmail));
         if(!classes){
@@ -361,6 +339,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
         }
     }
+
+
+
+
+
 
     // Build a reusable overlay + modal dialog dynamically (no HTML changes needed)
     let overlay = document.getElementById('classOverlay');
