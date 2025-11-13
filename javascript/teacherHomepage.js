@@ -145,13 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (facultyNumber) checkbox.dataset.facultyNumber = facultyNumber;
             checkbox.dataset.name = fullName;
             
-            const label = document.createElement('label');
-            label.htmlFor = checkboxId;
-            label.textContent = `${splitNames.fullName}  ${facultyNumber}`;
-            label.style.margin = '0px';
+            // const label = document.createElement('label');
+            // label.htmlFor = checkboxId;
+            // label.textContent = `${splitNames.fullName}  ${facultyNumber}`;
+            // label.style.margin = '0px';
 
             div.appendChild(checkbox);
-            div.appendChild(label);
+            // div.appendChild(label);
 
             li.appendChild(div);
 
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        console.log("Query names length:", queryNames.length);
+        console.log("Query names length:", queryNames.arra);
 
         const filtered = lastStudentsData.filter(s => {
             var studentNames = splitStudentNames(s.full_name);
