@@ -195,6 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const filtered = lastStudentsData.filter(s => {
+            console.log(s.fullName);
+            console.log(s.facultyNumber);
+            console.log("Filtering student:", s);
             return s.fullName.includes(q) || s.facultyNumber.includes(q);
         });
         console.log(`Filtered students count: ${filtered.length}`);
