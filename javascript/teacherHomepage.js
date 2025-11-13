@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const lastName = `${splitNames.last_name || ''}`.toLowerCase();
             const nameCombined = `${firstName} ${middleName} ${lastName}`.trim();
             const facultyStr = `${s.faculty_number || ''}`.toLowerCase();
-            return nameCombined.contains(q) || facultyStr.contains(q);
+            return nameCombined.includes(q) || facultyStr.includes(q);
         });
         console.log(`Filtered students count: ${filtered.length}`);
         renderStudents(filtered);
