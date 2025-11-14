@@ -7,26 +7,25 @@
     <link rel="stylesheet" href="css/studentLogin.css">
 </head>
 <body>
-    <main class="login-container">
-        <h1>Login</h1>
+    <main class="card" role="form" aria-labelledby="loginTitle">
+        <div class="card-header">
+            <h1 id="loginTitle" class="title">Student Log in</h1>
+        </div>
         <form id="studentLoginForm" method="post" novalidate>
-            <div class="form-field">
+            <div class="field">
                 <label for="facultyNumber">Faculty Number</label>
                 <input type="text" id="facultyNumber" name="facultyNumber" placeholder="Enter your faculty number" autocomplete="username" required>
             </div>
-
-            <div class="form-field">
+            <div class="field">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
             </div>
-
-            <p id="error-message"></p>
-
-            <div class="form-actions">
-                <button type="submit" class="login-button">Log in</button>
+            <p id="error-message" class="error" role="alert" aria-live="polite"></p>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Log in</button>
             </div>
         </form>
-        <p class="muted"><a href="registration.html">Register Here</a></p>
+        <p class="muted">Don’t have an account? <a href="registration.html">Register here</a></p>
     </main>
     <script src="javascript/studentLogin.js"></script>
 </body>

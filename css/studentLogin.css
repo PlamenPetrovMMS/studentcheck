@@ -1,149 +1,22 @@
-/* --- Login layout --- */
-/* Basic reset to prevent mobile overflow */
-html, body { 
-	margin: 0; 
-	padding: 0; 
-	height:100%; 
+/* Student login adopts registration theme */
+@import url('registration.css');
+
+/* Optional tweaks unique to login (if any) can go below */
+/* Center the single button in actions area */
+.actions { justify-content: center; }
+
+/* Ensure error message spacing consistent */
+#error-message.error { margin-top: -6px; }
+
+/* Add comfortable padding to the main card container */
+main.card {
+	padding: 24px;
 }
 
-*, *::before, *::after {
-	box-sizing: border-box; 
+@media (min-width: 480px) {
+	main.card { padding: 28px; }
 }
 
-body {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:16px; /* breathing room on small devices */
-    min-height:100dvh; /* handle mobile viewport */
-}
-
-.login-container {
-	width:100%;
-	max-width:340px; /* slightly narrower */
-	margin:0; /* centered by flex parent */
-	padding:18px 18px;
-	background:#ffffff;
-	border-radius:12px;
-	box-shadow:0 10px 24px rgba(0,0,0,0.08);
-}
-
-.form-field {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-bottom: 16px;
-}
-
-.form-field label {
-	font-weight: 600;
-}
-
-.form-field input[type="text"],
-.form-field input[type="password"] {
-	padding: 12px 14px;
-	font-size: 1rem;
-	border: 1px solid #d1d5db;
-	border-radius: 8px;
-	outline: none;
-	transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-field input:focus {
-	border-color: #2563eb;
-	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-}
-
-.form-actions {
-	display: flex;
-	justify-content: center;
-	margin-top: 8px;
-}
-
-.muted {
-	text-align: center;
-	color: #6b7280;
-	margin-top: 12px;
-}
-
-.muted a { color: #2563eb; text-decoration: none; }
-.muted a:hover { text-decoration: underline; }
-
-/* Button styles */
-
-.login-button {
-	margin-top: 20px;
-	font-size: 1.4rem; /* slightly smaller for tighter box */
-	padding: 14px 28px;
-	min-width: 200px;
-	border-radius: 10px;
-	border: 2px solid #2563eb;
-	background-color: #3b82f6;
-	color: #fff;
-	cursor: pointer;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-	transition: transform 0.05s ease-out, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-.login-button:hover {
-	background-color: #2563eb;
-	border-color: #1d4ed8;
-	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.login-button:active {
-	transform: translateY(3px);
-}
-
-.login-button:focus-visible {
-	outline: 3px solid #f59e0b;
-	outline-offset: 2px;
-}
-
-/* --- Full-page loading overlay --- */
-.loading-overlay {
-	position: fixed;
-	inset: 0; /* top:0; right:0; bottom:0; left:0 */
-	background: rgba(17, 24, 39, 0.6); /* gray-900 @ 60% */
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
-	z-index: 9999;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.loading-box {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	background: rgba(255,255,255,0.85);
-	color: #111827; /* gray-900 */
-	padding: 14px 18px;
-	border-radius: 12px;
-	box-shadow: 0 10px 24px rgba(0,0,0,0.15);
-}
-
-.loading-text {
-	font-weight: 700;
-	font-size: 1.125rem;
-}
-
-.spinner {
-	width: 22px;
-	height: 22px;
-	border-radius: 50%;
-	border: 3px solid rgba(37, 99, 235, 0.25);
-	border-top-color: #2563eb; /* blue-600 */
-	animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-	to { transform: rotate(360deg); }
-}
-
-/* Responsive tweaks for very small screens */
-@media (max-width:480px){
-	body{padding:12px;}
-	.login-container{max-width:300px;padding:16px 16px;}
-	.login-button{font-size:1.2rem;padding:12px 22px;min-width:170px;}
+@media (min-width: 768px) {
+	main.card { padding: 32px; }
 }
