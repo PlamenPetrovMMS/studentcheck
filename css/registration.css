@@ -59,6 +59,7 @@ body {
 
 /* Actions */
 .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 22px 20px 22px; border-top: 1px solid #e5e7eb; }
+.actions.single-right { justify-content: flex-end; }
 
 .btn { appearance: none; border: none; border-radius: 10px; padding: 12px 18px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 60ms ease-out, box-shadow 0.2s ease, background-color 0.2s ease; }
 

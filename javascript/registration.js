@@ -9,6 +9,7 @@
     const backBtn = document.getElementById('backBtn');
     const nextBtn = document.getElementById('nextBtn');
     const finishBtn = document.getElementById('finishBtn');
+    const actions = document.querySelector('.actions'); // container for navigation buttons
 
     const firstName = document.getElementById('firstName');
     const middleName = document.getElementById('middleName');
@@ -52,8 +53,12 @@
             nextBtn.style.display = 'none';
             finishBtn.classList.remove('finish-hidden');
         }
-    // Update contact validation only when on contact slide (index 1) in original order.
-    liveContactValidation();
+        // On first slide align the lone Continue button to the right
+        if (actions) {
+            if (step === 0) actions.classList.add('single-right');
+            else actions.classList.remove('single-right');
+        }
+    // Removed automatic contact live validation so slide 2 errors only appear after user clicks Continue.
     }
 
     // Slide 1: Names (middle name now required)
@@ -72,17 +77,21 @@
     function validateEmailFormat(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
     // Slide 2 (index 1): Contact (email + faculty number)
+    let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
     function validateContact() {
         const { valid, message, normalized, debug } = getContactState();
         dbg('validateContact state=', debug);
         if (!valid) {
+            contactErrorActivated = true; // user attempted to proceed
             errorSlide2.textContent = message;
             errorSlide2.style.display = 'block';
             return false;
         }
         facultyNumber.value = normalized; // commit normalized value
-        errorSlide2.textContent = '';
-        errorSlide2.style.display = '';
+        if (contactErrorActivated) {
+            errorSlide2.textContent = '';
+            errorSlide2.style.display = 'none';
+        }
         return true;
     }
 
@@ -108,31 +117,27 @@
 
     let lastDuplicateEmail = null; // tracks last server-rejected email to clear red state on change
     function liveContactValidation() {
-        if (step !== 1) return; // contact is slide index 1 in reverted order
+        // Only perform live updates if user has already triggered error display OR duplicate email state is active.
+        if (step !== 1) return;
         const currentEmail = email.value.trim();
-        // Preserve server-side duplicate message until the user changes the email
         if (lastDuplicateEmail) {
             if (currentEmail === lastDuplicateEmail) {
-                if (!errorSlide2.textContent) {
-                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
-                }
                 errorSlide2.style.display = 'block';
-                // Do not overwrite server error while email hasn't changed
                 return;
             } else {
-                // User changed the email -> clear server duplicate state and validate normally
                 email.classList.remove('invalid');
                 lastDuplicateEmail = null;
+                contactErrorActivated = true; // allow live validation after duplicate cleared
             }
         }
-
+        if (!contactErrorActivated) return; // user hasn't clicked Continue yet; stay silent
         const { valid, message, debug } = getContactState();
         dbg('liveContactValidation state=', debug);
-        errorSlide2.textContent = valid ? '' : message;
         if (valid) {
-            email.classList.remove('invalid');
-            errorSlide2.style.display = '';
+            errorSlide2.textContent = '';
+            errorSlide2.style.display = 'none';
         } else {
+            errorSlide2.textContent = message;
             errorSlide2.style.display = 'block';
         }
     }
@@ -237,6 +242,7 @@
                     // Prepare duplicate state BEFORE updating UI so live validator preserves the message
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
+                    contactErrorActivated = true;
                     errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     errorSlide2.style.display = 'block';
                     step = 1; // ensure contact slide visible
@@ -262,6 +268,7 @@
                     // Prepare duplicate state BEFORE updating UI so live validator preserves the message
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
+                    contactErrorActivated = true;
                     errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     errorSlide2.style.display = 'block';
                     step = 1; updateUI();
@@ -297,6 +304,8 @@
         }
     });
 
+    // Hide contact error initially until user attempts to Continue.
+    if (errorSlide2) errorSlide2.style.display = 'none';
     updateUI();
     focusFirstInput();
     
