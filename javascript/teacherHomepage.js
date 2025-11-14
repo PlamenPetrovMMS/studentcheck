@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
+    // FIX THIS
 
     // Filter function for search input (multi-token, case-insensitive, matches name or faculty number).
     const applyStudentSearchFilter = (query) => {
