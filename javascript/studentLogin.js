@@ -90,3 +90,25 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
     }
 
 });
+
+// Password reveal/hide toggle (supports multiple fields)
+document.querySelectorAll('.password-wrapper').forEach(wrapper => {
+    const input = wrapper.querySelector('input[type="password"], input[type="text"]');
+    const btn = wrapper.querySelector('.toggle-password');
+    if (!input || !btn) return;
+    const img = btn.querySelector('img');
+    const setState = (show) => {
+        // show=true -> reveal text
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', String(show));
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        if (img) {
+            img.src = show ? 'icons/hide.svg' : 'icons/show.svg';
+            img.alt = show ? 'Hide password' : 'Show password';
+        }
+    };
+    btn.addEventListener('click', () => {
+        const willShow = input.type === 'password';
+        setState(willShow);
+    });
+});

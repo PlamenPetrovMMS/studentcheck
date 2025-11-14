@@ -65,3 +65,48 @@ main.card {
 	@keyframes spin {
 		to { transform: rotate(360deg); }
 	}
+
+		/* Password reveal/hide styles */
+		.password-wrapper {
+			position: relative;
+			display: block;
+			width: 100%;
+		}
+
+		.password-wrapper input[type="password"],
+		.password-wrapper input[type="text"] {
+			width: 100%;
+			padding-right: 56px; /* reserve space for the toggle button */
+			box-sizing: border-box;
+		}
+
+		.toggle-password {
+			position: absolute;
+			right: 8px;
+			top: 50%;
+			transform: translateY(-50%);
+			background: transparent;
+			border: none;
+			cursor: pointer;
+			width: 36px;
+			height: 36px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 1;
+			padding: 0;
+			border-radius: 8px;
+			color: #374151; /* gray-700 */
+			transition: background-color 0.15s ease, color 0.15s ease;
+			z-index: 1;
+		}
+
+		.toggle-password img {
+			width: 20px;
+			height: 20px;
+			pointer-events: none;
+		}
+
+		.toggle-password:hover { background: #f3f4f6; }
+		.toggle-password:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+		.toggle-password[aria-pressed="true"] { color: #2563eb; }

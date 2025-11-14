@@ -1,4 +1,6 @@
-/* Teacher Login styles – mirrored from studentLogin.css */
+/* Teacher Login styles – import shared registration theme for consistent base */
+@import url('registration.css');
+/* Additional teacher-specific rules below */
 /* --- Auth/Login layout --- */
 .auth-container {
 	width: 100%;
@@ -119,6 +121,15 @@
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
+}
+
+/* Responsive padding to match student login card feel */
+@media (min-width: 480px) {
+	.auth-container { padding: 28px; }
+}
+
+@media (min-width: 768px) {
+	.auth-container { padding: 32px; }
 }
 
 /* Inline error message with X icon */

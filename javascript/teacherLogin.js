@@ -113,20 +113,24 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     }
 });
 
-// Password eye toggle logic
-const passwordInput = document.getElementById('password');
-const toggleBtn = document.getElementById('togglePassword');
-if (passwordInput && toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-        const isHidden = passwordInput.type === 'password';
-        passwordInput.type = isHidden ? 'text' : 'password';
-        toggleBtn.setAttribute('aria-pressed', String(isHidden));
-        toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-        // Swap icon images
-        const img = toggleBtn.querySelector('img');
+// Password reveal/hide toggle (supports multiple fields)
+document.querySelectorAll('.password-wrapper').forEach(wrapper => {
+    const input = wrapper.querySelector('input[type="password"], input[type="text"]');
+    const btn = wrapper.querySelector('.toggle-password');
+    if (!input || !btn) return;
+    const img = btn.querySelector('img');
+    const setState = (show) => {
+        // show=true -> reveal text
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', String(show));
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
         if (img) {
-            img.src = isHidden ? 'icons/hide.png' : 'icons/show.png';
-            img.alt = isHidden ? 'Hide' : 'Show';
+            img.src = show ? 'icons/hide.svg' : 'icons/show.svg';
+            img.alt = show ? 'Hide password' : 'Show password';
         }
+    };
+    btn.addEventListener('click', () => {
+        const willShow = input.type === 'password';
+        setState(willShow);
     });
-}
+});
