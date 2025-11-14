@@ -216,8 +216,8 @@
                 try { data = await resp.json(); } catch(_) { data = null; }
                 const serverMsg = data && (data.message || data.error || data.detail) || (resp.status + ' ' + resp.statusText);
                 if (/duplicate|exists|already/i.test(serverMsg) && email) {
-                    // Show inline error on contact slide and navigate user back there
-                    errorSlide2.textContent = 'This email is already registered. Please use another one.';
+                    // Show inline error on contact slide and navigate user back there with clear explanation
+                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     step = 1; // ensure contact slide visible
                     updateUI();
                     lastDuplicateEmail = email.value.trim();
@@ -240,7 +240,7 @@
                 window.location.href = 'studentHomepage.html';
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
-                    errorSlide2.textContent = 'This email is already registered. Please use another one.';
+                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     step = 1; updateUI();
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
