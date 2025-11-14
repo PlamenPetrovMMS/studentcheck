@@ -202,6 +202,7 @@
             });
 
             let data;
+            console.log('Response status:', resp.status, resp.statusText);
             if (!resp.ok) {
                 // Try to parse JSON error payload for more detail (e.g. duplicate email)
                 try { data = await resp.json(); } catch(_) { data = null; }
