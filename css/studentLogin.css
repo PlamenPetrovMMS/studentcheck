@@ -110,3 +110,6 @@ main.card {
 		.toggle-password:hover { background: #f3f4f6; }
 		.toggle-password:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 		.toggle-password[aria-pressed="true"] { color: #2563eb; }
+
+		/* Extra spacing above first field (Faculty Number) for clearer separation from header */
+		form#studentLoginForm .field:first-child { margin-top: 12px; }
