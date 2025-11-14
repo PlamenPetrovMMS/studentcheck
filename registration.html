@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Registration</title>
-        <link rel="stylesheet" href="css/registration.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/registration.css">
 </head>
 <body>
+    <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
+        <img src="images/student_check-removebg.png" alt="Home">
+    </button>
         <main class="card" role="form" aria-labelledby="signupTitle">
             <div class="card-header">
                 <h1 id="signupTitle" class="title">Create your account</h1>
@@ -81,6 +85,7 @@
             <p class="muted">Already have an account? <a href="studentLogin.html">Log in</a></p>
         </main>
 
-        <script src="javascript/registration.js"></script>
+    <script src="javascript/shared.js"></script>
+    <script src="javascript/registration.js"></script>
 </body>
 </html>

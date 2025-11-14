@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Login</title>
+    <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/teacherLogin.css">
 </head>
 <body>
+    <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
+        <img src="images/student_check-removebg.png" alt="Home">
+    </button>
     <main class="auth-container">
         <h1>Teacher Login</h1>
         <form id="teacherLoginForm" method="post" novalidate>
@@ -31,6 +35,7 @@
             <p id="error-message" class="error-message" role="alert" aria-live="polite"></p>
         </form>
     </main>
+    <script src="javascript/shared.js"></script>
     <script src="javascript/teacherLogin.js"></script>
 </body>
 </html>

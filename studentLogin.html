@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Login</title>
+    <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/studentLogin.css">
 </head>
 <body>
+    <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
+        <img src="images/student_check-removebg.png" alt="Home">
+    </button>
     <main class="card" role="form" aria-labelledby="loginTitle">
         <div class="card-header">
             <h1 id="loginTitle" class="title">Student Log in</h1>
@@ -32,6 +36,7 @@
         </form>
         <p class="muted">Don’t have an account? <a href="registration.html">Register here</a></p>
     </main>
+    <script src="javascript/shared.js"></script>
     <script src="javascript/studentLogin.js"></script>
 </body>
 </html>

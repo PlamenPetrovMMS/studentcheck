@@ -1,0 +1,33 @@
+/* Reusable navbar logo component */
+
+.navbar-logo {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 126px;
+  height: 126px;
+  border-radius: 10px;
+  background: transparent;
+  display: block;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  box-shadow: none; /* remove any box glow/white feel */
+  z-index: 10000;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.navbar-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+  display: block;
+}
+
+.navbar-logo:active { transform: translateY(1px); }
+
+@media (max-width: 480px) {
+  .navbar-logo { top: 10px; left: 10px; width: 48px; height: 48px; }
+}
