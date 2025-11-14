@@ -107,14 +107,24 @@
     let lastDuplicateEmail = null; // tracks last server-rejected email to clear red state on change
     function liveContactValidation() {
         if (step !== 1) return; // contact is slide index 1 in reverted order
+        const currentEmail = email.value.trim();
+        // Preserve server-side duplicate message until the user changes the email
+        if (lastDuplicateEmail) {
+            if (currentEmail === lastDuplicateEmail) {
+                if (!errorSlide2.textContent) {
+                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                }
+                // Do not overwrite server error while email hasn't changed
+                return;
+            } else {
+                // User changed the email -> clear server duplicate state and validate normally
+                email.classList.remove('invalid');
+                lastDuplicateEmail = null;
+            }
+        }
+
         const { valid, message, debug } = getContactState();
         dbg('liveContactValidation state=', debug);
-        const currentEmail = email.value.trim();
-        // If user changed the email since duplicate error, clear invalid state
-        if (lastDuplicateEmail && currentEmail !== lastDuplicateEmail) {
-            email.classList.remove('invalid');
-            lastDuplicateEmail = null;
-        }
         errorSlide2.textContent = valid ? '' : message;
         if (valid) email.classList.remove('invalid');
     }
