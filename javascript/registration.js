@@ -201,12 +201,24 @@
                 body: JSON.stringify(payload)
             });
 
+            let data;
             if (!resp.ok) {
-                const msg = 'Registration failed: ' + resp.status + ' ' + resp.statusText;
-                alert(msg);
+                // Try to parse JSON error payload for more detail (e.g. duplicate email)
+                try { data = await resp.json(); } catch(_) { data = null; }
+                const serverMsg = data && (data.message || data.error || data.detail) || (resp.status + ' ' + resp.statusText);
+                if (/duplicate|exists|already/i.test(serverMsg) && email) {
+                    // Show inline error on contact slide and navigate user back there
+                    errorSlide2.textContent = 'This email is already registered. Please use another one.';
+                    step = 1; // ensure contact slide visible
+                    updateUI();
+                    email.focus();
+                    return;
+                }
+                alert('Registration failed: ' + serverMsg);
                 return;
+            } else {
+                data = await resp.json();
             }
-            const data = await resp.json();
             dbg('Server response', data);
             if (data && (data.registrationSuccess || data.success)) {
                 // Optionally store token if provided
@@ -216,7 +228,12 @@
                 alert('Registration successful! Redirecting...');
                 window.location.href = 'studentHomepage.html';
             } else {
-                alert('Registration failed: ' + (data.message || 'Unknown error'));
+                if (/duplicate|exists|already/i.test(data.message || '')) {
+                    errorSlide2.textContent = 'This email is already registered. Please use another one.';
+                    step = 1; updateUI(); email.focus();
+                } else {
+                    alert('Registration failed: ' + (data.message || 'Unknown error'));
+                }
             }
         } catch (e) {
             console.error('Registration request failed:', e);
