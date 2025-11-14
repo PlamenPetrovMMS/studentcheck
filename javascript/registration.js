@@ -278,4 +278,27 @@
 
     updateUI();
     focusFirstInput();
+    
+    // Password reveal/hide: single toggle controls both password fields
+    (function(){
+        const pwInput = document.getElementById('password');
+        const repeatInput = document.getElementById('repeatPassword');
+        const pwBtn = document.querySelector('.password-wrapper .toggle-password');
+        if (!pwInput || !repeatInput || !pwBtn) return;
+        const img = pwBtn.querySelector('img');
+        const setState = (show) => {
+            pwInput.type = show ? 'text' : 'password';
+            repeatInput.type = show ? 'text' : 'password';
+            pwBtn.setAttribute('aria-pressed', String(show));
+            pwBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            if (img) {
+                img.src = show ? 'icons/hide.svg' : 'icons/show.svg';
+                img.alt = show ? 'Hide password' : 'Show password';
+            }
+        };
+        pwBtn.addEventListener('click', () => {
+            const willShow = pwInput.type === 'password';
+            setState(willShow);
+        });
+    })();
 })();
