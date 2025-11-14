@@ -51,6 +51,10 @@ body {
 .field input { padding: 12px 14px; font-size: 1rem; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; width: 100%; max-width: 460px; }
 .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
 
+/* Explicit invalid state styling (e.g., duplicate email from server) */
+.field input.invalid { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.15); }
+.field input.invalid:focus { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.25); }
+
 .error { margin-top: -6px; font-size: 0.9rem; color: #b91c1c; min-height: 1.1em; }
 
 /* Actions */

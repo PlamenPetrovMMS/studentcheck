@@ -104,11 +104,19 @@
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
     }
 
+    let lastDuplicateEmail = null; // tracks last server-rejected email to clear red state on change
     function liveContactValidation() {
         if (step !== 1) return; // contact is slide index 1 in reverted order
         const { valid, message, debug } = getContactState();
         dbg('liveContactValidation state=', debug);
+        const currentEmail = email.value.trim();
+        // If user changed the email since duplicate error, clear invalid state
+        if (lastDuplicateEmail && currentEmail !== lastDuplicateEmail) {
+            email.classList.remove('invalid');
+            lastDuplicateEmail = null;
+        }
         errorSlide2.textContent = valid ? '' : message;
+        if (valid) email.classList.remove('invalid');
     }
 
     // Slide 3 (index 2): Passwords
@@ -212,6 +220,8 @@
                     errorSlide2.textContent = 'This email is already registered. Please use another one.';
                     step = 1; // ensure contact slide visible
                     updateUI();
+                    lastDuplicateEmail = email.value.trim();
+                    email.classList.add('invalid');
                     email.focus();
                     return;
                 }
@@ -231,7 +241,10 @@
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
                     errorSlide2.textContent = 'This email is already registered. Please use another one.';
-                    step = 1; updateUI(); email.focus();
+                    step = 1; updateUI();
+                    lastDuplicateEmail = email.value.trim();
+                    email.classList.add('invalid');
+                    email.focus();
                 } else {
                     alert('Registration failed: ' + (data.message || 'Unknown error'));
                 }
