@@ -77,10 +77,12 @@
         dbg('validateContact state=', debug);
         if (!valid) {
             errorSlide2.textContent = message;
+            errorSlide2.style.display = 'block';
             return false;
         }
         facultyNumber.value = normalized; // commit normalized value
         errorSlide2.textContent = '';
+        errorSlide2.style.display = '';
         return true;
     }
 
@@ -114,6 +116,7 @@
                 if (!errorSlide2.textContent) {
                     errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
                 }
+                errorSlide2.style.display = 'block';
                 // Do not overwrite server error while email hasn't changed
                 return;
             } else {
@@ -126,7 +129,12 @@
         const { valid, message, debug } = getContactState();
         dbg('liveContactValidation state=', debug);
         errorSlide2.textContent = valid ? '' : message;
-        if (valid) email.classList.remove('invalid');
+        if (valid) {
+            email.classList.remove('invalid');
+            errorSlide2.style.display = '';
+        } else {
+            errorSlide2.style.display = 'block';
+        }
     }
 
     // Slide 3 (index 2): Passwords
@@ -228,6 +236,7 @@
                 if (/duplicate|exists|already/i.test(serverMsg) && email) {
                     // Show inline error on contact slide and navigate user back there with clear explanation
                     errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide2.style.display = 'block';
                     step = 1; // ensure contact slide visible
                     updateUI();
                     lastDuplicateEmail = email.value.trim();
@@ -251,6 +260,7 @@
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
                     errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide2.style.display = 'block';
                     step = 1; updateUI();
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
