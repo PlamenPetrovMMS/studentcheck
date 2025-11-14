@@ -259,7 +259,8 @@
             if (data && (data.registrationSuccess || data.success)) {
                 // Optionally store token if provided
                 if (data.token) {
-                    try { localStorage.setItem('authToken', data.token); } catch (_) {}
+                    // Store token ONLY in sessionStorage so closing the tab ends implicit login.
+                    try { sessionStorage.setItem('authToken', data.token); } catch (_) {}
                 }
                 alert('Registration successful! Redirecting...');
                 window.location.href = 'studentHomepage.html';

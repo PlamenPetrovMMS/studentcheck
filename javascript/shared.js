@@ -1,50 +1,30 @@
 // Shared navbar logo click handler
-// Detects login status and role, then redirects accordingly
+// Uses ONLY sessionStorage so login dies with the tab/window.
 (function(){
   function getAuthStatus() {
+    // Student session data set by studentLogin.js
     try {
-      // Student: stored in sessionStorage by studentLogin
       const studentData = sessionStorage.getItem('studentData');
-      if (studentData) {
-        return { loggedIn: true, role: 'student' };
-      }
+      if (studentData) return { loggedIn: true, role: 'student' };
     } catch(_) {}
-
+    // Teacher session data set by teacherLogin.js
     try {
-      // Teacher: lastTeacherEmail stored in localStorage by teacherLogin
-      const lastTeacher = localStorage.getItem('lastTeacherEmail');
-      if (lastTeacher) {
-        return { loggedIn: true, role: 'teacher' };
-      }
+      const teacherData = sessionStorage.getItem('teacherData');
+      if (teacherData) return { loggedIn: true, role: 'teacher' };
     } catch(_) {}
-
-    try {
-      // Optional future: explicit role/token
-      const role = localStorage.getItem('authRole');
-      const token = localStorage.getItem('authToken');
-      if (token && (role === 'student' || role === 'teacher')) {
-        return { loggedIn: true, role };
-      }
-    } catch(_) {}
-
+    // authToken optional; stored in sessionStorage after registration/login if needed
+    // We don't infer role from token alone to avoid accidental auto-login.
     return { loggedIn: false, role: null };
   }
 
   function handleLogoClick() {
     const { loggedIn, role } = getAuthStatus();
     if (loggedIn) {
-      if (role === 'student') {
-        window.location.href = 'studentHomepage.html';
-        return;
-      }
-      if (role === 'teacher') {
-        window.location.href = 'teacherHomepage.html';
-        return;
-      }
+      window.location.href = role === 'teacher' ? 'teacherHomepage.html' : 'studentHomepage.html';
+    } else {
+      window.location.href = 'index.html';
     }
-    window.location.href = 'index.html';
   }
 
-  // Expose to global for inline onclick usage
   window.handleLogoClick = handleLogoClick;
 })();
