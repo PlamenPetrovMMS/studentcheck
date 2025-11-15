@@ -581,6 +581,24 @@ body {
     border-color: #2563eb; /* blue-600 */
     box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
 }
+
+/* Mobile adjustments: fit side-by-side and reduce height by ~30px overall */
+@media (max-width: 480px) {
+    #scannerOverlay .mode-toggle-group {
+        width: 100%;
+        gap: 8px;
+        flex-wrap: nowrap; /* keep them next to each other */
+    }
+    #scannerOverlay .mode-toggle {
+        flex: 1 1 0;
+    }
+    #scannerOverlay .mode-toggle .mode-label {
+        min-width: 0;   /* allow shrinking */
+        width: 100%;
+        padding: 10px 12px; /* shorter: roughly 30px less total height than larger buttons */
+        font-size: 1rem;
+    }
+}
 #scannerOverlay .camera-container {
     width: 100%;
     max-width: 440px;
