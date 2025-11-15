@@ -255,10 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return { fullName: s.fullName || '', facultyNumber: s.facultyNumber || '' };
         });
         persistClassStudents(className, studentsForClass);
-        // Persist classes & readiness
-        persistClasses();
+        // Persist readiness only (no legacy class list or assignments object)
         persistReadyClasses();
-        persistAssignments();
         // Update button style
         const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
         if (btn) {
@@ -373,10 +371,10 @@ document.addEventListener('DOMContentLoaded', () => {
         manageStudentsOverlay.innerHTML = `
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
                 <h2 id="manageStudentsTitle">Manage Students</h2>
-                <div class="manage-header-actions" style="display:flex; justify-content:center; gap:12px; margin: 6px 0 14px 0;">
+                <div id="manageStudentsList" class="manage-students-list"></div>
+                <div class="manage-footer-actions">
                     <button type="button" id="backToReadyBtn" class="role-button">Back</button>
                 </div>
-                <div id="manageStudentsList" class="manage-students-list"></div>
                 <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close">×</button>
             </div>`;
         document.body.appendChild(manageStudentsOverlay);
@@ -878,20 +876,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadClasses = () => {
         if (!teacherEmail) return;
-        const key = storageKey(teacherEmail);
+        const prefix = `teacher:class:${teacherEmail}:`;
         try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return;
-            const names = JSON.parse(raw);
-
-            console.log('Loaded classes from storage:', names);
-
-            if (Array.isArray(names)) {
-                names.forEach(renderClassItem);
+            const classNames = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(prefix)) {
+                    const raw = localStorage.getItem(k);
+                    try {
+                        const obj = JSON.parse(raw);
+                        const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
+                        if (name && !classNames.includes(name)) classNames.push(name);
+                    } catch {}
+                }
             }
-
+            classNames.forEach(renderClassItem);
         } catch (e) {
-            console.warn('Failed to load classes:', e);
+            console.warn('Failed to load classes (per-class items):', e);
         }
     };
 
@@ -977,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Append new class item with the provided name and persist
         renderClassItem(name);
-        persistClasses();
+        // Do not persist legacy class list anymore
         closeModal();
     });
 
@@ -1015,9 +1016,19 @@ document.addEventListener('DOMContentLoaded', () => {
         addStudentsOverlayBtn.dataset.bound = 'true';
     }
 
+    // Cleanup legacy storage so only per-class items remain
+    (function cleanupLegacyClassStorage(){
+        try {
+            if (!teacherEmail) return;
+            const keyList = storageKey(teacherEmail);
+            const keyAssignments = storageKey(teacherEmail) + ':assignments';
+            if (keyList) localStorage.removeItem(keyList);
+            if (keyAssignments) localStorage.removeItem(keyAssignments);
+        } catch(e){ console.warn('Legacy storage cleanup failed', e); }
+    })();
+
     // Load readiness and apply to existing classes
     loadReadyClasses();
-    loadAssignments();
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
 });
 
