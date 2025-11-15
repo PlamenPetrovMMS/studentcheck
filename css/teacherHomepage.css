@@ -698,6 +698,11 @@ body {
         font-size: 0.95rem;
 }
 
+/* Align Attendance overlay footer actions to the right */
+#attendanceOverlay .manage-footer-actions {
+    justify-content: flex-end;
+}
+
 /* Override global mobile bump: keep the attendance footer button compact on small screens */
 @media (max-width: 480px) {
     #attendanceOverlay .manage-footer-actions .role-button {
