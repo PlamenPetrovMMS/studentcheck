@@ -13,6 +13,9 @@ main.card { padding: 24px; }
 /* If using an inner section wrapper, keep consistent spacing */
 .card-section { padding: 0; }
 
+/* Add a little breathing room before the first field (Email), matching student login */
+form#teacherLoginForm .field:first-child { margin-top: 12px; }
+
 /* Ensure navbar logo sits under the loading overlay so it also blurs */
 .navbar-logo {
 	z-index: 9000; /* overlay uses 9999 */
