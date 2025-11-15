@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             openManageStudentsOverlay((className || '').trim());
         });
         scannerBtn?.addEventListener('click', () => { startScanner(); });
-        closeBtn?.addEventListener('click', () => closeReadyClassPopup());
+        closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
         return readyPopupOverlay;
@@ -373,18 +373,18 @@ document.addEventListener('DOMContentLoaded', () => {
         manageStudentsOverlay.innerHTML = `
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
                 <h2 id="manageStudentsTitle">Manage Students</h2>
+                <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
                 <div id="manageStudentsList" class="manage-students-list"></div>
                 <div class="manage-footer-actions">
                     <button type="button" id="backToReadyBtn" class="role-button">Back</button>
                 </div>
-                <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close">×</button>
             </div>`;
         document.body.appendChild(manageStudentsOverlay);
         manageStudentsListEl = manageStudentsOverlay.querySelector('#manageStudentsList');
         const backBtn = manageStudentsOverlay.querySelector('#backToReadyBtn');
         const closeBtn = manageStudentsOverlay.querySelector('#closeManageOverlayBtn');
         backBtn?.addEventListener('click', () => returnToReadyClassPopup(currentClassName));
-        closeBtn?.addEventListener('click', () => returnToReadyClassPopup(currentClassName));
+        closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         manageStudentsOverlay.addEventListener('click', (e) => { if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && manageStudentsOverlay.style.visibility === 'visible') returnToReadyClassPopup(currentClassName); });
         return manageStudentsOverlay;
@@ -517,6 +517,16 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.setAttribute('role', 'dialog');
         wrapper.setAttribute('aria-modal', 'true');
         wrapper.innerHTML = '';
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'close-small';
+        closeBtn.setAttribute('aria-label','Close');
+        closeBtn.textContent = '×';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '10px';
+        closeBtn.style.right = '12px';
+        closeBtn.addEventListener('click', () => closeAllClassOverlays());
+        wrapper.appendChild(closeBtn);
         const h2 = document.createElement('h2');
         h2.textContent = 'Student Info';
         wrapper.appendChild(h2);
@@ -587,6 +597,14 @@ document.addEventListener('DOMContentLoaded', () => {
             manageStudentsOverlay.style.visibility = 'visible';
             if (manageStudentsListEl) manageStudentsListEl.scrollTop = manageStudentsScrollPos;
         }
+    }
+
+    // Close every class-related overlay and return to base Classes view.
+    function closeAllClassOverlays() {
+        if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
+        if (manageStudentsOverlay) manageStudentsOverlay.style.visibility = 'hidden';
+        if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
+        document.body.style.overflow = '';
     }
 
     function persistReadyClasses() {
