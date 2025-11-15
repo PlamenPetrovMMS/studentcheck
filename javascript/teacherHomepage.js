@@ -517,16 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.setAttribute('role', 'dialog');
         wrapper.setAttribute('aria-modal', 'true');
         wrapper.innerHTML = '';
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'close-small';
-        closeBtn.setAttribute('aria-label','Close');
-        closeBtn.textContent = '×';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '10px';
-        closeBtn.style.right = '12px';
-        closeBtn.addEventListener('click', () => closeAllClassOverlays());
-        wrapper.appendChild(closeBtn);
         const h2 = document.createElement('h2');
         h2.textContent = 'Student Info';
         wrapper.appendChild(h2);
