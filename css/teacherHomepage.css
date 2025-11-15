@@ -516,9 +516,26 @@ body {
 
 #manageStudentsOverlay .manage-footer-actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end; /* Move Back button to far right */
+    align-items: center;
     gap: 12px;
     margin-top: 12px;
+    width: 100%; /* Allow full-width so right alignment is clear */
+}
+
+/* Make the Back button compact like Attendance overlay */
+#manageStudentsOverlay .manage-footer-actions .role-button {
+    min-width: 120px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 480px) {
+    #manageStudentsOverlay .manage-footer-actions .role-button {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 0.95rem; /* Keep compact on mobile */
+    }
 }
 
 /* Scanner overlay styling (reuse popup look; minimal extras) */
