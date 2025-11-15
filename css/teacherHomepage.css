@@ -89,7 +89,12 @@ body {
     position: relative;
     overflow: hidden;
 }
-.newClassBtn:hover { /* Remove hover animation; retain base color */ background: #2563eb; }
+.newClassBtn:hover {
+    /* Highlight on hover: slightly brighter and stronger glow */
+    background: #1d4ed8; /* blue-700 */
+    box-shadow: 0 12px 28px rgba(29,78,216,0.46);
+    transform: translateY(-1px);
+}
 .newClassBtn:active { transform: translateY(2px); box-shadow: 0 5px 16px rgba(29,78,216,0.4); }
 
 /* Ready state visuals */
@@ -97,7 +102,11 @@ body {
     background: #059669; /* emerald-600 */
     box-shadow: 0 8px 22px rgba(5,150,105,0.38);
 }
-.newClassBtn.class-ready:hover { background: #059669; }
+.newClassBtn.class-ready:hover {
+    background: #10b981; /* emerald-500, brighter */
+    box-shadow: 0 12px 28px rgba(16,185,129,0.46);
+    transform: translateY(-1px);
+}
 .newClassBtn.class-ready:active { box-shadow: 0 5px 16px rgba(4,120,87,0.45); }
 
 /* Temporary ready badge shown on top of class button */
