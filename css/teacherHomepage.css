@@ -741,9 +741,9 @@ body {
             line-height: 1.35;
     }
     #confirmOverlay .confirm-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
+        display: flex;
+        justify-content: center; /* center the buttons */
+        gap: 10px;
     }
     /* Match confirmation buttons height with attendance overlay */
     #confirmOverlay .confirm-actions .role-button {
