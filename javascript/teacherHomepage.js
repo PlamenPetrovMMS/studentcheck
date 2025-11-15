@@ -102,10 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         students.forEach((s, idx) => {
 
             const li = document.createElement('li');
-            li.style.width = '100%';
-            li.style.display = 'flex';
-            li.style.padding = '8px 0';
-            li.style.borderBottom = '1px solid #e5e7eb';
             li.className = 'list-item';
 
             const splitNames = splitStudentNames(s);
