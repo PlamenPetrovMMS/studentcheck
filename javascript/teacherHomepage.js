@@ -780,8 +780,29 @@ document.addEventListener('DOMContentLoaded', () => {
         try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); } catch(e){ console.warn('Persist readyClasses failed', e); }
     }
     function loadReadyClasses() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':ready';
-        try { const raw = localStorage.getItem(key); if (!raw) return; const arr = JSON.parse(raw); if (Array.isArray(arr)) arr.forEach(n=> readyClasses.add(n)); } catch(e){ console.warn('Load readyClasses failed', e); }
+        // Prefer teacher-specific readiness, but tolerate mobile reloads without session
+        try {
+            if (teacherEmail) {
+                const key = storageKey(teacherEmail) + ':ready';
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const arr = JSON.parse(raw);
+                    if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
+                }
+            } else {
+                // Union all readiness across any teacher as a fallback (styling only)
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && /^(teacher:classes:[^:]+:ready)$/.test(k)) {
+                        try {
+                            const raw = localStorage.getItem(k);
+                            const arr = JSON.parse(raw);
+                            if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
+                        } catch {}
+                    }
+                }
+            }
+        } catch (e) { console.warn('Load readyClasses failed', e); }
     }
 
     // Persisting class-to-students assignments for robustness across reloads
@@ -1278,6 +1299,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load readiness then classes, then attach behaviors (mobile-friendly init order)
     loadReadyClasses();
     loadClasses();
+    // Also handle mobile bfcache/pageshow and late paints causing hidden/empty lists
+    window.addEventListener('pageshow', () => {
+        try {
+            ensureClassesContainerVisible();
+            const existing = classList?.querySelectorAll('.newClassBtn')?.length || 0;
+            if (existing === 0) {
+                console.log('[Classes] pageshow: no buttons found; attempting reload of classes');
+                loadReadyClasses();
+                loadClasses();
+                classList?.querySelectorAll('.newClassBtn')?.forEach(b => updateClassStatusUI(b));
+            }
+        } catch (e) { console.warn('pageshow handler error', e); }
+    });
 
     addBtn?.addEventListener('click', () => {
         // Replace old modal flow with wizard
