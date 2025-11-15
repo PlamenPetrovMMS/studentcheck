@@ -1,89 +1,28 @@
 /* Teacher Login styles – import shared registration theme for consistent base */
 @import url('registration.css');
-/* Additional teacher-specific rules below */
-/* --- Auth/Login layout --- */
-.auth-container {
-	width: 100%;
-	max-width: 420px;
-	margin: 0 auto; /* center horizontally */
-	padding: 24px;
-	background: #ffffff;
-	border-radius: 12px;
-	box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-}
+/* Align with studentLogin structure: use .card, .field, .actions, .btn */
 
-.form-field {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-bottom: 16px;
-}
-
-.form-field label {
-	font-weight: 600;
-}
-
-.form-field input[type="text"],
-.form-field input[type="password"] {
-	padding: 12px 14px;
-	font-size: 1rem;
-	border: 1px solid #d1d5db;
-	border-radius: 8px;
-	outline: none;
-	transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-field input:focus {
-	border-color: #2563eb;
-	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-}
-
-.form-actions {
-	display: flex;
-	justify-content: center;
-	margin-top: 8px;
-}
-
-.muted {
-	text-align: center;
-	color: #6b7280;
-	margin-top: 12px;
-}
-
-.muted a { color: #2563eb; text-decoration: none; }
-.muted a:hover { text-decoration: underline; }
+/* Center actions row like studentLogin */
+.actions { justify-content: center; }
 
 /* Ensure navbar logo sits under the loading overlay so it also blurs */
 .navbar-logo {
 	z-index: 9000; /* overlay uses 9999 */
 }
 
-.role-button {
-    margin-top: 20px;
-	font-size: 1.5rem; /* ~24px */
-	padding: 16px 32px;
-	min-width: 220px;
-	border-radius: 10px;
-	border: 2px solid #2563eb;
-	background-color: #3b82f6;
-	color: #fff;
-	cursor: pointer;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-	transition: transform 0.05s ease-out, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-.role-button:hover {
-	background-color: #2563eb;
-	border-color: #1d4ed8;
-	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+/* Make the primary Log in button larger to match student login CTA sizing */
+.actions .btn.btn-primary {
+    font-size: 1.15rem;
+    padding: 16px 22px;
+    min-height: 56px;
+    min-width: 220px;
 }
 
-.role-button:active {
-	transform: translateY(3px);
-}
-
-.role-button:focus-visible {
-	outline: 3px solid #f59e0b;
-	outline-offset: 2px;
+@media (max-width: 480px) {
+    .actions .btn.btn-primary {
+        font-size: 1.2rem;
+        min-height: 68px;
+    }
 }
 
 /* --- Full-page loading overlay (mirrors studentLogin) --- */
@@ -137,34 +76,7 @@
 	.auth-container { padding: 32px; }
 }
 
-/* Inline error message with X icon */
-.error-message {
-	display: none; /* shown when there is an error */
-	margin-top: 12px;
-	padding: 10px 12px;
-	border-radius: 8px;
-	background: #fee2e2; /* red-100 */
-	color: #b91c1c; /* red-700 */
-	border: 1px solid #fecaca; /* red-200 */
-	font-weight: 600;
-}
-
-.error-message::before {
-	content: '✕';
-	font-weight: 900;
-	margin-right: 8px;
-}
-
-/* Fade-in animation for error message */
-.error-message.show {
-	display: block;
-	animation: errorFade 220ms ease-out;
-}
-
-@keyframes errorFade {
-	from { opacity: 0; transform: translateY(-4px); }
-	to { opacity: 1; transform: translateY(0); }
-}
+/* Use shared .error style from registration.css; optional animation if needed */
 
 /* Password toggle */
 .password-wrapper {
