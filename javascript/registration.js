@@ -17,6 +17,7 @@
 
     const email = document.getElementById('email');
     const facultyNumber = document.getElementById('facultyNumber');
+    const groupSelect = document.getElementById('group');
 
     const password = document.getElementById('password');
     const repeatPassword = document.getElementById('repeatPassword');
@@ -95,13 +96,14 @@
         return true;
     }
 
-    // Unified validation state builder for Contact slide.
+    // Unified validation state builder for Contact slide (email, faculty number, and group selection).
     function getContactState() {
         const e = email.value.trim();
         const fRaw = facultyNumber.value.trim();
         // Clean: remove leading/trailing whitespace and collapse internal spaces -> remove entirely
         const f = fRaw.replace(/\s+/g,'');
-        const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f };
+        const g = groupSelect ? (groupSelect.value || '') : '';
+        const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f, groupValue: g };
         if (!e) return { valid:false, message:'Email is required.', normalized:f, debug };
         if (!validateEmailFormat(e)) return { valid:false, message:'Enter a valid email address.', normalized:f, debug };
         if (!f) return { valid:false, message:'Faculty number is required.', normalized:f, debug };
@@ -111,6 +113,9 @@
         // If it contains disallowed characters, attempt auto-sanitization (keep letters/digits and - _ . /)
         const sanitized = f.replace(/[^A-Za-z0-9\-_.\/]/g,'');
         if (sanitized.length === 0) return { valid:false, message:'Faculty number invalid characters only.', normalized:f, debug };
+        // Group selection required; only allow 37-42
+        const allowedGroups = ['37','38','39','40','41','42'];
+        if (!g || !allowedGroups.includes(g)) return { valid:false, message:'Please select your group (37–42).', normalized:f, debug };
         debug.sanitized = sanitized;
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
     }
@@ -216,6 +221,7 @@
             lastName: lastName.value.trim(),
             email: email.value.trim(),
             facultyNumber: facultyNumber.value.trim(),
+            group: groupSelect ? groupSelect.value : undefined,
             password: password.value
         };
         dbg('Submitting registration payload', payload);
@@ -297,6 +303,9 @@
     repeatPassword.addEventListener('input', livePasswordFeedback);
     email.addEventListener('input', () => { liveContactValidation(); });
     facultyNumber.addEventListener('input', () => { liveContactValidation(); });
+    if (groupSelect) {
+        groupSelect.addEventListener('change', () => { liveContactValidation(); });
+    }
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {

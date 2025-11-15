@@ -48,12 +48,40 @@ body {
 
 .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .field label { font-weight: 700; font-size: 0.95rem; }
-.field input { padding: 12px 14px; font-size: 1rem; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; width: 100%; }
-.field input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+/* Make inputs and selects share the same look */
+.field input,
+.field select {
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+.field input:focus,
+.field select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+/* Subtle styling improvements for select so it feels native to our inputs */
+.field select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7l5 5 5-5" stroke="%236B7280" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px 20px;
+  padding-right: 44px; /* space for chevron */
+}
 
 /* Explicit invalid state styling (e.g., duplicate email from server) */
-.field input.invalid { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.15); }
-.field input.invalid:focus { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.25); }
+.field input.invalid,
+.field select.invalid { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.15); }
+.field input.invalid:focus,
+.field select.invalid:focus { border-color: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.25); }
 
 .error { margin-top: -6px; font-size: 0.9rem; color: #b91c1c; min-height: 1.1em; }
 
@@ -89,7 +117,8 @@ body {
 
 @media (max-width: 520px) {
   .slide { padding: 18px 16px 8px 16px; }
-  .field input { max-width: 100%; }
+  .field input,
+  .field select { max-width: 100%; }
 }
 
 /* Password reveal/hide styles (shared pattern with login pages) */
