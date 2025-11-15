@@ -14,31 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
-    // --- Class readiness state (single class scope per requirements) ---
-    let classReady = false; // false until students added
-    let currentClassButton = null; // track which class was interacted with
+    // --- Per-class readiness state ---
+    const readyClasses = new Set(); // class name strings
+    const classStudentAssignments = new Map(); // className -> Set(studentIds)
+    let currentClassButton = null;
+    let wizardClassName = '';
+    let wizardSelections = new Set();
 
-    function updateClassStatusUI() {
-        if (!currentClassButton) return;
-        if (classReady) {
-            currentClassButton.classList.add('class-ready');
-            // Preserve original name
-            if (!currentClassButton.dataset.originalLabel) {
-                currentClassButton.dataset.originalLabel = currentClassButton.textContent;
-            }
-            const base = currentClassButton.dataset.originalLabel;
-            currentClassButton.textContent = `${base} ✓ Ready`;
+    function updateClassStatusUI(btn) {
+        const button = btn || currentClassButton;
+        if (!button) return;
+        const className = (button.textContent || '').replace(/✓ Ready$/,'').trim();
+        const isReady = readyClasses.has(className);
+        if (isReady) {
+            button.classList.add('class-ready');
+            if (!button.dataset.originalLabel) button.dataset.originalLabel = className;
+            button.textContent = `${button.dataset.originalLabel} ✓ Ready`;
         } else {
-            currentClassButton.classList.remove('class-ready');
-            if (currentClassButton.dataset.originalLabel) {
-                currentClassButton.textContent = currentClassButton.dataset.originalLabel;
-            }
+            button.classList.remove('class-ready');
+            if (button.dataset.originalLabel) button.textContent = button.dataset.originalLabel;
         }
-    }
-
-    function openAddStudentsPopup() {
-        // Reuse existing fetch + overlay logic
-        addStudentsFromDatabase();
     }
 
     function startScanner() {
@@ -46,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Scanner starting... (stub)');
     }
 
-    // Ready class popup dynamic creation
+    // Ready class popup dynamic creation (unchanged semantics)
     let readyPopupOverlay = null;
     function ensureReadyPopup() {
         if (readyPopupOverlay) return readyPopupOverlay;
@@ -65,49 +60,255 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
             </div>`;
         document.body.appendChild(readyPopupOverlay);
-        // Event wiring
         const manageBtn = readyPopupOverlay.querySelector('#manageStudentsBtn');
         const scannerBtn = readyPopupOverlay.querySelector('#startScannerBtn');
         const closeBtn = readyPopupOverlay.querySelector('#closeReadyPopupBtn');
         manageBtn?.addEventListener('click', () => {
             closeReadyClassPopup();
+            // Open student management overlay (reuse existing logic)
             openAddStudentsPopup();
         });
-        scannerBtn?.addEventListener('click', () => {
-            startScanner();
-        });
+        scannerBtn?.addEventListener('click', () => { startScanner(); });
         closeBtn?.addEventListener('click', () => closeReadyClassPopup());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
         return readyPopupOverlay;
     }
+    function openReadyClassPopup() { ensureReadyPopup(); readyPopupOverlay.style.visibility = 'visible'; document.body.style.overflow = 'hidden'; }
+    function closeReadyClassPopup() { if (!readyPopupOverlay) return; readyPopupOverlay.style.visibility = 'hidden'; document.body.style.overflow = ''; }
 
-    function openReadyClassPopup() {
-        ensureReadyPopup();
-        readyPopupOverlay.style.visibility = 'visible';
+    // ---- CLASS CREATION WIZARD ----
+    let wizardOverlay = null;
+    let wizardTrack = null; // slides container
+    let wizardSlideIndex = 0;
+    let wizardNameInput = null;
+    let wizardErrorName = null;
+    let wizardBackBtn = null;
+    let wizardNextBtn = null;
+    let wizardFinishBtn = null;
+    let wizardStudentContainer = null; // where students list renders
+    const WIZARD_TOTAL_SLIDES = 2;
+
+    function ensureWizard() {
+        if (wizardOverlay) return;
+        wizardOverlay = document.createElement('div');
+        wizardOverlay.id = 'classWizardOverlay';
+        wizardOverlay.className = 'overlay';
+        wizardOverlay.style.visibility = 'hidden';
+        wizardOverlay.innerHTML = `
+            <div class="card" role="dialog" aria-modal="true" aria-labelledby="classWizardTitle">
+                <div class="card-header">
+                    <h1 id="classWizardTitle" class="title">Create Class</h1>
+                </div>
+                <div class="slider">
+                    <div class="slides-track" id="classWizardTrack">
+                        <section class="slide" data-index="0" aria-label="Class Name">
+                            <div class="field">
+                                <label for="wizardClassName">Class name</label>
+                                <input id="wizardClassName" type="text" placeholder="e.g. Physics Group A" required />
+                            </div>
+                            <div id="wizardErrorName" class="error" role="alert" aria-live="polite"></div>
+                        </section>
+                        <section class="slide" data-index="1" aria-label="Select Students">
+                            <div class="field">
+                                <label for="wizardSearchInput">Search students</label>
+                                <input id="wizardSearchInput" type="text" placeholder="Type to filter..." />
+                            </div>
+                            <div id="wizardStudentsBody"></div>
+                            <div id="wizardNoStudentsMsg" class="error" aria-live="polite" style="display:none"></div>
+                        </section>
+                    </div>
+                </div>
+                <div class="actions" id="wizardActions">
+                    <button type="button" id="wizardBackBtn" class="btn btn-secondary" disabled>Back</button>
+                    <div>
+                        <button type="button" id="wizardNextBtn" class="btn btn-primary">Continue</button>
+                        <button type="button" id="wizardFinishBtn" class="btn btn-primary finish-hidden">Finish</button>
+                    </div>
+                </div>
+                <button type="button" id="wizardCloseBtn" class="close-small" aria-label="Close">×</button>
+            </div>`;
+        document.body.appendChild(wizardOverlay);
+        wizardTrack = wizardOverlay.querySelector('#classWizardTrack');
+        wizardNameInput = wizardOverlay.querySelector('#wizardClassName');
+        wizardErrorName = wizardOverlay.querySelector('#wizardErrorName');
+        wizardBackBtn = wizardOverlay.querySelector('#wizardBackBtn');
+        wizardNextBtn = wizardOverlay.querySelector('#wizardNextBtn');
+        wizardFinishBtn = wizardOverlay.querySelector('#wizardFinishBtn');
+        wizardStudentContainer = wizardOverlay.querySelector('#wizardStudentsBody');
+        const closeBtn = wizardOverlay.querySelector('#wizardCloseBtn');
+        closeBtn.addEventListener('click', closeWizard);
+        wizardBackBtn.addEventListener('click', () => goToSlide(0));
+        wizardNextBtn.addEventListener('click', handleWizardNext);
+        wizardFinishBtn.addEventListener('click', submitNewClass);
+        wizardOverlay.addEventListener('click', (e) => { if (e.target === wizardOverlay) closeWizard(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && wizardOverlay.style.visibility === 'visible') closeWizard(); });
+        const searchInput = wizardOverlay.querySelector('#wizardSearchInput');
+        let debounceTimer = null;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const value = e.target.value;
+            debounceTimer = setTimeout(() => filterStudentsWizard(value), 180);
+        });
+    }
+
+    function openClassCreationWizard() {
+        ensureWizard();
+        wizardOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
+        wizardSlideIndex = 0;
+        goToSlide(0);
+        wizardNameInput.focus();
+    }
+    function closeWizard() { if (wizardOverlay){ wizardOverlay.style.visibility='hidden'; document.body.style.overflow=''; } }
+
+    function goToSlide(index) {
+        wizardSlideIndex = index;
+        const slides = Array.from(wizardTrack.querySelectorAll('.slide'));
+        slides.forEach(sl => sl.classList.toggle('active', Number(sl.dataset.index) === index));
+        // Mirror registration button logic
+        wizardBackBtn.style.display = index === 0 ? 'none' : 'inline-block';
+        wizardBackBtn.disabled = index === 0;
+        if (index < WIZARD_TOTAL_SLIDES - 1) {
+            wizardNextBtn.style.display = 'inline-block';
+            wizardFinishBtn.classList.add('finish-hidden');
+        } else {
+            wizardNextBtn.style.display = 'none';
+            wizardFinishBtn.classList.remove('finish-hidden');
+        }
+        const actionsContainer = document.getElementById('wizardActions');
+        if (actionsContainer) {
+            if (index === 0) actionsContainer.classList.add('single-right');
+            else actionsContainer.classList.remove('single-right');
+        }
+        if (index === 1 && wizardStudentContainer && wizardStudentContainer.dataset.loaded !== 'true') {
+            loadStudentsIntoWizard();
+        }
+        // Focus appropriate input similar to registration
+        requestAnimationFrame(() => {
+            if (index === 0) wizardNameInput?.focus();
+            else if (index === 1) document.getElementById('wizardSearchInput')?.focus();
+        });
     }
 
-    function closeReadyClassPopup() {
-        if (!readyPopupOverlay) return;
-        readyPopupOverlay.style.visibility = 'hidden';
-        document.body.style.overflow = '';
+    function handleWizardNext() {
+        const name = wizardNameInput.value.trim();
+        if (!name) {
+            wizardErrorName.textContent = 'Class name is required.';
+            wizardNameInput.focus();
+            return;
+        }
+        wizardErrorName.textContent = '';
+        wizardClassName = name;
+        goToSlide(1);
     }
 
-    function setClassReady() {
-        if (!currentClassButton) return;
-        classReady = true;
-        updateClassStatusUI();
-        closeStudentsOverlay();
+    function collectClassName() { return wizardClassName.trim(); }
+    function collectSelectedStudents() { return Array.from(wizardSelections); }
+
+    function submitNewClass() {
+        const className = collectClassName();
+        if (!className) { alert('Class name missing.'); goToSlide(0); return; }
+        const selectedIds = collectSelectedStudents();
+        if (selectedIds.length === 0) {
+            if (!confirm('No students selected. Create an empty ready class?')) return;
+        }
+        // Create class UI item
+        renderClassItem(className);
+        readyClasses.add(className);
+        classStudentAssignments.set(className, new Set(selectedIds));
+        // Persist classes & readiness
+        persistClasses();
+        persistReadyClasses();
+        // Update button style
+        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => b.textContent.startsWith(className));
+        if (btn) updateClassStatusUI(btn);
+        closeWizard();
+        wizardSelections.clear();
+        wizardClassName='';
     }
 
+    // Student loading for wizard
+    async function loadStudentsIntoWizard() {
+        if (!wizardStudentContainer) return;
+        wizardStudentContainer.innerHTML = '<p class="loading-hint">Loading...</p>';
+        try {
+            const resp = await fetch('https://studentcheck-server.onrender.com/students', { method:'GET', headers:{'Accept':'application/json'} });
+            if (!resp.ok) { wizardStudentContainer.innerHTML = '<p style="color:#b91c1c;">Failed to load students.</p>'; return; }
+            const data = await resp.json();
+            wizardStudentContainer.innerHTML='';
+            renderStudentsInWizard(data.students);
+            wizardStudentContainer.dataset.loaded='true';
+        } catch (e) {
+            console.error('Wizard student fetch failed', e);
+            wizardStudentContainer.innerHTML = '<p style="color:#b91c1c;">Network error loading students.</p>';
+        }
+    }
+
+    function renderStudentsInWizard(students) {
+        if (!Array.isArray(students) || students.length === 0) { wizardStudentContainer.innerHTML='<p class="muted">No students found.</p>'; return; }
+        const list = document.createElement('ul');
+        list.style.listStyle='none'; list.style.margin='0'; list.style.padding='0';
+        students.forEach((s, idx) => {
+            const li = document.createElement('li');
+            li.className='list-item';
+            const splitNames = splitStudentNames(s);
+            const facultyNumber = s.faculty_number;
+            const studentId = facultyNumber || splitNames.fullName || `wizard_${idx}`;
+            const checkbox = document.createElement('input');
+            checkbox.type='checkbox'; checkbox.className='studentSelect';
+            checkbox.id = `wizardStudent_${idx}`;
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id; label.textContent = `${splitNames.fullName} ${facultyNumber || ''}`.trim();
+            li.appendChild(checkbox); li.appendChild(label);
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) { wizardSelections.add(studentId); li.classList.add('selected'); }
+                else { wizardSelections.delete(studentId); li.classList.remove('selected'); }
+            });
+            li.addEventListener('click', (e)=>{ if (e.target===checkbox || e.target.tagName==='LABEL') return; checkbox.checked=!checkbox.checked; checkbox.dispatchEvent(new Event('change')); });
+            if (wizardSelections.has(studentId)) { checkbox.checked=true; li.classList.add('selected'); }
+            list.appendChild(li);
+        });
+        wizardStudentContainer.innerHTML='';
+        wizardStudentContainer.appendChild(list);
+    }
+
+    function filterStudentsWizard(query) {
+        const q = (query||'').trim().toLowerCase();
+        if (!wizardStudentContainer) return;
+        const items = wizardStudentContainer.querySelectorAll('li.list-item');
+        if (!q) { items.forEach(li=> li.style.display=''); return; }
+        const tokens = q.split(/\s+/).filter(Boolean);
+        items.forEach(li=>{
+            const text = li.textContent.toLowerCase();
+            const matches = tokens.every(t=> text.includes(t));
+            li.style.display = matches? '' : 'none';
+        });
+        // Show message if none
+        if (!wizardStudentContainer.querySelector('#wizardNoMatch')) {
+            const msg = document.createElement('p'); msg.id='wizardNoMatch'; msg.textContent='No matching students.'; msg.style.display='none'; msg.style.fontStyle='italic'; msg.style.color='#6b7280'; wizardStudentContainer.appendChild(msg);
+        }
+        const anyVisible = Array.from(items).some(li=> li.style.display !== 'none');
+        const msgEl = wizardStudentContainer.querySelector('#wizardNoMatch'); if (msgEl) msgEl.style.display = anyVisible ? 'none':'block';
+    }
+
+    function openAddStudentsPopup() { addStudentsFromDatabase(); }
+    function setClassReady(className, studentIds) {
+        readyClasses.add(className); if (studentIds) classStudentAssignments.set(className, new Set(studentIds)); persistReadyClasses(); }
     function handleClassButtonClick(buttonEl) {
         currentClassButton = buttonEl;
-        if (!classReady) {
-            openAddStudentsPopup();
-        } else {
-            openReadyClassPopup();
-        }
+        const className = (buttonEl.dataset.originalLabel || buttonEl.textContent.replace(/✓ Ready$/,'').trim());
+        if (readyClasses.has(className)) { openReadyClassPopup(); }
+        else { openAddStudentsPopup(); }
+    }
+
+    function persistReadyClasses() {
+        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':ready';
+        try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); } catch(e){ console.warn('Persist readyClasses failed', e); }
+    }
+    function loadReadyClasses() {
+        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':ready';
+        try { const raw = localStorage.getItem(key); if (!raw) return; const arr = JSON.parse(raw); if (Array.isArray(arr)) arr.forEach(n=> readyClasses.add(n)); } catch(e){ console.warn('Load readyClasses failed', e); }
     }
 
     // --- Students overlay (blurred background) and fetch/display logic ---
@@ -435,6 +636,8 @@ document.addEventListener('DOMContentLoaded', () => {
         attachNewClassButtonBehavior(btn);
         li.appendChild(btn);
         classList?.appendChild(li);
+        // Apply readiness if already stored
+        if (readyClasses.has(name)) updateClassStatusUI(btn);
     };
 
 
@@ -529,7 +732,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadClassesStudents();
 
     addBtn?.addEventListener('click', () => {
-        openModal();
+        // Replace old modal flow with wizard
+        openClassCreationWizard();
     });
 
     form?.addEventListener('submit', (e) => {
@@ -579,7 +783,8 @@ document.addEventListener('DOMContentLoaded', () => {
         addStudentsOverlayBtn.dataset.bound = 'true';
     }
 
-    // Initial UI sync (in case readiness changes before first click)
-    updateClassStatusUI();
+    // Load readiness and apply to existing classes
+    loadReadyClasses();
+    classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
 });
 
