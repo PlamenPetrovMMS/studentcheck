@@ -797,14 +797,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="manageStudentsList" class="manage-students-list"></div>
                 <div class="manage-footer-actions">
                     <button type="button" id="backToReadyBtn" class="role-button">Back</button>
+                    <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Student">Add Student</button>
                 </div>
             </div>`;
         document.body.appendChild(manageStudentsOverlay);
         manageStudentsListEl = manageStudentsOverlay.querySelector('#manageStudentsList');
         const backBtn = manageStudentsOverlay.querySelector('#backToReadyBtn');
         const closeBtn = manageStudentsOverlay.querySelector('#closeManageOverlayBtn');
+        const addBtn = manageStudentsOverlay.querySelector('#addStudentManageBtn');
         backBtn?.addEventListener('click', () => returnToReadyClassPopup(currentClassName));
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
+        addBtn?.addEventListener('click', () => openAddStudentsToClass(currentClassName));
         manageStudentsOverlay.addEventListener('click', (e) => { if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && manageStudentsOverlay.style.visibility === 'visible') returnToReadyClassPopup(currentClassName); });
         return manageStudentsOverlay;
@@ -1097,6 +1100,135 @@ document.addEventListener('DOMContentLoaded', () => {
             return arr.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
         } catch (e) { console.warn('Load class students failed', e); return []; }
     }
+
+    // --- Add Students to Existing Class Overlay ---
+    let addStudentsClassOverlay = null;
+    let addStudentsListEl = null;
+    let addStudentsSelections = new Set();
+    function ensureAddStudentsClassOverlay() {
+        if (addStudentsClassOverlay) return addStudentsClassOverlay;
+        addStudentsClassOverlay = document.createElement('div');
+        addStudentsClassOverlay.id = 'addStudentsClassOverlay';
+        addStudentsClassOverlay.className = 'overlay';
+        addStudentsClassOverlay.style.visibility = 'hidden';
+        addStudentsClassOverlay.innerHTML = `
+            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
+                <h2 id="addStudentsTitle">Add Students</h2>
+                <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
+                <input type="text" id="addStudentsSearchInput" placeholder="Search..." style="height:36px; width:100%; font-size:1rem; padding:6px 10px; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb; outline:none; margin:0 0 14px 0;" />
+                <div id="addStudentsList" style="flex:1; max-height:50vh; overflow-y:auto; padding:0 2px;"></div>
+                <div class="manage-footer-actions" style="justify-content:flex-end;">
+                    <button type="button" id="confirmAddStudentsBtn" class="role-button" aria-label="Add Selected">Add</button>
+                </div>
+            </div>`;
+        document.body.appendChild(addStudentsClassOverlay);
+        addStudentsListEl = addStudentsClassOverlay.querySelector('#addStudentsList');
+        // Events
+        const closeBtn = addStudentsClassOverlay.querySelector('#closeAddStudentsClassBtn');
+        const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
+        const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
+        closeBtn?.addEventListener('click', () => closeAddStudentsToClass());
+        confirmBtn?.addEventListener('click', () => finalizeAddStudentsToClass());
+        searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
+        addStudentsClassOverlay.addEventListener('click', (e) => { if (e.target === addStudentsClassOverlay) closeAddStudentsToClass(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addStudentsClassOverlay.style.visibility === 'visible') closeAddStudentsToClass(); });
+        return addStudentsClassOverlay;
+    }
+    async function openAddStudentsToClass(className) {
+        if (!className) return;
+        ensureAddStudentsClassOverlay();
+        addStudentsSelections.clear();
+        // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
+        await fetchStudentsCache();
+        renderAddStudentsList(className);
+        addStudentsClassOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+        const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
+        searchInput?.focus();
+    }
+    function closeAddStudentsToClass() {
+        if (addStudentsClassOverlay) addStudentsClassOverlay.style.visibility = 'hidden';
+        // Keep body overflow hidden if manage overlay still open
+        if (!manageStudentsOverlay || manageStudentsOverlay.style.visibility !== 'visible') {
+            document.body.style.overflow = '';
+        }
+    }
+    function renderAddStudentsList(className) {
+        if (!addStudentsListEl) return;
+        const existingSet = classStudentAssignments.get(className) || new Set();
+        const studentsArray = studentCache || [];
+        if (!Array.isArray(studentsArray) || studentsArray.length === 0) {
+            addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
+            return;
+        }
+        const ul = document.createElement('ul');
+        ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
+        studentsArray.forEach((s, idx) => {
+            const li = document.createElement('li');
+            li.className='list-item';
+            const parts = splitStudentNames(s);
+            const facultyNumber = s.faculty_number;
+            const studentId = facultyNumber || parts.fullName || `add_${idx}`;
+            const checkbox = document.createElement('input');
+            checkbox.type='checkbox';
+            checkbox.id = `addStudent_${idx}`;
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id; label.textContent = `${parts.fullName} ${facultyNumber || ''}`.trim();
+            // Disable checkbox if already in class
+            if (existingSet.has(studentId)) {
+                checkbox.disabled = true;
+                li.classList.add('selected');
+                li.style.opacity = '.55';
+            }
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) { addStudentsSelections.add(studentId); li.classList.add('selected'); }
+                else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
+            });
+            li.addEventListener('click', (e)=>{ if (e.target===checkbox || e.target.tagName==='LABEL') return; if (checkbox.disabled) return; checkbox.checked=!checkbox.checked; checkbox.dispatchEvent(new Event('change')); });
+            ul.appendChild(li);
+            li.appendChild(checkbox); li.appendChild(label);
+        });
+        addStudentsListEl.innerHTML='';
+        addStudentsListEl.appendChild(ul);
+    }
+    function filterAddStudentsList(query) {
+        const q = (query||'').trim().toLowerCase();
+        if (!addStudentsListEl) return;
+        const items = addStudentsListEl.querySelectorAll('li.list-item');
+        if (!q) { items.forEach(li=> li.style.display=''); return; }
+        const tokens = q.split(/\s+/).filter(Boolean);
+        items.forEach(li => {
+            const text = li.textContent.toLowerCase();
+            const matches = tokens.every(t => text.includes(t));
+            li.style.display = matches ? '' : 'none';
+        });
+    }
+    function finalizeAddStudentsToClass() {
+        const className = currentClassName;
+        if (!className || addStudentsSelections.size === 0) { closeAddStudentsToClass(); return; }
+        if (!classStudentAssignments.has(className)) classStudentAssignments.set(className, new Set());
+        const assignSet = classStudentAssignments.get(className);
+        const newlyAdded = [];
+        addStudentsSelections.forEach(id => { if (!assignSet.has(id)) { assignSet.add(id); newlyAdded.push(id); } });
+        // Persist assignments
+        persistAssignments();
+        // Update per-class student objects list
+        const existingStudentsObjects = loadClassStudents(className) || [];
+        newlyAdded.forEach(id => {
+            const info = studentIndex.get(id) || { fullName: id, facultyNumber: '' };
+            const obj = { fullName: info.fullName || id, facultyNumber: info.facultyNumber || '' };
+            // Prevent duplicate objects by facultyNumber or fullName
+            const duplicate = existingStudentsObjects.some(s => (s.facultyNumber && s.facultyNumber === obj.facultyNumber) || (s.fullName === obj.fullName));
+            if (!duplicate) existingStudentsObjects.push(obj);
+        });
+        persistClassStudents(className, existingStudentsObjects);
+        // Re-render manage list to reflect additions
+        if (manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') {
+            renderManageStudentsForClass(className);
+        }
+        closeAddStudentsToClass();
+    }
+
 
     // --- Students overlay (blurred background) and fetch/display logic ---
     let studentsOverlay = document.getElementById('overlay');
