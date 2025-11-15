@@ -366,9 +366,11 @@
     flex-wrap: wrap;
 }
 /* Buttons-only layout for ready popup */
-#readyClassPopupOverlay .ready-class-popup.buttons-only h2,
-#readyClassPopupOverlay .ready-class-popup.buttons-only .ready-class-desc {
-    display: none;
+#readyClassPopupOverlay .ready-class-popup.buttons-only .ready-class-desc { display: none; }
+#readyClassPopupOverlay .ready-class-popup.buttons-only h2 {
+    display: block;
+    text-align: center;
+    margin: 0 0 16px 0;
 }
 #readyClassPopupOverlay .ready-class-popup .ready-class-actions.vertical {
     display: flex;

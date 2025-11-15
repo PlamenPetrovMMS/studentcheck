@@ -90,6 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
             popup.classList.add('buttons-only');
             const actions = popup.querySelector('.ready-class-actions');
             actions?.classList.add('vertical');
+            // Set the title to the selected class name
+            const titleEl = popup.querySelector('#readyClassTitle');
+            if (titleEl && currentClassButton) {
+                const className = (currentClassButton.dataset.originalLabel || currentClassButton.textContent || '').trim();
+                titleEl.textContent = className || 'Class';
+            }
         }
         readyPopupOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
