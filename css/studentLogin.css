@@ -127,7 +127,7 @@ main.card {
 }
 
 		/* Extra spacing above first field (Faculty Number) for clearer separation from header */
-		form#studentLoginForm .field:first-child { margin-top: 12px; }
+		form#studentLoginForm .field:first-child { margin-top: 16px; }
 
 		/* Ensure navbar logo sits under the loading overlay so it also blurs */
 		.navbar-logo {
