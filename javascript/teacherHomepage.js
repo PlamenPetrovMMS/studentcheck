@@ -18,13 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const readyClasses = new Set(); // class name strings
     const classStudentAssignments = new Map(); // className -> Set(studentIds)
     let currentClassButton = null;
+    let currentClassName = '';
     let wizardClassName = '';
     let wizardSelections = new Set();
 
     function updateClassStatusUI(btn) {
         const button = btn || currentClassButton;
         if (!button) return;
-        const className = (button.dataset.originalLabel || button.textContent || '').trim();
+        const className = (button.dataset.className || button.dataset.originalLabel || button.textContent || '').trim();
         const isReady = readyClasses.has(className);
         if (isReady) {
             button.classList.add('class-ready');
@@ -92,9 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
             actions?.classList.add('vertical');
             // Set the title to the selected class name
             const titleEl = popup.querySelector('#readyClassTitle');
-            if (titleEl && currentClassButton) {
-                const className = (currentClassButton.dataset.originalLabel || currentClassButton.textContent || '').trim();
-                titleEl.textContent = className || 'Class';
+            if (titleEl) {
+                const rawFromBtn = currentClassButton ? (currentClassButton.dataset.className || currentClassButton.dataset.originalLabel || currentClassButton.textContent || '') : '';
+                const name = (currentClassName || rawFromBtn || '').replace(/✓\s*Ready/g, '').trim();
+                titleEl.textContent = name || 'Class';
             }
         }
         readyPopupOverlay.style.visibility = 'visible';
@@ -246,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         persistClasses();
         persistReadyClasses();
         // Update button style
-        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.textContent || '').trim() === className);
+        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
         if (btn) {
             updateClassStatusUI(btn);
             flashReadyBadge(btn);
@@ -331,7 +333,13 @@ document.addEventListener('DOMContentLoaded', () => {
         readyClasses.add(className); if (studentIds) classStudentAssignments.set(className, new Set(studentIds)); persistReadyClasses(); }
     function handleClassButtonClick(buttonEl) {
         currentClassButton = buttonEl;
-        const className = (buttonEl.dataset.originalLabel || buttonEl.textContent.replace(/✓ Ready$/,'').trim());
+        const raw = (buttonEl.dataset.className || buttonEl.dataset.originalLabel || buttonEl.textContent || '')
+            .replace(/✓\s*Ready/g, '')
+            .trim();
+        currentClassName = raw;
+        if (!buttonEl.dataset.className) buttonEl.dataset.className = raw;
+        if (!buttonEl.dataset.originalLabel) buttonEl.dataset.originalLabel = raw;
+        const className = raw;
         if (readyClasses.has(className)) { openReadyClassPopup(); }
         else { openAddStudentsPopup(); }
     }
@@ -649,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!teacherEmail) return;
         const key = storageKey(teacherEmail);
         const names = Array.from(classList?.querySelectorAll('.newClassBtn') || [])
-            .map(btn => (btn.textContent || '').trim())
+            .map(btn => (btn.dataset.className || btn.dataset.originalLabel || btn.textContent || '').replace(/✓\s*Ready/g, '').trim())
             .filter(Boolean);
         try {
             localStorage.setItem(key, JSON.stringify(names));
@@ -667,6 +675,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.createElement('button');
         btn.className = 'newClassBtn';
         btn.textContent = name;
+        btn.dataset.className = name;
+        btn.dataset.originalLabel = name;
         attachNewClassButtonBehavior(btn);
         li.appendChild(btn);
         classList?.appendChild(li);
