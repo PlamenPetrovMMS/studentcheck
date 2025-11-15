@@ -46,9 +46,154 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
 
+    // ---- Scanner Overlay (Start Scanning) ----
+    let scannerOverlay = null;
+    let scannerVideoEl = null;
+    let scannerControls = null; // returned by ZXing decodeFromVideoDevice
+    let codeReader = null; // ZXing BrowserQRCodeReader instance
+    let currentScanMode = 'joining';
+
+    function ensureScannerOverlay() {
+        if (scannerOverlay) return scannerOverlay;
+        scannerOverlay = document.createElement('div');
+        scannerOverlay.id = 'scannerOverlay';
+        scannerOverlay.className = 'overlay';
+        scannerOverlay.style.visibility = 'hidden';
+        scannerOverlay.innerHTML = `
+            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
+                <h2 id="scannerTitle" style="text-align:center; margin:0 0 16px 0;">Start Scanning</h2>
+                <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
+                <div id="scannerModeGroup" class="field" style="display:flex; flex-direction:column; gap:8px; align-items:flex-start; margin-bottom:14px;">
+                    <label style="display:flex; align-items:center; gap:8px;">
+                        <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
+                        Joining
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px;">
+                        <input type="radio" name="scanMode" value="leaving" id="scanLeave">
+                        Leaving
+                    </label>
+                </div>
+                <div id="cameraContainer" class="camera-container">
+                    <video id="scannerVideo" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; background:black;"></video>
+                </div>
+            </div>`;
+        document.body.appendChild(scannerOverlay);
+        const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
+        closeBtn?.addEventListener('click', () => closeScannerOverlay());
+        scannerOverlay.addEventListener('click', (e) => { if (e.target === scannerOverlay) closeScannerOverlay(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') closeScannerOverlay(); });
+        // Radio handlers
+        const radios = scannerOverlay.querySelectorAll('input[name="scanMode"]');
+        radios.forEach(r => r.addEventListener('change', (ev) => {
+            const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
+            handleRadioChange(mode);
+        }));
+        scannerVideoEl = scannerOverlay.querySelector('#scannerVideo');
+        return scannerOverlay;
+    }
+
+    function handleRadioChange(mode) {
+        currentScanMode = mode;
+        // No need to restart camera; we only switch interpretation of results
+    }
+
+    function closeScannerOverlay() {
+        try {
+            if (scannerControls && typeof scannerControls.stop === 'function') {
+                scannerControls.stop();
+            }
+            if (scannerVideoEl && scannerVideoEl.srcObject) {
+                const tracks = scannerVideoEl.srcObject.getTracks?.() || [];
+                tracks.forEach(t => { try { t.stop(); } catch(_){} });
+                scannerVideoEl.srcObject = null;
+            }
+            if (codeReader && typeof codeReader.reset === 'function') {
+                codeReader.reset();
+            }
+        } catch (e) { console.warn('Scanner cleanup error:', e); }
+        if (scannerOverlay) scannerOverlay.style.visibility = 'hidden';
+        document.body.style.overflow = '';
+    }
+
+    function ensureZxingLoaded() {
+        return new Promise((resolve, reject) => {
+            if (window.ZXingBrowser) return resolve(window.ZXingBrowser);
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/@zxing/browser@latest/umd/index.min.js';
+            script.async = true;
+            script.onload = () => resolve(window.ZXingBrowser);
+            script.onerror = () => reject(new Error('Failed to load ZXing browser library'));
+            document.head.appendChild(script);
+        });
+    }
+
+    let lastScanAt = 0;
+    function initializeScanner(mode) {
+        return ensureZxingLoaded().then((ZXB) => {
+            try {
+                codeReader = new ZXB.BrowserQRCodeReader();
+            } catch (e) {
+                // Fallback to multi-format reader if QR-only fails
+                try { codeReader = new ZXB.BrowserMultiFormatReader(); } catch (err) { console.error('ZXing init failed', err); throw err; }
+            }
+            // Start default camera
+            return codeReader.decodeFromVideoDevice(undefined, scannerVideoEl, (result, err, controls) => {
+                if (controls && !scannerControls) scannerControls = controls;
+                if (result) {
+                    const now = Date.now();
+                    // Throttle duplicate rapid callbacks
+                    if (now - lastScanAt > 900) {
+                        lastScanAt = now;
+                        const text = result.getText ? result.getText() : String(result);
+                        handleScannedCode(text, currentScanMode, currentClassName);
+                    }
+                }
+                // Ignore frame decode errors; they are expected while searching
+            });
+        }).catch((e) => {
+            console.error('Scanner initialization error:', e);
+            const container = document.getElementById('cameraContainer');
+            if (container) {
+                container.innerHTML = '<p style="color:#b91c1c; text-align:center;">Unable to start camera scanner.</p>';
+            }
+        });
+    }
+
+    function handleScannedCode(data, mode, classId) {
+        // Data should be UTF-8 decoded by ZXing; log and integrate here
+        console.log('Scanned code:', { data, mode, classId });
+        // TODO: Integrate with attendance logic when available
+        // For UX feedback, briefly flash camera border
+        const cam = document.getElementById('cameraContainer');
+        if (cam) {
+            cam.style.boxShadow = '0 0 0 4px rgba(37,99,235,0.25) inset';
+            setTimeout(() => { cam.style.boxShadow = 'none'; }, 180);
+        }
+    }
+
+    function openScannerOverlay(classId) {
+        ensureScannerOverlay();
+        // Hide ready overlay to avoid stacking
+        if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
+        // Title
+        const titleEl = scannerOverlay.querySelector('#scannerTitle');
+        if (titleEl) {
+            const displayName = (classId || currentClassName || '').trim();
+            titleEl.textContent = displayName || 'Class';
+        }
+        // Default mode
+        currentScanMode = 'joining';
+        const joinRadio = scannerOverlay.querySelector('#scanJoin'); if (joinRadio) joinRadio.checked = true;
+        const leaveRadio = scannerOverlay.querySelector('#scanLeave'); if (leaveRadio) leaveRadio.checked = false;
+        // Show overlay
+        scannerOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+        // Start camera
+        initializeScanner(currentScanMode);
+    }
+
     function startScanner() {
-        console.log('startScanner() invoked - TODO implement scanner logic');
-        alert('Scanner starting... (stub)');
+        openScannerOverlay(currentClassName);
     }
 
     // Ready class popup dynamic creation (unchanged semantics)
@@ -79,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             closeReadyClassPopup();
             openManageStudentsOverlay((className || '').trim());
         });
-        scannerBtn?.addEventListener('click', () => { startScanner(); });
+    scannerBtn?.addEventListener('click', () => { startScanner(); });
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
@@ -596,6 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
         if (manageStudentsOverlay) manageStudentsOverlay.style.visibility = 'hidden';
         if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
+        if (scannerOverlay) closeScannerOverlay();
         document.body.style.overflow = '';
     }
 
