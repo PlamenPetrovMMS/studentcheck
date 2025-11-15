@@ -5,6 +5,32 @@
 /* Center actions row like studentLogin */
 .actions { justify-content: center; }
 
+/* Make Teacher Login fill the entire viewport */
+html, body { height: 100%; }
+body {
+	/* override registration centering to allow full-bleed layout */
+	align-items: stretch;
+	justify-content: stretch;
+	min-height: 100vh;   /* fallback */
+	min-height: 100svh;  /* iOS Safari */
+	min-height: 100dvh;  /* modern dynamic viewport */
+}
+
+.card {
+	width: 100%;
+	max-width: none;
+	height: 100vh;   /* fallback */
+	height: 100svh;  /* iOS Safari */
+	height: 100dvh;  /* modern */
+	min-height: 100dvh;
+	border-radius: 0;      /* full-bleed panel */
+	box-shadow: none;      /* flat full-screen look */
+	display: flex;         /* ensure internal sections stack properly */
+	flex-direction: column;
+}
+
+.card-header { border-bottom: 1px solid #e5e7eb; }
+
 /* Ensure navbar logo sits under the loading overlay so it also blurs */
 .navbar-logo {
 	z-index: 9000; /* overlay uses 9999 */
