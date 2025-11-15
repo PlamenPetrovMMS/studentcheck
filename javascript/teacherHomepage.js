@@ -24,16 +24,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateClassStatusUI(btn) {
         const button = btn || currentClassButton;
         if (!button) return;
-        const className = (button.textContent || '').replace(/✓ Ready$/,'').trim();
+        const className = (button.dataset.originalLabel || button.textContent || '').trim();
         const isReady = readyClasses.has(className);
         if (isReady) {
             button.classList.add('class-ready');
-            if (!button.dataset.originalLabel) button.dataset.originalLabel = className;
-            button.textContent = `${button.dataset.originalLabel} ✓ Ready`;
         } else {
             button.classList.remove('class-ready');
-            if (button.dataset.originalLabel) button.textContent = button.dataset.originalLabel;
         }
+    }
+
+    function flashReadyBadge(button) {
+        if (!button) return;
+        const badge = document.createElement('div');
+        badge.className = 'ready-badge';
+        badge.textContent = '✓ Ready';
+        button.appendChild(badge);
+        setTimeout(() => {
+            badge.remove();
+        }, 2000);
     }
 
     function startScanner() {
@@ -221,8 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
         persistClasses();
         persistReadyClasses();
         // Update button style
-        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => b.textContent.startsWith(className));
-        if (btn) updateClassStatusUI(btn);
+        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.textContent || '').trim() === className);
+        if (btn) {
+            updateClassStatusUI(btn);
+            flashReadyBadge(btn);
+        }
         closeWizard();
         wizardSelections.clear();
         wizardClassName='';

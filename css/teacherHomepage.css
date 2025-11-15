@@ -78,6 +78,27 @@
 .newClassBtn.class-ready:hover { background: #059669; }
 .newClassBtn.class-ready:active { box-shadow: 0 5px 16px rgba(4,120,87,0.45); }
 
+/* Temporary ready badge shown on top of class button */
+.newClassBtn .ready-badge {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: #059669;
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 6px 14px rgba(5,150,105,0.35);
+    animation: readyFade 2s ease forwards;
+    pointer-events: none;
+}
+@keyframes readyFade {
+    0% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-6px); }
+}
+
 /* Subtle warning pulse when trying to add students with none selected */
 .pulse-warn {
     animation: pulseWarn 0.6s ease-in-out 1;
