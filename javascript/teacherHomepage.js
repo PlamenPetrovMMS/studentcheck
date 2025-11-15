@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentClassName = '';
     let wizardClassName = '';
     let wizardSelections = new Set();
+    let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
 
     function updateClassStatusUI(btn) {
         const button = btn || currentClassButton;
@@ -248,6 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
         renderClassItem(className);
         readyClasses.add(className);
         classStudentAssignments.set(className, new Set(selectedIds));
+        // Build and persist per-class student objects { fullName, facultyNumber }
+        const studentsForClass = selectedIds.map(id => {
+            const s = wizardStudentIndex.get(id) || {};
+            return { fullName: s.fullName || '', facultyNumber: s.facultyNumber || '' };
+        });
+        persistClassStudents(className, studentsForClass);
         // Persist classes & readiness
         persistClasses();
         persistReadyClasses();
@@ -284,12 +291,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!Array.isArray(students) || students.length === 0) { wizardStudentContainer.innerHTML='<p class="muted">No students found.</p>'; return; }
         const list = document.createElement('ul');
         list.style.listStyle='none'; list.style.margin='0'; list.style.padding='0';
+        wizardStudentIndex = new Map();
         students.forEach((s, idx) => {
             const li = document.createElement('li');
             li.className='list-item';
             const splitNames = splitStudentNames(s);
             const facultyNumber = s.faculty_number;
             const studentId = facultyNumber || splitNames.fullName || `wizard_${idx}`;
+            wizardStudentIndex.set(studentId, { fullName: splitNames.fullName, facultyNumber: facultyNumber || '' });
             const checkbox = document.createElement('input');
             checkbox.type='checkbox'; checkbox.className='studentSelect';
             checkbox.id = `wizardStudent_${idx}`;
@@ -405,6 +414,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderManageStudentsForClass(className) {
         if (!manageStudentsListEl) return;
         manageStudentsListEl.innerHTML = '';
+        // Prefer per-class stored student objects
+        const students = loadClassStudents(className) || [];
+        if (students.length > 0) {
+            const ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.padding = '0';
+            ul.style.margin = '0';
+            students.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                const label = document.createElement('label');
+                label.textContent = `${s.fullName || ''} ${s.facultyNumber || ''}`.trim();
+                label.style.margin = '0';
+                li.appendChild(label);
+                ul.appendChild(li);
+            });
+            manageStudentsListEl.appendChild(ul);
+            return;
+        }
+        // Fallback to in-memory id set + cache index
         const set = classStudentAssignments.get(className);
         if (!set || set.size === 0) {
             const p = document.createElement('p');
@@ -485,6 +514,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (e) { console.warn('Load assignments failed', e); }
+    }
+
+    // Per-class storage: each class has its own item with an array of student objects
+    function classItemKey(className) {
+        if (!teacherEmail) return null;
+        return `teacher:class:${teacherEmail}:${encodeURIComponent(className)}`;
+    }
+    function persistClassStudents(className, studentsArray) {
+        const key = classItemKey(className);
+        if (!key) return;
+        try {
+            const payload = { name: className, students: Array.isArray(studentsArray) ? studentsArray : [] };
+            localStorage.setItem(key, JSON.stringify(payload));
+        } catch (e) { console.warn('Persist class students failed', e); }
+    }
+    function loadClassStudents(className) {
+        const key = classItemKey(className);
+        if (!key) return [];
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return [];
+            const obj = JSON.parse(raw);
+            const arr = Array.isArray(obj?.students) ? obj.students : [];
+            return arr.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
+        } catch (e) { console.warn('Load class students failed', e); return []; }
     }
 
     // --- Students overlay (blurred background) and fetch/display logic ---
