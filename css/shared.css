@@ -47,3 +47,13 @@ html, body {
     padding: 0;     /* remove inner padding */
   }
 }
+
+/* Global mobile button sizing: add ~30px vertical size for better touch targets */
+@media (max-width: 480px) {
+  .btn,
+  .role-button {
+    padding-top: 27px;   /* base ~12px + 15px */
+    padding-bottom: 27px;
+    font-size: 1.06rem;
+  }
+}

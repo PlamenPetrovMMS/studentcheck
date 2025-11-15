@@ -547,9 +547,9 @@ body {
     .newClassBtn,
     .role-button,
     .btn {
-        min-height: 60px;
-        padding-top: 16px;
-        padding-bottom: 16px;
+        /* Add ~30px extra vertical height vs desktop by increasing padding */
+        padding-top: 31px;   /* was ~16px */
+        padding-bottom: 31px;/* was ~16px */
         font-size: 1.06rem;
     }
 }

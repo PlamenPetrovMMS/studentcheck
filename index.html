@@ -6,18 +6,23 @@
     <title>Student Checking System</title>
     <link rel="stylesheet" href="css/shared.css">
     <link rel="icon" href="images/new_main_logo.png" type="image/png">
+    <!-- Reuse registration theme for consistent card/buttons layout -->
+    <link rel="stylesheet" href="css/registration.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
         <img src="images/new_main_logo.png" alt="Home">
     </button>
-    <h1>Welcome,</h1>
-    
-    <div class="button-container">
-        <button id="studentBtn" class="role-button">Student</button>
-        <button id="teacherBtn" class="role-button">Teacher</button>
-    </div>
+    <main class="card" role="region" aria-labelledby="homeTitle">
+        <div class="card-header">
+            <h1 id="homeTitle" class="title">Welcome</h1>
+        </div>
+        <div class="actions">
+            <button id="studentBtn" class="btn btn-primary" type="button">Student</button>
+            <button id="teacherBtn" class="btn btn-primary" type="button">Teacher</button>
+        </div>
+    </main>
     
     <script src="javascript/shared.js"></script>
     <script src="javascript/index.js"></script>
