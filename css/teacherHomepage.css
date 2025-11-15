@@ -608,6 +608,16 @@ body {
     min-width: 160px;
 }
 
+/* Blue primary style for the Show Attendance button to match other pages */
+#scannerOverlay .role-button.primary {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+#scannerOverlay .role-button.primary:hover {
+    background: #1d4ed8;
+}
+
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
     .add-class-btn,

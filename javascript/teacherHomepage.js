@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="qr-reader" style="width:100%; height:100%;"></div>
                 </div>
                 <div class="scanner-footer-actions">
-                    <button type="button" id="scannerStopBtn" class="role-button">Show Attendance</button>
+                    <button type="button" id="scannerStopBtn" class="role-button primary">Show Attendance</button>
                     <button type="button" id="scannerBackBtn" class="role-button">Back</button>
                 </div>
             </div>`;
