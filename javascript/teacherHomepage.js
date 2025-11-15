@@ -68,6 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let scannerOverlay = null;
     let currentScanMode = 'joining';
     let html5QrCode = null; // Html5Qrcode instance
+    // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
+    const attendanceState = new Map();
+    // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
+    let attendanceDotIndex = new Map();
+    let attendanceOverlay = null;
 
     function ensureScannerOverlay() {
         if (scannerOverlay) return scannerOverlay;
@@ -110,7 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
         // Footer action buttons
         const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
-        stopBtn?.addEventListener('click', () => closeScannerOverlay());
+        stopBtn?.addEventListener('click', () => {
+            // Open attendance overlay while keeping scanner running for live updates
+            openAttendanceOverlay(currentClassName);
+        });
         const backBtn = scannerOverlay.querySelector('#scannerBackBtn');
         backBtn?.addEventListener('click', () => {
             closeScannerOverlay();
@@ -181,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html5QrCode = new Html5Qrcode('qr-reader');
             const onScanSuccess = (decodedText, decodedResult) => {
                 const now = Date.now();
-                if (now - lastScanAt > 800) {
+                if (now - lastScanAt > 300) {
                     lastScanAt = now;
                     handleScannedCode(decodedText, currentScanMode, currentClassName);
                 }
@@ -208,14 +216,147 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleScannedCode(data, mode, classId) {
-        // Data should be UTF-8 decoded by ZXing; log and integrate here
-        console.log('Scanned code:', { data, mode, classId });
-        // TODO: Integrate with attendance logic when available
+        // Parse JSON payload from student QR (expects facultyNumber, name, email)
+        let payload = null;
+        try {
+            payload = JSON.parse(data);
+        } catch(_) {}
+        const studentId = deriveStudentIdFromPayload(payload);
+        if (studentId) {
+            updateAttendanceState(classId, studentId, mode);
+        }
         // For UX feedback, briefly flash camera border
         const cam = document.getElementById('cameraContainer');
         if (cam) {
             cam.style.boxShadow = '0 0 0 4px rgba(37,99,235,0.25) inset';
             setTimeout(() => { cam.style.boxShadow = 'none'; }, 180);
+        }
+    }
+
+    function deriveStudentIdFromPayload(payload) {
+        if (!payload || typeof payload !== 'object') return null;
+        const id = payload.facultyNumber || payload.faculty_number || payload.email || null;
+        return id || null;
+    }
+
+    function ensureAttendanceOverlay() {
+        if (attendanceOverlay) return attendanceOverlay;
+        attendanceOverlay = document.createElement('div');
+        attendanceOverlay.id = 'attendanceOverlay';
+        attendanceOverlay.className = 'overlay';
+        attendanceOverlay.style.visibility = 'hidden';
+        attendanceOverlay.innerHTML = `
+            <div class="ready-class-popup attendance-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceTitle">
+                <h2 id="attendanceTitle">Attendance</h2>
+                <div id="attendanceList" class="attendance-list"></div>
+                <div class="manage-footer-actions">
+                    <button type="button" id="attendanceCloseBtn" class="role-button">Close</button>
+                </div>
+            </div>`;
+        document.body.appendChild(attendanceOverlay);
+        const closeBtn = attendanceOverlay.querySelector('#attendanceCloseBtn');
+        closeBtn?.addEventListener('click', () => closeAttendanceOverlay());
+        attendanceOverlay.addEventListener('click', (e) => { if (e.target === attendanceOverlay) closeAttendanceOverlay(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay(); });
+        return attendanceOverlay;
+    }
+
+    function openAttendanceOverlay(className) {
+        ensureAttendanceOverlay();
+        const titleEl = attendanceOverlay.querySelector('#attendanceTitle');
+        if (titleEl) titleEl.textContent = `Attendance — ${className || currentClassName || 'Class'}`;
+        renderAttendanceForClass(className || currentClassName);
+        attendanceOverlay.style.visibility = 'visible';
+        // Keep body overflow hidden because scanner overlay is also open
+        document.body.style.overflow = 'hidden';
+    }
+    function closeAttendanceOverlay() {
+        if (!attendanceOverlay) return;
+        attendanceOverlay.style.visibility = 'hidden';
+        // Don't alter body overflow here because scanner overlay might be active
+    }
+
+    function getStudentsForClassDisplay(className) {
+        // Prefer per-class stored student objects
+        const stored = loadClassStudents(className) || [];
+        if (stored.length > 0) {
+            return stored.map(s => ({
+                id: s.facultyNumber || s.fullName || '',
+                name: s.fullName || '',
+                facultyNumber: s.facultyNumber || ''
+            })).filter(s => s.id);
+        }
+        // Fallback to the selection set
+        const set = classStudentAssignments.get(className);
+        if (set && set.size > 0) {
+            return Array.from(set).map(id => {
+                const rec = studentIndex.get(id) || { fullName: id, faculty_number: '' };
+                return { id, name: rec.fullName || id, facultyNumber: rec.faculty_number || '' };
+            });
+        }
+        return [];
+    }
+
+    function initAttendanceStateForClass(className, students) {
+        if (!attendanceState.has(className)) attendanceState.set(className, new Map());
+        const map = attendanceState.get(className);
+        students.forEach(s => { if (!map.has(s.id)) map.set(s.id, 'none'); });
+        return map;
+    }
+
+    function renderAttendanceForClass(className) {
+        const listEl = document.getElementById('attendanceList');
+        if (!listEl) return;
+        attendanceDotIndex = new Map();
+        const students = getStudentsForClassDisplay(className);
+        const stateMap = initAttendanceStateForClass(className, students);
+        listEl.innerHTML = '';
+        if (students.length === 0) {
+            listEl.innerHTML = '<p class="muted" style="text-align:center;">No students in this class.</p>';
+            return;
+        }
+        const ul = document.createElement('ul');
+        ul.className = 'attendance-ul';
+        students.forEach(s => {
+            const li = document.createElement('li');
+            li.className = 'attendance-item';
+            const name = document.createElement('span');
+            name.className = 'attendance-name';
+            name.textContent = s.name + (s.facultyNumber ? ` (${s.facultyNumber})` : '');
+            const dot = document.createElement('span');
+            dot.className = 'status-dot';
+            applyDotStateClass(dot, stateMap.get(s.id));
+            li.appendChild(name);
+            li.appendChild(dot);
+            ul.appendChild(li);
+            attendanceDotIndex.set(s.id, dot);
+        });
+        listEl.appendChild(ul);
+    }
+
+    function applyDotStateClass(dotEl, state) {
+        dotEl.classList.remove('status-none', 'status-joined', 'status-completed');
+        if (state === 'completed') dotEl.classList.add('status-completed');
+        else if (state === 'joined') dotEl.classList.add('status-joined');
+        else dotEl.classList.add('status-none');
+    }
+
+    function updateAttendanceState(className, studentId, mode) {
+        if (!className || !studentId) return;
+        if (!attendanceState.has(className)) attendanceState.set(className, new Map());
+        const map = attendanceState.get(className);
+        const current = map.get(studentId) || 'none';
+        let next = current;
+        if (mode === 'joining') {
+            if (current === 'none') next = 'joined';
+        } else if (mode === 'leaving') {
+            if (current === 'joined') next = 'completed';
+        }
+        if (next !== current) {
+            map.set(studentId, next);
+            // Update UI dot if visible
+            const dot = attendanceDotIndex.get(studentId);
+            if (dot) applyDotStateClass(dot, next);
         }
     }
 
