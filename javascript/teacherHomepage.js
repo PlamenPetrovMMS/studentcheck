@@ -79,14 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
                 <h2 id="scannerTitle" style="text-align:center; margin:0 0 16px 0;">Start Scanning</h2>
                 <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
-                <div id="scannerModeGroup" class="field" style="display:flex; flex-direction:column; gap:8px; align-items:flex-start; margin-bottom:14px;">
-                    <label style="display:flex; align-items:center; gap:8px;">
+                <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
+                    <label class="mode-toggle" for="scanJoin">
                         <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
-                        Joining
+                        <span class="mode-label">Joining</span>
                     </label>
-                    <label style="display:flex; align-items:center; gap:8px;">
+                    <label class="mode-toggle" for="scanLeave">
                         <input type="radio" name="scanMode" value="leaving" id="scanLeave">
-                        Leaving
+                        <span class="mode-label">Leaving</span>
                     </label>
                 </div>
                 <div id="cameraContainer" class="camera-container">
