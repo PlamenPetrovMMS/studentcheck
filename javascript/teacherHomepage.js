@@ -298,7 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleStudentSelect(studentId, li, checkbox);
             });
             li.addEventListener('click', (e) => {
-                if (e.target === checkbox) return; // avoid double toggle
+                // Avoid double toggling when clicking directly on the checkbox OR its label.
+                // Label click triggers checkbox click + change; letting li handle it would cause two toggles cancelling each other.
+                if (e.target === checkbox || e.target.tagName === 'LABEL') return;
                 handleStudentSelect(studentId, li, checkbox);
             });
 
