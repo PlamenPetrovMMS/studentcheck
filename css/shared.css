@@ -4,13 +4,13 @@
   position: fixed;
   top: 12px;
   left: 12px;
-  width: 64px;         /* smaller overall size */
-  height: 64px;        /* smaller overall size */
-  border-radius: 50%;  /* blue circle */
-  background: #2563eb; /* blue background */
+  width: 64px;         /* keep smaller size */
+  height: 64px;        /* keep smaller size */
+  border-radius: 10px; /* back to normal rounded rectangle */
+  background: transparent; /* remove blue background */
   display: block;
-  padding: 6px;        /* inner padding to show blue ring */
-  margin: 4px;         /* slight outer margin from edges */
+  padding: 0;          /* remove inner ring padding */
+  margin: 4px;         /* keep slight outer margin */
   border: none;
   cursor: pointer;
   box-shadow: none; /* keep flat by default */
@@ -23,7 +23,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 50%; /* keep image circular inside */
+  border-radius: inherit; /* match parent rounded rectangle */
   display: block;
 }
 
@@ -35,6 +35,6 @@
     left: 10px;
     width: 44px;    /* smaller on mobile */
     height: 44px;   /* smaller on mobile */
-    padding: 4px;   /* maintain blue ring */
+    padding: 0;     /* remove inner padding */
   }
 }
