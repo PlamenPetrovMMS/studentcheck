@@ -80,33 +80,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     let lastStudentsData = [];
-    
+    // Persistent selection state across filtering
+    const studentSelection = new Set();
+    // Cache of all rendered student items for filtering without DOM rebuild
+    let allStudentItems = [];
+
+    function handleStudentSelect(id, li, checkbox) {
+        if (!id) return;
+        if (studentSelection.has(id)) {
+            studentSelection.delete(id);
+            li.classList.remove('selected');
+            if (checkbox) checkbox.checked = false;
+        } else {
+            studentSelection.add(id);
+            li.classList.add('selected');
+            if (checkbox) checkbox.checked = true;
+        }
+    }
+
+    function updateUISelections() {
+        allStudentItems.forEach(({ li, checkbox, id }) => {
+            const selected = studentSelection.has(id);
+            li.classList.toggle('selected', selected);
+            if (checkbox) checkbox.checked = selected;
+        });
+    }
+
+    function filterStudents(query) {
+        const q = (query || '').trim().toLowerCase();
+        if (!q) {
+            allStudentItems.forEach(({ li }) => { li.style.display = ''; });
+            updateUISelections();
+            return;
+        }
+        const tokens = q.split(/\s+/).filter(Boolean);
+        allStudentItems.forEach(({ li, name, facultyNumber }) => {
+            const haystackName = (name || '').toLowerCase();
+            const haystackFaculty = (facultyNumber || '').toLowerCase();
+            const matches = tokens.every(t => haystackName.includes(t) || haystackFaculty.includes(t));
+            li.style.display = matches ? '' : 'none';
+        });
+        updateUISelections();
+    }
+
+    // Expose for potential external use
+    window.handleStudentSelect = handleStudentSelect;
+    window.filterStudents = filterStudents;
+    window.updateUISelections = updateUISelections;
+
     const renderStudents = (students) => {
         console.log('Rendering students:', students);
         const main_section_body = document.getElementById('overlayMainSectionBody');
         if (!main_section_body) return;
         main_section_body.innerHTML = '';
+        allStudentItems = [];
         if (!Array.isArray(students) || students.length === 0) {
             main_section_body.innerHTML = '<p>No students found.</p>';
+            lastStudentsData = [];
             return;
         }
         lastStudentsData = students;
-        
+
         const list = document.createElement('ul');
         list.style.listStyle = 'none';
         list.style.padding = '0';
         list.style.margin = '0';
 
-        
-        
         students.forEach((s, idx) => {
-
             const li = document.createElement('li');
             li.className = 'list-item';
-
             const splitNames = splitStudentNames(s);
-
             const facultyNumber = s.faculty_number;
+            const studentId = facultyNumber || splitNames.fullName || `student_${idx}`;
+            li.dataset.studentId = studentId;
+            li.dataset.name = splitNames.fullName;
+            if (facultyNumber) li.dataset.facultyNumber = facultyNumber;
 
             const div = document.createElement('div');
             div.style.width = '100%';
@@ -114,82 +162,54 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.alignItems = 'center';
             div.style.justifyContent = 'start';
 
-            // Checkbox + label for selection
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'studentSelect';
             const checkboxId = `studentSelect_${idx}`;
             checkbox.id = checkboxId;
-            if (facultyNumber) checkbox.dataset.facultyNumber = facultyNumber;
+            checkbox.dataset.studentId = studentId;
             checkbox.dataset.name = splitNames.fullName;
-            
+            if (facultyNumber) checkbox.dataset.facultyNumber = facultyNumber;
+
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
-            label.textContent = `${splitNames.fullName}  ${facultyNumber}`;
+            label.textContent = `${splitNames.fullName}  ${facultyNumber || ''}`.trim();
             label.style.margin = '0px';
 
             div.appendChild(checkbox);
             div.appendChild(label);
-
             li.appendChild(div);
 
-            // Highlight on selection
             checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    li.classList.add('selected');
-                } else {
-                    li.classList.remove('selected');
-                }
+                handleStudentSelect(studentId, li, checkbox);
+            });
+            li.addEventListener('click', (e) => {
+                if (e.target === checkbox) return; // avoid double toggle
+                handleStudentSelect(studentId, li, checkbox);
             });
 
-            console.log("Added eventListener to checkbox...");
+            if (studentSelection.has(studentId)) {
+                li.classList.add('selected');
+                checkbox.checked = true;
+            }
 
             list.appendChild(li);
-
-            console.log("<li> appended to list");
-            console.log(li);
+            allStudentItems.push({ li, checkbox, id: studentId, name: splitNames.fullName, facultyNumber });
         });
-        // Append the built list into the overlay body
+
         main_section_body.appendChild(list);
-    };
-
-
-
-    // FIX THIS
-
-    // Filter function for search input (multi-token, case-insensitive, matches name or faculty number).
-    const applyStudentSearchFilter = (query) => {
-        const q = query.trim();
-        const searchInput = studentsOverlay?.querySelector('#overlaySearchInput');
-        if (searchInput && searchInput.value !== query) {
-            // Ensure consistent value if called programmatically
-            searchInput.value = query;
-        }
-        if (!q) {
-            renderStudents(lastStudentsData);
-            return;
-        }
-        // Tokenize: split on whitespace, ignore empty tokens
-        const tokens = q.toLocaleLowerCase('bg').split(/\s+/).filter(Boolean);
-        if (!tokens.length) {
-            renderStudents(lastStudentsData);
-            return;
-        }
-        const filtered = lastStudentsData.filter(s => {
-            const name = (s.full_name || '').toLocaleLowerCase('bg');
-            const faculty = (s.faculty_number || '').toLowerCase();
-            // All tokens must be found in either name or faculty number
-            return tokens.every(t => name.includes(t) || faculty.includes(t));
-        });
-        renderStudents(filtered);
     };
 
     // Expose selected students helper (adjacent improvement)
     window.getSelectedStudents = function() {
-        return Array.from(document.querySelectorAll('.studentSelect:checked')).map(cb => ({
-            fullName: cb.dataset.name || '',
-            facultyNumber: cb.dataset.facultyNumber || ''
-        }));
+        return Array.from(studentSelection).map(id => {
+            const item = allStudentItems.find(i => i.id === id);
+            return {
+                id,
+                fullName: item?.name || '',
+                facultyNumber: item?.facultyNumber || ''
+            };
+        });
     };
 
 
@@ -224,13 +244,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchInput.addEventListener('input', (e) => {
                     const value = e.target.value;
                     clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => applyStudentSearchFilter(value), 180);
+                    debounceTimer = setTimeout(() => filterStudents(value), 180);
                 });
                 searchInput.dataset.bound = 'true';
             }
             // If there is already a query present, apply it
             if (searchInput && searchInput.value) {
-                applyStudentSearchFilter(searchInput.value);
+                filterStudents(searchInput.value);
             }
         } catch (err) {
             console.error('Failed to fetch students:', err);
