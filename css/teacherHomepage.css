@@ -1,28 +1,79 @@
-#classList {
-    list-style-type: none;
+/* Centered classes section */
+#classesSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 48px 20px 32px 20px;
+}
+
+#classesTitle {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: .5px;
+}
+
+#classList, .classes-list {
+    list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
 }
 
 
-.newClassBtn, #addClassBtn {
-    width: 200px;
-    height: 40px;
-    font-size: 1.2rem;
+/* Add Class button (darker gray) */
+.add-class-btn {
+    width: 300px;
+    min-height: 54px;
+    font-size: 1.15rem;
+    font-weight: 600;
     font-family: inherit;
-}
-
-.newClassBtn {
-    background-color: #10b981; /* Emerald green */
-    color: white;
+    background: #374151; /* gray-700 */
+    color: #ffffff;
     border: none;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-}   
+    padding: 16px 22px;
+    box-shadow: 0 8px 20px rgba(55,65,81,0.35);
+    transition: background 0.25s ease, transform 120ms ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+.add-class-btn:hover { /* No hover animation, keep color */ background: #374151; }
+.add-class-btn:active { transform: translateY(2px); box-shadow: 0 4px 14px rgba(31,41,55,0.4); }
+
+/* Individual class buttons (blue) */
+.newClassBtn {
+    width: 300px;
+    min-height: 54px;
+    font-size: 1.2rem; /* slightly bigger text */
+    font-weight: 600;
+    font-family: inherit;
+    background: #2563eb; /* blue primary */
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    padding: 16px 22px;
+    box-shadow: 0 8px 22px rgba(37,99,235,0.38);
+    transition: background 0.25s ease, transform 120ms ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+.newClassBtn:hover { /* Remove hover animation; retain base color */ background: #2563eb; }
+.newClassBtn:active { transform: translateY(2px); box-shadow: 0 5px 16px rgba(29,78,216,0.4); }
+
+/* Click animation class (added briefly via JS) */
+/* Click animation shared */
+/* Removed pop scale animation; clicked class retained for future extensibility */
+.newClassBtn.clicked, .add-class-btn.clicked { outline: 2px solid rgba(0,0,0,0.08); }
 
 /* Modal overlay and dialog */
 .overlay {
@@ -102,12 +153,12 @@
     color: #ffffff;
 }
 
-#main-container {
+#mainContainer {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    padding: 00px;
+    justify-content: flex-start;
+    min-height: 100vh;
 }
 
 .overlay {
@@ -183,35 +234,28 @@
 
 .overlay-content-bottom-section {
     display: flex;
-    justify-content: flex-end;
-    padding: 20px;
+    justify-content: center; /* center action buttons */
+    gap: 16px;
+    padding: 20px 20px 28px 20px;
 }
 
 .role-button {
-    height: 50px;
-    width: 100px;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-    background: rgb(34, 11, 19);
+    min-width: 160px;
+    padding: 12px 18px;
+    height: auto;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: .4px;
+    background: #e5e7eb;
+    color: #111827;
+    border: 1px solid #d1d5db;
     border-radius: 10px;
-    border: none;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     cursor: pointer;
-    transition: transform 160ms ease, box-shadow 160ms ease;
-    will-change: transform;
+    transition: background 0.15s ease, transform 120ms ease;
 }
-#addStudentsOverlayBtn {
-    font-size: 1rem;
-}
-
-.role-button:hover {
-    /* Remove scale to keep text crisp; lift with translateY and shadow only */
-    transform: translateY(-4px);
-    box-shadow: 0 12px 26px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.35);
-}
-
-.role-button:active {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.35);
-}
+.role-button:hover { background: #d1d5db; }
+.role-button:active { transform: translateY(2px); }
+#addStudentsOverlayBtn { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+#addStudentsOverlayBtn:hover { background: #1d4ed8; }
+#addStudentsOverlayBtn:active { transform: translateY(2px); }

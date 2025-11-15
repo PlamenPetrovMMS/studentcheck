@@ -65,6 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
+    // Bind Close button functionality for the students overlay
+    const closeOverlayBtn = document.getElementById('closeOverlayBtn');
+    if (closeOverlayBtn) {
+        closeOverlayBtn.addEventListener('click', () => {
+            closeStudentsOverlay();
+        });
+        // Allow Escape key already handled globally; space/enter auto-trigger button
+    }
+
 
 
 
@@ -240,6 +249,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const attachNewClassButtonBehavior = (buttonEl) => {
         if (!buttonEl) return;
+        // Click animation (adds .clicked briefly)
+        const animate = () => {
+            buttonEl.classList.add('clicked');
+            setTimeout(() => buttonEl.classList.remove('clicked'), 340);
+        };
+        buttonEl.addEventListener('mousedown', animate);
+        buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
         buttonEl.addEventListener('click', (e) => {
             e.preventDefault();
             // Directly load and display all students when a class is clicked
@@ -329,9 +345,11 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay = document.createElement('div');
         overlay.id = 'classOverlay';
         overlay.className = 'overlay hidden';
+        overlay.style.visibility = 'hidden'; // ensure hidden initial state
         overlay.innerHTML = `
-            <div class="modal" role="dialog" aria-modal="true">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="createClassTitle">
                 <form id="createClassForm">
+                    <h2 id="createClassTitle" style="margin:0 0 12px 0; font-size:1.25rem;">Create Class</h2>
                     <input id="classNameInput" aria-label="Class name" name="className" type="text" required minlength="2" maxlength="64" placeholder="Class name" />
                     <div class="modal-actions">
                         <button type="submit" id="createClassBtn">Create</button>
@@ -348,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openModal = () => {
         overlay.classList.remove('hidden');
+        overlay.style.visibility = 'visible';
         input.value = '';
         input.focus();
         document.body.style.overflow = 'hidden';
@@ -355,6 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeModal = () => {
         overlay.classList.add('hidden');
+        overlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 

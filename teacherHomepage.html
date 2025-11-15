@@ -11,7 +11,7 @@
     <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
         <img src="images/student_check-removebg.png" alt="Home">
     </button>
-    <main class="main-container">
+    <main class="main-container" id="mainContainer">
 
         <div class="overlay" id="overlay">
             <div class="overlay-content" id="overlayContent">
@@ -35,14 +35,14 @@
             </div>
         </div>
 
-        <div class="page-items-container">
-            <h1>Classes</h1>
-            <ul id="classList">
+        <section id="classesSection" aria-labelledby="classesTitle">
+            <h1 id="classesTitle">Classes</h1>
+            <ul id="classList" class="classes-list">
                 <li>
-                    <button id="addClassBtn" type="button"> + </button>
-                </li>   
+                    <button id="addClassBtn" type="button" class="add-class-btn" aria-label="Add new class">+ Add Class</button>
+                </li>
             </ul>
-        </div>
+        </section>
 
     </main>
     <script src="javascript/shared.js"></script>
