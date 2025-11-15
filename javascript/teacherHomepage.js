@@ -2,14 +2,32 @@
 document.addEventListener('DOMContentLoaded', () => {
     const classList = document.getElementById('classList');
     const addBtn = document.getElementById('addClassBtn');
-    // Determine current teacher email from session
+    // Determine current teacher email with robust fallbacks (mobile reload safe)
     let teacherEmail = null;
-    // Use ONLY sessionStorage to determine active teacher; no persistent fallback.
-    try {
-        const raw = sessionStorage.getItem('teacherData');
-        teacherEmail = raw ? (JSON.parse(raw)?.email || null) : null;
-    } catch (e) {
-        console.warn('Failed to parse teacherData from sessionStorage:', e);
+    function deriveTeacherEmailFallback() {
+        // 1) sessionStorage teacherData
+        try {
+            const raw = sessionStorage.getItem('teacherData');
+            const parsed = raw ? JSON.parse(raw) : null;
+            if (parsed?.email) return parsed.email;
+        } catch (e) { console.warn('Failed to parse teacherData from sessionStorage:', e); }
+        // 2) last email hint
+        const last = localStorage.getItem('teacher:lastEmail');
+        if (last) return last;
+        // 3) scan localStorage for any teacher:class:<email>:
+        const emails = new Set();
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            const m = k.match(/^teacher:class:([^:]+):/);
+            if (m && m[1]) emails.add(m[1]);
+        }
+        if (emails.size === 1) return Array.from(emails)[0];
+        return null;
+    }
+    teacherEmail = deriveTeacherEmailFallback();
+    if (teacherEmail) {
+        try { localStorage.setItem('teacher:lastEmail', teacherEmail); } catch {}
     }
 
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
@@ -1150,26 +1168,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const loadClasses = () => {
-        if (!teacherEmail) return;
-        const prefix = `teacher:class:${teacherEmail}:`;
+        console.log('[Classes] loadClasses start. Email =', teacherEmail);
+        let classNames = [];
         try {
-            const classNames = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith(prefix)) {
-                    const raw = localStorage.getItem(k);
-                    try {
-                        const obj = JSON.parse(raw);
-                        const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
-                        if (name && !classNames.includes(name)) classNames.push(name);
-                    } catch {}
+            if (teacherEmail) {
+                const prefix = `teacher:class:${teacherEmail}:`;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith(prefix)) {
+                        const raw = localStorage.getItem(k);
+                        try {
+                            const obj = JSON.parse(raw);
+                            const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
+                            if (name && !classNames.includes(name)) classNames.push(name);
+                        } catch (e) { console.warn('Parse class item failed', k, e); }
+                    }
                 }
             }
-            classNames.forEach(renderClassItem);
-        } catch (e) {
-            console.warn('Failed to load classes (per-class items):', e);
-        }
+            // If no email or no classes found, fall back to scanning all per-class items
+            if ((!teacherEmail || classNames.length === 0)) {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('teacher:class:')) {
+                        const raw = localStorage.getItem(k);
+                        const after = k.replace(/^teacher:class:[^:]+:/, '');
+                        try {
+                            const obj = JSON.parse(raw);
+                            const name = obj?.name || decodeURIComponent(after);
+                            if (name && !classNames.includes(name)) classNames.push(name);
+                        } catch (e) { /* tolerant */ }
+                    }
+                }
+            }
+        } catch (e) { console.warn('Failed to load classes (per-class items):', e); }
+        console.log('[Classes] found', classNames.length, 'classes:', classNames);
+        classNames.forEach(renderClassItem);
+        // Ensure container visible
+        ensureClassesContainerVisible();
     };
+
+    function ensureClassesContainerVisible() {
+        const sec = document.getElementById('classesSection');
+        if (!sec) return;
+        const style = window.getComputedStyle(sec);
+        if (style.display === 'none') {
+            sec.style.display = 'flex';
+        }
+        const list = document.getElementById('classList');
+        if (list) {
+            const listStyle = window.getComputedStyle(list);
+            if (listStyle.display === 'none') list.style.display = 'flex';
+        }
+    }
 
 
 
@@ -1225,7 +1275,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    // Load any previously saved classes for this teacher
+    // Load readiness then classes, then attach behaviors (mobile-friendly init order)
+    loadReadyClasses();
     loadClasses();
 
     addBtn?.addEventListener('click', () => {
@@ -1291,8 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){ console.warn('Legacy storage cleanup failed', e); }
     })();
 
-    // Load readiness and apply to existing classes
-    loadReadyClasses();
+    // Apply ready styling to rendered classes
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
 });
 
