@@ -438,6 +438,26 @@
     padding: 0 2px;
 }
 
+#studentInfoOverlay .ready-class-popup.student-info-popup {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 16px;
+    width: min(92vw, 480px);
+    max-width: 480px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    padding: 28px 26px 30px 26px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+#studentInfoOverlay h2 {
+    margin: 0 0 14px 0;
+    font-size: 1.55rem;
+    text-align: center;
+    font-weight: 700;
+}
+#studentInfoOverlay p { font-size: 0.95rem; line-height: 1.35; }
+
 #manageStudentsOverlay .manage-footer-actions {
     display: flex;
     justify-content: center;
