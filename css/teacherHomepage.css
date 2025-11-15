@@ -350,6 +350,11 @@
     position: relative;
     font-family: inherit;
 }
+
+/* Ensure navbar logo sits beneath overlays on this page so it also blurs */
+.navbar-logo {
+    z-index: 900; /* overlays use z-index: 1000 */
+}
 #readyClassPopupOverlay h2 {
     margin: 0 0 10px 0;
     font-size: 1.5rem;
