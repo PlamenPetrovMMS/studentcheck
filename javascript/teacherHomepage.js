@@ -311,8 +311,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="slides-track" id="classWizardTrack">
                         <section class="slide" data-index="0" aria-label="Class Name">
                             <div class="field">
-                                <label for="wizardClassName">Class name</label>
-                                <input id="wizardClassName" type="text" placeholder="e.g. Physics Group A" required />
+                                <label for="wizardClassName">Name</label>
+                                <input id="wizardClassName" type="text" required />
                             </div>
                             <div id="wizardErrorName" class="error" role="alert" aria-live="polite"></div>
                         </section>
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleWizardNext() {
         const name = wizardNameInput.value.trim();
         if (!name) {
-            wizardErrorName.textContent = 'Class name is required.';
+            wizardErrorName.textContent = 'Name is required.';
             wizardNameInput.focus();
             return;
         }
@@ -1265,7 +1265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="createClassTitle">
                 <form id="createClassForm">
                     <h2 id="createClassTitle" style="margin:0 0 12px 0; font-size:1.25rem;">Create Class</h2>
-                    <input id="classNameInput" aria-label="Class name" name="className" type="text" required minlength="2" maxlength="64" placeholder="Class name" />
+                    <input id="classNameInput" aria-label="Name" name="className" type="text" required minlength="2" maxlength="64" />
                     <div class="modal-actions">
                         <button type="submit" id="createClassBtn">Create</button>
                         <button type="button" id="cancelCreateBtn" class="secondary">Cancel</button>
