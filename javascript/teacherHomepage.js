@@ -99,14 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="scanner-footer-actions">
                     <button type="button" id="scannerStopBtn" class="role-button primary">Show Attendance</button>
-                    <button type="button" id="scannerBackBtn" class="role-button">Back</button>
+                    <button type="button" id="scannerCloseBtn" class="role-button">Close</button>
                 </div>
             </div>`;
         document.body.appendChild(scannerOverlay);
         const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
-        closeBtn?.addEventListener('click', () => closeScannerOverlay());
-        scannerOverlay.addEventListener('click', (e) => { if (e.target === scannerOverlay) closeScannerOverlay(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') closeScannerOverlay(); });
+        // Close (X) triggers confirmation popup; overlay won't close by ESC or background clicks
+        closeBtn?.addEventListener('click', () => openCloseScannerConfirm());
+        // Disable background click closing for scanner overlay
+        scannerOverlay.addEventListener('click', (e) => {
+            // Intentionally do nothing to prevent accidental close on backdrop
+            return;
+        });
+        // Disable ESC-to-close for scanner overlay
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') {
+                // no-op; require explicit confirmation to close
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        });
         // Radio handlers
         const radios = scannerOverlay.querySelectorAll('input[name="scanMode"]');
         radios.forEach(r => r.addEventListener('change', (ev) => {
@@ -119,12 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Open attendance overlay while keeping scanner running for live updates
             openAttendanceOverlay(currentClassName);
         });
-        const backBtn = scannerOverlay.querySelector('#scannerBackBtn');
-        backBtn?.addEventListener('click', () => {
-            closeScannerOverlay();
-            // After closing scanner, return to ready class popup for current class
-            setTimeout(() => { try { openReadyClassPopup(currentClassName); } catch(_){} }, 300);
-        });
+        const closeActionBtn = scannerOverlay.querySelector('#scannerCloseBtn');
+        closeActionBtn?.addEventListener('click', () => openCloseScannerConfirm());
         return scannerOverlay;
     }
 
@@ -358,6 +366,84 @@ document.addEventListener('DOMContentLoaded', () => {
             const dot = attendanceDotIndex.get(studentId);
             if (dot) applyDotStateClass(dot, next);
         }
+    }
+
+    // ---- Reusable confirmation overlay ----
+    let confirmOverlay = null;
+    function ensureConfirmOverlay() {
+        if (confirmOverlay) return confirmOverlay;
+        confirmOverlay = document.createElement('div');
+        confirmOverlay.id = 'confirmOverlay';
+        confirmOverlay.className = 'overlay';
+        confirmOverlay.style.visibility = 'hidden';
+        confirmOverlay.innerHTML = `
+            <div class="confirm-popup" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+                <h3 id="confirmTitle" class="confirm-title">Confirm</h3>
+                <p id="confirmMessage" class="confirm-message"></p>
+                <div class="confirm-actions">
+                    <button type="button" id="confirmCancelBtn" class="role-button">Cancel</button>
+                    <button type="button" id="confirmOkBtn" class="role-button primary">Confirm</button>
+                </div>
+            </div>`;
+        document.body.appendChild(confirmOverlay);
+        return confirmOverlay;
+    }
+    function openConfirmOverlay(message, onConfirm, onCancel) {
+        ensureConfirmOverlay();
+        const msgEl = confirmOverlay.querySelector('#confirmMessage');
+        if (msgEl) msgEl.textContent = message || 'Are you sure?';
+        const cancelBtn = confirmOverlay.querySelector('#confirmCancelBtn');
+        const okBtn = confirmOverlay.querySelector('#confirmOkBtn');
+        const cleanup = () => {
+            cancelBtn?.replaceWith(cancelBtn.cloneNode(true));
+            okBtn?.replaceWith(okBtn.cloneNode(true));
+        };
+        // Re-query after cloning
+        let newCancel = null, newOk = null;
+        const wire = () => {
+            newCancel = confirmOverlay.querySelector('#confirmCancelBtn');
+            newOk = confirmOverlay.querySelector('#confirmOkBtn');
+            newCancel?.addEventListener('click', () => {
+                closeConfirmOverlay();
+                if (onCancel) onCancel();
+            });
+            newOk?.addEventListener('click', () => {
+                closeConfirmOverlay();
+                if (onConfirm) onConfirm();
+            });
+        };
+        cleanup();
+        wire();
+        confirmOverlay.style.visibility = 'visible';
+        // Prevent backdrop click from propagating to scanner close; treat as cancel
+        confirmOverlay.addEventListener('click', (e) => {
+            if (e.target === confirmOverlay) {
+                closeConfirmOverlay();
+                if (onCancel) onCancel();
+            }
+        }, { once: true });
+    }
+    function closeConfirmOverlay() { if (confirmOverlay) confirmOverlay.style.visibility = 'hidden'; }
+
+    function clearTemporaryAttendanceData(className) {
+        try {
+            if (className) attendanceState.delete(className);
+            attendanceDotIndex.clear();
+        } catch (_) { }
+    }
+    function openCloseScannerConfirm() {
+        openConfirmOverlay(
+            'Are you sure you want to close the scanner? All attendance data will be deleted.',
+            () => {
+                // Confirm: clear temp attendance, close attendance overlay if open, then close scanner
+                clearTemporaryAttendanceData(currentClassName);
+                if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay();
+                closeScannerOverlay();
+            },
+            () => {
+                // Cancel: do nothing; keep scanner running
+            }
+        );
     }
 
     function openScannerOverlay(classId) {
