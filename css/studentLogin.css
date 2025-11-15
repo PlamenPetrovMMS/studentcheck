@@ -111,6 +111,21 @@ main.card {
 		.toggle-password:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 		.toggle-password[aria-pressed="true"] { color: #2563eb; }
 
+/* Make the primary Log in button larger to match key CTAs across the app */
+.actions .btn.btn-primary {
+	font-size: 1.15rem; /* slightly larger than base 1rem */
+	padding: 16px 22px; /* more comfortable height */
+	min-height: 56px;
+	min-width: 220px;
+}
+
+@media (max-width: 480px) {
+	.actions .btn.btn-primary {
+		font-size: 1.2rem;
+		min-height: 68px; /* ensure bigger touch target on mobile */
+	}
+}
+
 		/* Extra spacing above first field (Faculty Number) for clearer separation from header */
 		form#studentLoginForm .field:first-child { margin-top: 12px; }
 
