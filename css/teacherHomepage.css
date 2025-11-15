@@ -1,3 +1,14 @@
+#mainContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    /* Lock to viewport height to prevent stray page scrollbars */
+    height: 100vh;   /* fallback */
+    height: 100svh;  /* iOS Safari small viewport */
+    height: 100dvh;  /* modern dynamic viewport */
+    overflow: hidden; /* contain any overflow to inner sections */
+}
 /* Centered classes section */
 #classesSection {
     display: flex;
@@ -6,6 +17,9 @@
     justify-content: flex-start;
     gap: 20px;
     padding: 48px 20px 32px 20px;
+    /* If content exceeds the viewport, scroll this section instead of the page */
+    width: 100%;
+    overflow-y: auto;
 }
 
 #classesTitle {
