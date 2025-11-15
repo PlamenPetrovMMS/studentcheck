@@ -68,7 +68,7 @@
         const b = middleName.value.trim();
         const c = lastName.value.trim();
         if (!a || !b || !c) {
-            errorSlide1.textContent = 'Please fill out first, middle and last name.';
+            errorSlide1.textContent = 'Please fill out every field.';
             return false;
         }
         errorSlide1.textContent = '';
