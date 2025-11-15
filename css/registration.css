@@ -121,6 +121,51 @@ body {
   .field select { max-width: 100%; }
 }
 
+/* Full-page loading overlay (shared look with login pages) */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.6); /* gray-900 @ 60% */
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: none; /* hidden by default; shown when injected */
+  align-items: center;
+  justify-content: center;
+}
+
+/* When the element exists in DOM, JS appends it and it should be visible */
+#loginOverlay.loading-overlay { display: flex; }
+
+.loading-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.9);
+  color: #111827; /* gray-900 */
+  padding: 14px 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+}
+
+.loading-text {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(37, 99, 235, 0.25);
+  border-top-color: #2563eb; /* blue-600 */
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Password reveal/hide styles (shared pattern with login pages) */
 .password-wrapper {
   position: relative;
