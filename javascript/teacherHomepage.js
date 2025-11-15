@@ -82,7 +82,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
         return readyPopupOverlay;
     }
-    function openReadyClassPopup() { ensureReadyPopup(); readyPopupOverlay.style.visibility = 'visible'; document.body.style.overflow = 'hidden'; }
+    function openReadyClassPopup() {
+        ensureReadyPopup();
+        // Switch to buttons-only layout and vertical actions
+        const popup = readyPopupOverlay.querySelector('.ready-class-popup');
+        if (popup) {
+            popup.classList.add('buttons-only');
+            const actions = popup.querySelector('.ready-class-actions');
+            actions?.classList.add('vertical');
+        }
+        readyPopupOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+    }
     function closeReadyClassPopup() { if (!readyPopupOverlay) return; readyPopupOverlay.style.visibility = 'hidden'; document.body.style.overflow = ''; }
 
     // ---- CLASS CREATION WIZARD ----

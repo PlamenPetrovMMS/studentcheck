@@ -364,6 +364,22 @@
     gap: 14px;
     flex-wrap: wrap;
 }
+/* Buttons-only layout for ready popup */
+#readyClassPopupOverlay .ready-class-popup.buttons-only h2,
+#readyClassPopupOverlay .ready-class-popup.buttons-only .ready-class-desc {
+    display: none;
+}
+#readyClassPopupOverlay .ready-class-popup .ready-class-actions.vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+#readyClassPopupOverlay .ready-class-popup .ready-class-actions.vertical .role-button {
+    width: 100%;
+    max-width: 320px;
+}
 #readyClassPopupOverlay .role-button.primary {
     background: #2563eb;
     color: #fff;
