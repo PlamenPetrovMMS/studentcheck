@@ -81,7 +81,7 @@
 /* Temporary ready badge shown on top of class button */
 .newClassBtn .ready-badge {
     position: absolute;
-    top: 6px;
+    bottom: 6px;
     right: 8px;
     background: #059669;
     color: #ffffff;
