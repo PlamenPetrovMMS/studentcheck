@@ -539,8 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const attended = getStudentAttendanceCount(studentObj);
         const attendedP = document.createElement('p');
         attendedP.textContent = `Attended Classes: ${attended}`;
-        attendedP.style.margin = '4px 0 0 0';
-        attendedP.style.fontWeight = '600';
+        attendedP.style.margin = '10px 0 0 0';
+        attendedP.style.fontWeight = '700';
+        attendedP.style.fontSize = '1.15rem';
+        attendedP.style.letterSpacing = '.5px';
         wrapper.appendChild(attendedP);
         return wrapper;
     }
