@@ -1112,13 +1112,15 @@ document.addEventListener('DOMContentLoaded', () => {
         addStudentsClassOverlay.className = 'overlay';
         addStudentsClassOverlay.style.visibility = 'hidden';
         addStudentsClassOverlay.innerHTML = `
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
+            <div class="ready-class-popup add-students-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
                 <h2 id="addStudentsTitle">Add Students</h2>
                 <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
-                <input type="text" id="addStudentsSearchInput" placeholder="Search..." style="height:36px; width:100%; font-size:1rem; padding:6px 10px; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb; outline:none; margin:0 0 14px 0;" />
-                <div id="addStudentsList" style="flex:1; max-height:50vh; overflow-y:auto; padding:0 2px;"></div>
-                <div class="manage-footer-actions" style="justify-content:flex-end;">
-                    <button type="button" id="confirmAddStudentsBtn" class="role-button" aria-label="Add Selected">Add</button>
+                <div class="add-students-body">
+                    <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
+                    <div id="addStudentsList" class="add-students-list"></div>
+                </div>
+                <div class="add-students-footer">
+                    <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
                 </div>
             </div>`;
         document.body.appendChild(addStudentsClassOverlay);
@@ -1161,8 +1163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
             return;
         }
-        const ul = document.createElement('ul');
-        ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
+    const ul = document.createElement('ul');
+    ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
         studentsArray.forEach((s, idx) => {
             const li = document.createElement('li');
             li.className='list-item';
@@ -1177,8 +1179,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Disable checkbox if already in class
             if (existingSet.has(studentId)) {
                 checkbox.disabled = true;
-                li.classList.add('selected');
-                li.style.opacity = '.55';
+                li.classList.add('already-in');
+                const badge = document.createElement('span');
+                badge.className = 'already-in-badge';
+                badge.textContent = 'Already in';
+                li.appendChild(badge);
             }
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked) { addStudentsSelections.add(studentId); li.classList.add('selected'); }

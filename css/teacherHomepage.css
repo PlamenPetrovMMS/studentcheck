@@ -481,6 +481,94 @@ body {
     display: flex;
     flex-direction: column;
 }
+
+/* Add Students overlay styling */
+#addStudentsClassOverlay .add-students-popup {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 16px;
+    width: min(92vw, 560px);
+    min-height: 360px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    padding: 26px 24px 30px 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* space between title/body/footer */
+}
+#addStudentsClassOverlay h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+}
+#addStudentsClassOverlay .add-students-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1 1 auto;
+}
+#addStudentsClassOverlay #addStudentsSearchInput {
+    height: 40px;
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: #f9fafb;
+    outline: none;
+}
+#addStudentsClassOverlay #addStudentsSearchInput:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+}
+#addStudentsClassOverlay .add-students-list {
+    flex: 1 1 auto;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 4px; /* allow slight space from scrollbar */
+}
+#addStudentsClassOverlay .add-students-list ul { margin:0; padding:0; }
+
+#addStudentsClassOverlay .add-students-footer {
+    display: flex;
+    justify-content: center; /* center Add button */
+    align-items: center;
+    margin-top: 4px;
+}
+#addStudentsClassOverlay .add-students-footer .role-button {
+    min-width: 160px;
+    padding: 12px 20px;
+    font-size: 1rem;
+}
+
+/* Already-in student list items */
+#addStudentsClassOverlay .list-item.already-in {
+    opacity: 0.55;
+    position: relative;
+    cursor: not-allowed;
+}
+#addStudentsClassOverlay .already-in-badge {
+    margin-left: auto;
+    background: #059669;
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+
+@media (max-width: 480px) {
+    #addStudentsClassOverlay .add-students-popup {
+        width: 94vw;
+        padding: 22px 18px 24px 18px;
+        gap: 16px;
+    }
+    #addStudentsClassOverlay #addStudentsSearchInput { height: 38px; font-size: 0.95rem; }
+    #addStudentsClassOverlay .add-students-footer .role-button { padding: 10px 16px; font-size: 0.95rem; }
+}
 #manageStudentsOverlay #manageStudentsTitle {
     margin: 0 0 10px 0;
     font-size: 1.5rem;
