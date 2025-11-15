@@ -197,7 +197,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: 100vh;
+    /* Use dynamic viewport units to avoid extra white space on mobile browsers */
+    min-height: 100vh;   /* fallback */
+    min-height: 100svh;  /* small viewport height (iOS Safari toolbars) */
+    min-height: 100dvh;  /* dynamic viewport height (modern) */
 }
 
 .overlay {
