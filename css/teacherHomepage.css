@@ -551,6 +551,17 @@ body {
 /* Ensure html5-qrcode container fills the frame */
 #scannerOverlay #qr-reader { width: 100%; height: 100%; }
 
+/* Scanner footer actions under the QR element */
+#scannerOverlay .scanner-footer-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 14px;
+}
+#scannerOverlay .scanner-footer-actions .role-button {
+    min-width: 160px;
+}
+
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
     .add-class-btn,

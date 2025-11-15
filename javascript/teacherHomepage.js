@@ -92,6 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="cameraContainer" class="camera-container">
                     <div id="qr-reader" style="width:100%; height:100%;"></div>
                 </div>
+                <div class="scanner-footer-actions">
+                    <button type="button" id="scannerStopBtn" class="role-button">Stop Scanner</button>
+                    <button type="button" id="scannerBackBtn" class="role-button">Back</button>
+                </div>
             </div>`;
         document.body.appendChild(scannerOverlay);
         const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
@@ -104,6 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
             handleRadioChange(mode);
         }));
+        // Footer action buttons
+        const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
+        stopBtn?.addEventListener('click', () => closeScannerOverlay());
+        const backBtn = scannerOverlay.querySelector('#scannerBackBtn');
+        backBtn?.addEventListener('click', () => {
+            closeScannerOverlay();
+            // After closing scanner, return to ready class popup for current class
+            setTimeout(() => { try { openReadyClassPopup(currentClassName); } catch(_){} }, 300);
+        });
         return scannerOverlay;
     }
 
@@ -156,6 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let lastScanAt = 0;
+    function handleRadioChange(mode) {
+        currentScanMode = (mode === 'leaving') ? 'leaving' : 'joining';
+        const cam = document.getElementById('cameraContainer');
+        if (cam) cam.setAttribute('data-mode', currentScanMode);
+    }
     function initializeScanner(mode) {
         return ensureHtml5QrcodeLoaded().then(() => {
             const container = document.getElementById('qr-reader');
