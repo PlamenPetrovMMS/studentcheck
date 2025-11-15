@@ -1,3 +1,8 @@
+/* This page only: prevent page-level scrollbars; let content sections handle their own scrolling */
+body {
+    overflow: hidden;
+}
+
 #mainContainer {
     display: flex;
     flex-direction: column;
@@ -8,6 +13,7 @@
     height: 100svh;  /* iOS Safari small viewport */
     height: 100dvh;  /* modern dynamic viewport */
     overflow: hidden; /* contain any overflow to inner sections */
+    width: 100%;
 }
 /* Centered classes section */
 #classesSection {
@@ -20,6 +26,8 @@
     /* If content exceeds the viewport, scroll this section instead of the page */
     width: 100%;
     overflow-y: auto;
+    flex: 1 1 auto; /* fill remaining height of container */
+    min-height: 0;  /* allow shrinking inside flex container to avoid forced overflow */
 }
 
 #classesTitle {
