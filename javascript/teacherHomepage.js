@@ -48,10 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Scanner Overlay (Start Scanning) ----
     let scannerOverlay = null;
-    let scannerVideoEl = null;
-    let scannerControls = null; // returned by ZXing decodeFromVideoDevice
-    let codeReader = null; // ZXing BrowserQRCodeReader instance
     let currentScanMode = 'joining';
+    let html5QrCode = null; // Html5Qrcode instance
 
     function ensureScannerOverlay() {
         if (scannerOverlay) return scannerOverlay;
@@ -74,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </label>
                 </div>
                 <div id="cameraContainer" class="camera-container">
-                    <video id="scannerVideo" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; background:black;"></video>
+                    <div id="qr-reader" style="width:100%; height:100%;"></div>
                 </div>
             </div>`;
         document.body.appendChild(scannerOverlay);
@@ -88,93 +86,88 @@ document.addEventListener('DOMContentLoaded', () => {
             const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
             handleRadioChange(mode);
         }));
-        scannerVideoEl = scannerOverlay.querySelector('#scannerVideo');
         return scannerOverlay;
     }
 
-    function handleRadioChange(mode) {
-        currentScanMode = mode;
-        // No need to restart camera; we only switch interpretation of results
-    }
-
     function closeScannerOverlay() {
+        const finish = () => {
+            if (scannerOverlay) scannerOverlay.style.visibility = 'hidden';
+            document.body.style.overflow = '';
+        };
         try {
-            if (scannerControls && typeof scannerControls.stop === 'function') {
-                scannerControls.stop();
-            }
-            if (scannerVideoEl && scannerVideoEl.srcObject) {
-                const tracks = scannerVideoEl.srcObject.getTracks?.() || [];
-                tracks.forEach(t => { try { t.stop(); } catch(_){} });
-                scannerVideoEl.srcObject = null;
-            }
-            if (codeReader && typeof codeReader.reset === 'function') {
-                codeReader.reset();
+            if (html5QrCode) {
+                // stop() returns a promise
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                    finish();
+                }).catch(() => {
+                    try { html5QrCode.clear(); } catch(_){}
+                    html5QrCode = null;
+                    finish();
+                });
+                return;
             }
         } catch (e) { console.warn('Scanner cleanup error:', e); }
-        if (scannerOverlay) scannerOverlay.style.visibility = 'hidden';
-        document.body.style.overflow = '';
+        finish();
     }
 
-    let zxingLoadPromise = null;
-    function ensureZxingLoaded() {
-        if (window.ZXingBrowser) return Promise.resolve(window.ZXingBrowser);
-        if (zxingLoadPromise) return zxingLoadPromise;
+    let html5qrcodeLoadPromise = null;
+    function ensureHtml5QrcodeLoaded() {
+        if (window.Html5Qrcode) return Promise.resolve(window.Html5Qrcode);
+        if (html5qrcodeLoadPromise) return html5qrcodeLoadPromise;
         const sources = [
-            'https://unpkg.com/@zxing/browser@latest/umd/index.min.js',
-            'https://unpkg.com/@zxing/browser@latest/umd/index.js',
-            'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/index.min.js',
-            'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/index.js'
+            'https://unpkg.com/html5-qrcode@latest/minified/html5-qrcode.min.js',
+            'https://unpkg.com/html5-qrcode@latest/html5-qrcode.min.js',
+            'https://cdn.jsdelivr.net/npm/html5-qrcode@latest/minified/html5-qrcode.min.js',
+            'https://cdn.jsdelivr.net/npm/html5-qrcode@latest/html5-qrcode.min.js'
         ];
-        zxingLoadPromise = new Promise((resolve, reject) => {
+        html5qrcodeLoadPromise = new Promise((resolve, reject) => {
             const tryNext = (i) => {
-                if (i >= sources.length) {
-                    reject(new Error('Failed to load ZXing browser library'));
-                    return;
-                }
+                if (i >= sources.length) { reject(new Error('Failed to load html5-qrcode library')); return; }
                 const script = document.createElement('script');
                 script.src = sources[i];
                 script.async = true;
-                script.onload = () => resolve(window.ZXingBrowser);
-                script.onerror = () => {
-                    script.remove();
-                    tryNext(i + 1);
-                };
+                script.onload = () => resolve(window.Html5Qrcode);
+                script.onerror = () => { script.remove(); tryNext(i+1); };
                 document.head.appendChild(script);
             };
             tryNext(0);
         });
-        return zxingLoadPromise;
+        return html5qrcodeLoadPromise;
     }
 
     let lastScanAt = 0;
     function initializeScanner(mode) {
-        return ensureZxingLoaded().then((ZXB) => {
-            try {
-                codeReader = new ZXB.BrowserQRCodeReader();
-            } catch (e) {
-                // Fallback to multi-format reader if QR-only fails
-                try { codeReader = new ZXB.BrowserMultiFormatReader(); } catch (err) { console.error('ZXing init failed', err); throw err; }
-            }
-            // Start default camera
-            return codeReader.decodeFromVideoDevice(undefined, scannerVideoEl, (result, err, controls) => {
-                if (controls && !scannerControls) scannerControls = controls;
-                if (result) {
-                    const now = Date.now();
-                    // Throttle duplicate rapid callbacks
-                    if (now - lastScanAt > 900) {
-                        lastScanAt = now;
-                        const text = result.getText ? result.getText() : String(result);
-                        handleScannedCode(text, currentScanMode, currentClassName);
-                    }
+        return ensureHtml5QrcodeLoaded().then(() => {
+            const container = document.getElementById('qr-reader');
+            if (!container) { throw new Error('QR container not found'); }
+            html5QrCode = new Html5Qrcode('qr-reader');
+            const onScanSuccess = (decodedText, decodedResult) => {
+                const now = Date.now();
+                if (now - lastScanAt > 800) {
+                    lastScanAt = now;
+                    handleScannedCode(decodedText, currentScanMode, currentClassName);
                 }
-                // Ignore frame decode errors; they are expected while searching
+            };
+            const onScanError = (errorMessage, error) => {
+                // Ignore frequent decode errors; log only severe ones silently
+                return;
+            };
+            return html5QrCode.start(
+                { facingMode: 'environment' },
+                {
+                    fps: 24,
+                    qrbox: { width: 220, height: 220 },
+                    aspectRatio: 1.0,
+                    disableFlip: true
+                },
+                onScanSuccess,
+                onScanError
+            ).catch((e) => {
+                console.error('Scanner initialization error:', e);
+                if (container) container.innerHTML = '<p style="color:#b91c1c; text-align:center;">Unable to start camera scanner.</p>';
             });
-        }).catch((e) => {
-            console.error('Scanner initialization error:', e);
-            const container = document.getElementById('cameraContainer');
-            if (container) {
-                container.innerHTML = '<p style="color:#b91c1c; text-align:center;">Unable to start camera scanner.</p>';
-            }
         });
     }
 
@@ -207,8 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show overlay
         scannerOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-        // Start camera
-        initializeScanner(currentScanMode);
+    // Start camera
+    initializeScanner(currentScanMode);
     }
 
     function startScanner() {
