@@ -691,6 +691,22 @@ body {
 #attendanceOverlay .status-dot.status-joined { background: #9ca3af; }
 #attendanceOverlay .status-dot.status-completed { background: #10b981; }
 
+/* Make the footer button in Attendance overlay smaller */
+#attendanceOverlay .manage-footer-actions .role-button {
+        min-width: 120px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+}
+
+/* Override global mobile bump: keep the attendance footer button compact on small screens */
+@media (max-width: 480px) {
+    #attendanceOverlay .manage-footer-actions .role-button {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 0.95rem;
+    }
+}
+
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
     .add-class-btn,
