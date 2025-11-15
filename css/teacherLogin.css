@@ -53,6 +53,11 @@
 .muted a { color: #2563eb; text-decoration: none; }
 .muted a:hover { text-decoration: underline; }
 
+/* Ensure navbar logo sits under the loading overlay so it also blurs */
+.navbar-logo {
+	z-index: 9000; /* overlay uses 9999 */
+}
+
 .role-button {
     margin-top: 20px;
 	font-size: 1.5rem; /* ~24px */

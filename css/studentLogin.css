@@ -113,3 +113,8 @@ main.card {
 
 		/* Extra spacing above first field (Faculty Number) for clearer separation from header */
 		form#studentLoginForm .field:first-child { margin-top: 12px; }
+
+		/* Ensure navbar logo sits under the loading overlay so it also blurs */
+		.navbar-logo {
+			z-index: 9000; /* overlay uses 9999 */
+		}
