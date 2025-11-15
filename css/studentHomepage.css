@@ -32,33 +32,13 @@
 	image-rendering: pixelated; /* modern */
 }
 
+/* Card body padding to match registration slides spacing */
+.card-section { padding: 20px 22px 10px 22px; }
+
+/* Text alignment and compact spacing to mirror .muted style without extra padding */
+.muted-left { text-align: left; padding: 0; margin: 0 0 8px 0; }
+.muted-left-spaced { text-align: left; padding: 0; margin: 0 0 12px 0; }
 
 
-/* Logout button styles */
-#logoutBtn {
-    margin-top: 20px;
-	font-size: 1.5rem; /* ~24px */
-	padding: 16px 32px;
-	min-width: 220px;
-	border-radius: 10px;
-	border: 2px solid #2563eb;
-	background-color: #3b82f6;
-	color: #fff;
-	cursor: pointer;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-	transition: transform 0.05s ease-out, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-#logoutBtn:hover {
-	background-color: #2563eb;
-	border-color: #1d4ed8;
-	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
 
-#logoutBtn:active {
-	transform: translateY(3px);
-}
-
-#logoutBtn:focus-visible {
-	outline: 3px solid #f59e0b;
-	outline-offset: 2px;
-}
+/* Reuse .btn classes from registration.css for #logoutBtn; no extra styles here */

@@ -68,7 +68,12 @@ body {
     position: relative;
     overflow: hidden;
 }
-.add-class-btn:hover { /* No hover animation, keep color */ background: #374151; }
+.add-class-btn:hover {
+    /* Highlight on hover: slightly brighter and stronger glow */
+    background: #4b5563; /* gray-600 */
+    box-shadow: 0 12px 26px rgba(55,65,81,0.42);
+    transform: translateY(-1px);
+}
 .add-class-btn:active { transform: translateY(2px); box-shadow: 0 4px 14px rgba(31,41,55,0.4); }
 
 /* Individual class buttons (blue) */
