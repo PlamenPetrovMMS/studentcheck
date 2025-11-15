@@ -1,11 +1,3 @@
-/* Center content on the page (optional, tweak as needed) */
-.student-home {
-	display: flex;
-    flex-direction: column;
-	justify-content: center;
-    align-items: center;
-}
-
 /* QR container and scalable sizing */
 #qrContainer {
 	display: flex;
