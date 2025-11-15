@@ -700,7 +700,12 @@ body {
 
 /* Align Attendance overlay footer actions to the right */
 #attendanceOverlay .manage-footer-actions {
+    display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding-right: 0;
 }
 
 /* Override global mobile bump: keep the attendance footer button compact on small screens */
