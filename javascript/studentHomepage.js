@@ -77,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (logoutBtn) {
 		logoutBtn.addEventListener('click', () => {
 			sessionStorage.removeItem('studentData');
-			window.location.replace('studentLogin.html');
+			// Redirect to the landing page after logout
+			window.location.replace('index.html');
 		});
 	}
 
