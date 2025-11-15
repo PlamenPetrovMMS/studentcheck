@@ -745,6 +745,15 @@ body {
         justify-content: center; /* center the buttons */
         gap: 10px;
     }
+    /* Light red confirm action style */
+    #confirmOverlay .role-button.danger {
+        background: #fecaca; /* red-200 */
+        color: #7f1d1d; /* red-900 */
+        border-color: #fecaca;
+    }
+    #confirmOverlay .role-button.danger:hover {
+        background: #fca5a5; /* red-300 */
+    }
     /* Match confirmation buttons height with attendance overlay */
     #confirmOverlay .confirm-actions .role-button {
             padding: 10px 14px;

@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p id="confirmMessage" class="confirm-message"></p>
                 <div class="confirm-actions">
                     <button type="button" id="confirmCancelBtn" class="role-button">Cancel</button>
-                    <button type="button" id="confirmOkBtn" class="role-button primary">Confirm</button>
+                    <button type="button" id="confirmOkBtn" class="role-button danger">Confirm</button>
                 </div>
             </div>`;
         document.body.appendChild(confirmOverlay);
