@@ -360,7 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let manageStudentsOverlay = null;
     let manageStudentsListEl = null;
     let studentCache = [];
-    let studentIndex = new Map(); // id -> student
+    let studentIndex = new Map(); // id -> full student object
+    let studentInfoOverlay = null; // single-student details overlay
+    let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
 
     function ensureManageStudentsOverlay() {
         if (manageStudentsOverlay) return manageStudentsOverlay;
@@ -400,7 +402,8 @@ document.addEventListener('DOMContentLoaded', () => {
             studentCache.forEach((s, idx) => {
                 const splitNames = splitStudentNames(s);
                 const id = s.faculty_number || splitNames.fullName || `s_${idx}`;
-                studentIndex.set(id, { fullName: splitNames.fullName, faculty_number: s.faculty_number });
+                // store full object plus normalized name
+                studentIndex.set(id, { ...s, fullName: splitNames.fullName });
             });
             return studentCache;
         } catch (e) {
@@ -422,10 +425,13 @@ document.addEventListener('DOMContentLoaded', () => {
             students.forEach(s => {
                 const li = document.createElement('li');
                 li.className = 'list-item';
+                const studentId = s.facultyNumber || s.fullName || '';
+                li.dataset.studentId = studentId;
                 const label = document.createElement('label');
                 label.textContent = `${s.fullName || ''} ${s.facultyNumber || ''}`.trim();
                 label.style.margin = '0';
                 li.appendChild(label);
+                li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
                 ul.appendChild(li);
             });
             manageStudentsListEl.appendChild(ul);
@@ -448,10 +454,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
             const li = document.createElement('li');
             li.className = 'list-item';
+            li.dataset.studentId = id;
             const label = document.createElement('label');
             label.textContent = `${info.fullName} ${info.faculty_number || ''}`.trim();
             label.style.margin = '0';
             li.appendChild(label);
+            li.addEventListener('click', () => openStudentInfoOverlay(id, className));
             ul.appendChild(li);
         });
         manageStudentsListEl.appendChild(ul);
@@ -480,6 +488,96 @@ document.addEventListener('DOMContentLoaded', () => {
     function returnToReadyClassPopup(className) {
         closeManageStudentsOverlay();
         openReadyClassPopup(className || currentClassName);
+    }
+
+    // ---- Single Student Info Overlay ----
+    function ensureStudentInfoOverlay() {
+        if (studentInfoOverlay) return studentInfoOverlay;
+        studentInfoOverlay = document.createElement('div');
+        studentInfoOverlay.id = 'studentInfoOverlay';
+        studentInfoOverlay.className = 'overlay';
+        studentInfoOverlay.style.visibility = 'hidden';
+        document.body.appendChild(studentInfoOverlay);
+        studentInfoOverlay.addEventListener('click', (e) => {
+            if (e.target === studentInfoOverlay) {
+                closeStudentInfoOverlay();
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && studentInfoOverlay.style.visibility === 'visible') {
+                closeStudentInfoOverlay();
+            }
+        });
+        return studentInfoOverlay;
+    }
+
+    function buildStudentInfoContent(studentObj, studentId) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ready-class-popup student-info-popup';
+        wrapper.setAttribute('role', 'dialog');
+        wrapper.setAttribute('aria-modal', 'true');
+        wrapper.innerHTML = '';
+        const h2 = document.createElement('h2');
+        h2.textContent = 'Student Info';
+        wrapper.appendChild(h2);
+        const nameP = document.createElement('p');
+        nameP.textContent = `Full Name: ${studentObj.fullName || studentObj.full_name || ''}`;
+        nameP.style.margin = '0 0 8px 0';
+        wrapper.appendChild(nameP);
+        const facultyP = document.createElement('p');
+        facultyP.textContent = `Faculty Number: ${studentObj.faculty_number || studentObj.facultyNumber || ''}`;
+        facultyP.style.margin = '0 0 12px 0';
+        wrapper.appendChild(facultyP);
+        // Optional extra fields
+        ['email', 'id'].forEach(key => {
+            if (studentObj[key]) {
+                const p = document.createElement('p');
+                p.textContent = `${key.charAt(0).toUpperCase()+key.slice(1)}: ${studentObj[key]}`;
+                p.style.margin = '0 0 6px 0';
+                wrapper.appendChild(p);
+            }
+        });
+        const hint = document.createElement('p');
+        hint.textContent = 'Click outside this box to return.';
+        hint.style.fontSize = '0.8rem';
+        hint.style.color = '#6b7280';
+        hint.style.marginTop = '18px';
+        wrapper.appendChild(hint);
+        return wrapper;
+    }
+
+    function openStudentInfoOverlay(studentId, className) {
+        ensureStudentInfoOverlay();
+        // Preserve scroll of manage overlay
+        if (manageStudentsListEl) manageStudentsScrollPos = manageStudentsListEl.scrollTop;
+        // Hide manage overlay without destroying it
+        if (manageStudentsOverlay) manageStudentsOverlay.style.visibility = 'hidden';
+        const info = studentIndex.get(studentId) || { fullName: studentId };
+        // Clear and insert new content
+        studentInfoOverlay.innerHTML = '';
+        const content = buildStudentInfoContent(info, studentId);
+        studentInfoOverlay.appendChild(content);
+        studentInfoOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeStudentInfoOverlay() {
+        if (!studentInfoOverlay) return;
+        studentInfoOverlay.style.visibility = 'hidden';
+        // Restore manage overlay exactly as it was
+        if (manageStudentsOverlay) {
+            manageStudentsOverlay.style.visibility = 'visible';
+            if (manageStudentsListEl) manageStudentsListEl.scrollTop = manageStudentsScrollPos;
+        }
+        document.body.style.overflow = 'hidden'; // keep modal context since manage overlay is still open
+    }
+
+    function restoreManageStudentsOverlay(classId) {
+        closeStudentInfoOverlay();
+        if (manageStudentsOverlay) {
+            manageStudentsOverlay.style.visibility = 'visible';
+            if (manageStudentsListEl) manageStudentsListEl.scrollTop = manageStudentsScrollPos;
+        }
     }
 
     function persistReadyClasses() {
