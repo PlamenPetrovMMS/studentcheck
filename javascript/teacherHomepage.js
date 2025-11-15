@@ -121,7 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (zxingLoadPromise) return zxingLoadPromise;
         const sources = [
             'https://unpkg.com/@zxing/browser@latest/umd/index.min.js',
-            'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/index.min.js'
+            'https://unpkg.com/@zxing/browser@latest/umd/index.js',
+            'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/index.min.js',
+            'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/index.js'
         ];
         zxingLoadPromise = new Promise((resolve, reject) => {
             const tryNext = (i) => {
