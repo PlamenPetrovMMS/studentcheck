@@ -115,16 +115,33 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     }
 
+    let zxingLoadPromise = null;
     function ensureZxingLoaded() {
-        return new Promise((resolve, reject) => {
-            if (window.ZXingBrowser) return resolve(window.ZXingBrowser);
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/@zxing/browser@latest/umd/index.min.js';
-            script.async = true;
-            script.onload = () => resolve(window.ZXingBrowser);
-            script.onerror = () => reject(new Error('Failed to load ZXing browser library'));
-            document.head.appendChild(script);
+        if (window.ZXingBrowser) return Promise.resolve(window.ZXingBrowser);
+        if (zxingLoadPromise) return zxingLoadPromise;
+        const sources = [
+            'https://unpkg.com/@zxing/browser@latest/umd/index.min.js',
+            'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/index.min.js'
+        ];
+        zxingLoadPromise = new Promise((resolve, reject) => {
+            const tryNext = (i) => {
+                if (i >= sources.length) {
+                    reject(new Error('Failed to load ZXing browser library'));
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = sources[i];
+                script.async = true;
+                script.onload = () => resolve(window.ZXingBrowser);
+                script.onerror = () => {
+                    script.remove();
+                    tryNext(i + 1);
+                };
+                document.head.appendChild(script);
+            };
+            tryNext(0);
         });
+        return zxingLoadPromise;
     }
 
     let lastScanAt = 0;
@@ -1164,16 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    const loadClassesStudents = () => {
-        var classes = localStorage.getItem(storageKey(teacherEmail));
-        if(!classes){
-            console.error("No classes found for this teacher.");
-            return;
-        }
-        for(var i = 0; i < classes.length; i++){
-            
-        }
-    }
+    // Removed legacy loadClassesStudents; per-class items are loaded via loadClasses()
 
 
 
@@ -1224,8 +1232,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load any previously saved classes for this teacher
     loadClasses();
-
-    loadClassesStudents();
 
     addBtn?.addEventListener('click', () => {
         // Replace old modal flow with wizard
