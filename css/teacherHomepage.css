@@ -234,7 +234,6 @@
 #overlayMainSectionBody ul { padding:0; margin:0; }
 /* Student list items styling */
 .list-item {
-    width: 320px;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -259,6 +258,7 @@
     flex-shrink: 0;
 }
 .list-item label {
+    margin-left: 10px;
     font-size: 1.05rem;
     font-weight: 600;
     cursor: pointer;
