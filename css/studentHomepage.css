@@ -1,7 +1,12 @@
+/* Center title in the header for this page */
+.card-header .title { text-align: center; width: 100%; }
+
 /* QR container and scalable sizing */
 #qrContainer {
 	display: flex;
-	place-items: center;
+	justify-content: center;
+	align-items: center;
+	margin-top: 8px;
 }
 
 /* Scale the QR code via CSS */
@@ -34,3 +39,25 @@
 
 
 /* Reuse .btn classes from registration.css for #logoutBtn; no extra styles here */
+
+/* Center the single action button */
+.actions.single-center { justify-content: center; }
+
+/* Make the card a bit taller and keep content nicely spaced */
+.tall-card {
+	min-height: clamp(480px, 70vh, 640px);
+	display: flex;
+	flex-direction: column;
+}
+
+.tall-card .card-section {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-bottom: 24px; /* extra space above actions */
+}
+
+.tall-card #qrContainer { margin-top: 12px; }
+
+.tall-card .actions { padding-top: 20px; }
