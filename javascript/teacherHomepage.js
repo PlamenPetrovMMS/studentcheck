@@ -14,6 +14,102 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
+    // --- Class readiness state (single class scope per requirements) ---
+    let classReady = false; // false until students added
+    let currentClassButton = null; // track which class was interacted with
+
+    function updateClassStatusUI() {
+        if (!currentClassButton) return;
+        if (classReady) {
+            currentClassButton.classList.add('class-ready');
+            // Preserve original name
+            if (!currentClassButton.dataset.originalLabel) {
+                currentClassButton.dataset.originalLabel = currentClassButton.textContent;
+            }
+            const base = currentClassButton.dataset.originalLabel;
+            currentClassButton.textContent = `${base} ✓ Ready`;
+        } else {
+            currentClassButton.classList.remove('class-ready');
+            if (currentClassButton.dataset.originalLabel) {
+                currentClassButton.textContent = currentClassButton.dataset.originalLabel;
+            }
+        }
+    }
+
+    function openAddStudentsPopup() {
+        // Reuse existing fetch + overlay logic
+        addStudentsFromDatabase();
+    }
+
+    function startScanner() {
+        console.log('startScanner() invoked - TODO implement scanner logic');
+        alert('Scanner starting... (stub)');
+    }
+
+    // Ready class popup dynamic creation
+    let readyPopupOverlay = null;
+    function ensureReadyPopup() {
+        if (readyPopupOverlay) return readyPopupOverlay;
+        readyPopupOverlay = document.createElement('div');
+        readyPopupOverlay.id = 'readyClassPopupOverlay';
+        readyPopupOverlay.className = 'overlay';
+        readyPopupOverlay.style.visibility = 'hidden';
+        readyPopupOverlay.innerHTML = `
+            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="readyClassTitle">
+                <h2 id="readyClassTitle">Class Ready</h2>
+                <p class="ready-class-desc">Choose an action for this ready class.</p>
+                <div class="ready-class-actions">
+                    <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
+                    <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
+                </div>
+                <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
+            </div>`;
+        document.body.appendChild(readyPopupOverlay);
+        // Event wiring
+        const manageBtn = readyPopupOverlay.querySelector('#manageStudentsBtn');
+        const scannerBtn = readyPopupOverlay.querySelector('#startScannerBtn');
+        const closeBtn = readyPopupOverlay.querySelector('#closeReadyPopupBtn');
+        manageBtn?.addEventListener('click', () => {
+            closeReadyClassPopup();
+            openAddStudentsPopup();
+        });
+        scannerBtn?.addEventListener('click', () => {
+            startScanner();
+        });
+        closeBtn?.addEventListener('click', () => closeReadyClassPopup());
+        readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
+        return readyPopupOverlay;
+    }
+
+    function openReadyClassPopup() {
+        ensureReadyPopup();
+        readyPopupOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeReadyClassPopup() {
+        if (!readyPopupOverlay) return;
+        readyPopupOverlay.style.visibility = 'hidden';
+        document.body.style.overflow = '';
+    }
+
+    function setClassReady() {
+        if (!currentClassButton) return;
+        classReady = true;
+        updateClassStatusUI();
+        closeStudentsOverlay();
+    }
+
+    function handleClassButtonClick(buttonEl) {
+        currentClassButton = buttonEl;
+        if (!classReady) {
+            openAddStudentsPopup();
+        } else {
+            openReadyClassPopup();
+        }
+    }
+
     // --- Students overlay (blurred background) and fetch/display logic ---
     let studentsOverlay = document.getElementById('overlay');
 
@@ -295,7 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const attachNewClassButtonBehavior = (buttonEl) => {
         if (!buttonEl) return;
-        // Click animation (adds .clicked briefly)
         const animate = () => {
             buttonEl.classList.add('clicked');
             setTimeout(() => buttonEl.classList.remove('clicked'), 340);
@@ -304,8 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
         buttonEl.addEventListener('click', (e) => {
             e.preventDefault();
-            // Directly load and display all students when a class is clicked
-            addStudentsFromDatabase();
+            handleClassButtonClick(buttonEl);
         });
     };
 
@@ -466,5 +560,24 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }
     });
+
+    // Wire Add Students overlay button to set readiness if selection present
+    const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
+    if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
+        addStudentsOverlayBtn.addEventListener('click', () => {
+            const selected = window.getSelectedStudents?.() || [];
+            if (selected.length > 0) {
+                setClassReady();
+            } else {
+                // Provide subtle feedback if no selection
+                addStudentsOverlayBtn.classList.add('pulse-warn');
+                setTimeout(() => addStudentsOverlayBtn.classList.remove('pulse-warn'), 600);
+            }
+        });
+        addStudentsOverlayBtn.dataset.bound = 'true';
+    }
+
+    // Initial UI sync (in case readiness changes before first click)
+    updateClassStatusUI();
 });
 

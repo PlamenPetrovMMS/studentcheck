@@ -70,6 +70,24 @@
 .newClassBtn:hover { /* Remove hover animation; retain base color */ background: #2563eb; }
 .newClassBtn:active { transform: translateY(2px); box-shadow: 0 5px 16px rgba(29,78,216,0.4); }
 
+/* Ready state visuals */
+.newClassBtn.class-ready {
+    background: #059669; /* emerald-600 */
+    box-shadow: 0 8px 22px rgba(5,150,105,0.38);
+}
+.newClassBtn.class-ready:hover { background: #059669; }
+.newClassBtn.class-ready:active { box-shadow: 0 5px 16px rgba(4,120,87,0.45); }
+
+/* Subtle warning pulse when trying to add students with none selected */
+.pulse-warn {
+    animation: pulseWarn 0.6s ease-in-out 1;
+}
+@keyframes pulseWarn {
+    0% { box-shadow: 0 0 0 0 rgba(234,88,12,0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(234,88,12,0); }
+    100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); }
+}
+
 /* Click animation class (added briefly via JS) */
 /* Click animation shared */
 /* Removed pop scale animation; clicked class retained for future extensibility */
@@ -298,3 +316,56 @@
 #addStudentsOverlayBtn { background: #2563eb; color: #ffffff; border-color: #2563eb; }
 #addStudentsOverlayBtn:hover { background: #1d4ed8; }
 #addStudentsOverlayBtn:active { transform: translateY(2px); }
+
+/* Ready class popup */
+#readyClassPopupOverlay .ready-class-popup {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 16px;
+    width: min(92vw, 480px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    padding: 26px 26px 30px 26px;
+    position: relative;
+    font-family: inherit;
+}
+#readyClassPopupOverlay h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.ready-class-desc {
+    margin: 0 0 18px 0;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+.ready-class-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+#readyClassPopupOverlay .role-button.primary {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+#readyClassPopupOverlay .role-button.primary:hover { background: #1d4ed8; }
+#readyClassPopupOverlay .role-button.secondary-green {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+}
+#readyClassPopupOverlay .role-button.secondary-green:hover { background: #047857; }
+.close-small {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 4px;
+    border-radius: 6px;
+}
+.close-small:hover { background:#f3f4f6; color:#374151; }
