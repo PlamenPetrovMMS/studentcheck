@@ -624,6 +624,9 @@ body {
 }
 #scannerOverlay .scanner-footer-actions .role-button {
     min-width: 160px;
+    /* Match attendance overlay button height */
+    padding: 10px 14px;
+    font-size: 0.95rem;
 }
 
 /* Blue primary style for the Show Attendance button to match other pages */
@@ -742,6 +745,17 @@ body {
             justify-content: flex-end;
             gap: 10px;
     }
+    /* Match confirmation buttons height with attendance overlay */
+    #confirmOverlay .confirm-actions .role-button {
+            padding: 10px 14px;
+            font-size: 0.95rem;
+    }
+    @media (max-width: 480px) {
+        #confirmOverlay .confirm-actions .role-button {
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+        }
+    }
 
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
@@ -756,11 +770,11 @@ body {
     }
 }
 
-/* Scanner footer buttons: make slightly smaller on mobile (remove ~20px total height) */
+/* Scanner footer buttons: match attendance overlay height on mobile */
 @media (max-width: 480px) {
     #scannerOverlay .scanner-footer-actions .role-button {
-        padding-top: 21px !important;
-        padding-bottom: 21px !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
     }
 }
 
