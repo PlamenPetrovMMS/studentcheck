@@ -725,3 +725,11 @@ body {
     }
 }
 
+/* Scanner footer buttons: make slightly smaller on mobile (remove ~20px total height) */
+@media (max-width: 480px) {
+    #scannerOverlay .scanner-footer-actions .role-button {
+        padding-top: 21px !important;
+        padding-bottom: 21px !important;
+    }
+}
+
