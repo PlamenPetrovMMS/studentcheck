@@ -528,22 +528,31 @@ document.addEventListener('DOMContentLoaded', () => {
         facultyP.textContent = `Faculty Number: ${studentObj.faculty_number || studentObj.facultyNumber || ''}`;
         facultyP.style.margin = '0 0 12px 0';
         wrapper.appendChild(facultyP);
-        // Optional extra fields
-        ['email', 'id'].forEach(key => {
-            if (studentObj[key]) {
-                const p = document.createElement('p');
-                p.textContent = `${key.charAt(0).toUpperCase()+key.slice(1)}: ${studentObj[key]}`;
-                p.style.margin = '0 0 6px 0';
-                wrapper.appendChild(p);
-            }
-        });
-        const hint = document.createElement('p');
-        hint.textContent = 'Click outside this box to return.';
-        hint.style.fontSize = '0.8rem';
-        hint.style.color = '#6b7280';
-        hint.style.marginTop = '18px';
-        wrapper.appendChild(hint);
+        // Optional extra fields (exclude id per new requirement)
+        if (studentObj.email) {
+            const emailP = document.createElement('p');
+            emailP.textContent = `Email: ${studentObj.email}`;
+            emailP.style.margin = '0 0 10px 0';
+            wrapper.appendChild(emailP);
+        }
+        // Attended classes counter (stub logic for now)
+        const attended = getStudentAttendanceCount(studentObj);
+        const attendedP = document.createElement('p');
+        attendedP.textContent = `Attended Classes: ${attended}`;
+        attendedP.style.margin = '4px 0 0 0';
+        attendedP.style.fontWeight = '600';
+        wrapper.appendChild(attendedP);
         return wrapper;
+    }
+
+    // Stub attendance counter – replace with real logic when attendance tracking is implemented.
+    function getStudentAttendanceCount(studentObj) {
+        // Use faculty_number as stable key; fallback to full name.
+        const key = studentObj.faculty_number || studentObj.facultyNumber || studentObj.fullName || studentObj.full_name || '';
+        if (!key) return 0;
+        // Future: read from localStorage or server. For now, always 0.
+        // Example future key pattern: `attendance:${teacherEmail}:${key}`.
+        return 0;
     }
 
     function openStudentInfoOverlay(studentId, className) {
