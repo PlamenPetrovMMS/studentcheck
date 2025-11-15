@@ -111,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!q) {
             allStudentItems.forEach(({ li }) => { li.style.display = ''; });
             updateUISelections();
+            const msgEl = document.getElementById('noStudentsMessage');
+            if (msgEl) msgEl.style.display = 'none';
             return;
         }
         const tokens = q.split(/\s+/).filter(Boolean);
@@ -121,6 +123,22 @@ document.addEventListener('DOMContentLoaded', () => {
             li.style.display = matches ? '' : 'none';
         });
         updateUISelections();
+        const anyVisible = allStudentItems.some(i => i.li.style.display !== 'none');
+        let msgEl = document.getElementById('noStudentsMessage');
+        if (!msgEl) {
+            // Create message element lazily if missing (e.g. after prior cleanup)
+            const body = document.getElementById('overlayMainSectionBody');
+            if (body) {
+                msgEl = document.createElement('p');
+                msgEl.id = 'noStudentsMessage';
+                msgEl.textContent = 'No matching students.';
+                msgEl.style.marginTop = '12px';
+                msgEl.style.fontStyle = 'italic';
+                msgEl.style.color = '#6b7280';
+                body.appendChild(msgEl);
+            }
+        }
+        if (msgEl) msgEl.style.display = anyVisible ? 'none' : 'block';
     }
 
     // Expose for potential external use
@@ -198,6 +216,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         main_section_body.appendChild(list);
+        // Provide reusable "no results" message element (hidden by default)
+        let existingMsg = document.getElementById('noStudentsMessage');
+        if (!existingMsg) {
+            const msg = document.createElement('p');
+            msg.id = 'noStudentsMessage';
+            msg.textContent = 'No matching students.';
+            msg.style.display = 'none';
+            msg.style.marginTop = '12px';
+            msg.style.fontStyle = 'italic';
+            msg.style.color = '#6b7280';
+            main_section_body.appendChild(msg);
+        }
     };
 
     // Expose selected students helper (adjacent improvement)
