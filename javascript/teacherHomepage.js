@@ -277,7 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = (query||'').trim().toLowerCase();
         if (!wizardStudentContainer) return;
         const items = wizardStudentContainer.querySelectorAll('li.list-item');
-        if (!q) { items.forEach(li=> li.style.display=''); return; }
+        if (!q) {
+            // Reset visibility and hide 'no match' message entirely for empty query
+            items.forEach(li=> li.style.display='');
+            const msgElExisting = wizardStudentContainer.querySelector('#wizardNoMatch');
+            if (msgElExisting) msgElExisting.style.display = 'none';
+            return;
+        }
         const tokens = q.split(/\s+/).filter(Boolean);
         items.forEach(li=>{
             const text = li.textContent.toLowerCase();
