@@ -605,12 +605,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         wizardOverlay.addEventListener('click', (e) => { if (e.target === wizardOverlay) closeWizard(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && wizardOverlay.style.visibility === 'visible') closeWizard(); });
         const searchInput = wizardOverlay.querySelector('#wizardSearchInput');
-        let debounceTimer = null;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(debounceTimer);
-            const value = e.target.value;
-            debounceTimer = setTimeout(() => filterStudentsWizard(value), 180);
-        });
+        if (window.Utils && typeof window.Utils.debounce === 'function') {
+            const debounced = window.Utils.debounce((value) => filterStudentsWizard(value), 180);
+            searchInput.addEventListener('input', (e) => debounced(e.target.value));
+        } else {
+            let debounceTimer = null;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const value = e.target.value;
+                debounceTimer = setTimeout(() => filterStudentsWizard(value), 180);
+            });
+        }
     }
 
     function openClassCreationWizard() {
@@ -702,11 +707,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!wizardStudentContainer) return;
         wizardStudentContainer.innerHTML = '<p class="loading-hint">Loading...</p>';
         try {
-            const resp = await fetch('https://studentcheck-server.onrender.com/students', { method:'GET', headers:{'Accept':'application/json'} });
-            if (!resp.ok) { wizardStudentContainer.innerHTML = '<p style="color:#b91c1c;">Failed to load students.</p>'; return; }
-            const data = await resp.json();
+            const students = await (window.Students?.fetchAll?.() || Promise.resolve([]));
             wizardStudentContainer.innerHTML='';
-            renderStudentsInWizard(data.students);
+            renderStudentsInWizard(students);
             wizardStudentContainer.dataset.loaded='true';
         } catch (e) {
             console.error('Wizard student fetch failed', e);
@@ -722,9 +725,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         students.forEach((s, idx) => {
             const li = document.createElement('li');
             li.className='list-item';
-            const splitNames = splitStudentNames(s);
+            const splitNames = (window.Students?.splitNames || (()=>({ fullName: '' })))(s);
             const facultyNumber = s.faculty_number;
-            const studentId = facultyNumber || splitNames.fullName || `wizard_${idx}`;
+            const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(s, 'wizard', idx) : (facultyNumber || splitNames.fullName || `wizard_${idx}`));
             wizardStudentIndex.set(studentId, { fullName: splitNames.fullName, facultyNumber: facultyNumber || '' });
             const checkbox = document.createElement('input');
             checkbox.type='checkbox'; checkbox.className='studentSelect';
@@ -823,20 +826,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function fetchStudentsCache() {
-        if (studentCache && studentCache.length > 0) return studentCache;
         try {
-            const resp = await fetch('https://studentcheck-server.onrender.com/students', { method:'GET', headers:{'Accept':'application/json'} });
-            if (!resp.ok) return [];
-            const data = await resp.json();
-            studentCache = Array.isArray(data.students) ? data.students : [];
-            // Build quick index by our ID scheme (faculty_number preferred)
-            studentIndex = new Map();
-            studentCache.forEach((s, idx) => {
-                const splitNames = splitStudentNames(s);
-                const id = s.faculty_number || splitNames.fullName || `s_${idx}`;
-                // store full object plus normalized name
-                studentIndex.set(id, { ...s, fullName: splitNames.fullName });
-            });
+            await (window.Students?.fetchAll?.() || Promise.resolve([]));
+            studentCache = window.Students?.getCache?.() || [];
+            studentIndex = window.Students?.getIndex?.() || new Map();
             return studentCache;
         } catch (e) {
             console.warn('Failed to load student cache', e);
@@ -1236,14 +1229,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
             return;
         }
-    const ul = document.createElement('ul');
-    ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
+        const ul = document.createElement('ul');
+        ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
         studentsArray.forEach((s, idx) => {
             const li = document.createElement('li');
             li.className='list-item';
-            const parts = splitStudentNames(s);
+            const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(s);
             const facultyNumber = s.faculty_number;
-            const studentId = facultyNumber || parts.fullName || `add_${idx}`;
+            const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(s, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
             const checkbox = document.createElement('input');
             checkbox.type='checkbox';
             checkbox.id = `addStudent_${idx}`;
@@ -1338,35 +1331,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!studentsOverlay) return;
         studentsOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-        console.log("Overlay visibility applied:", studentsOverlay);
+        
     };
 
 
 
 
-    // Robust helper: accepts a student object or a raw full name string.
-    // Returns both an object with parts and an array of parts for flexible usage.
-    function splitStudentNames(input) {
-        const raw = (typeof input === 'string') ? input : (input?.full_name || '');
-        if (!raw) {
-            return { parts: [], firstName: '', middleName: '', lastName: '', fullName: '' };
-        }
-        const parts = raw.trim().split(/\s+/).filter(Boolean);
-        let firstName = '';
-        let middleName = '';
-        let lastName = '';
-        if (parts.length === 1) {
-            firstName = parts[0];
-        } else if (parts.length === 2) {
-            [firstName, lastName] = parts;
-        } else if (parts.length >= 3) {
-            firstName = parts[0];
-            lastName = parts[parts.length - 1];
-            middleName = parts.slice(1, -1).join(' ');
-        }
-        const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
-        return { parts, firstName, middleName, lastName, fullName };
-    }
+    // splitStudentNames now provided by Students module
 
 
 
@@ -1431,16 +1402,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const tokens = q.split(/\s+/).filter(Boolean);
         allStudentItems.forEach(({ li, name, facultyNumber }) => {
-            const haystackName = (name || '').toLowerCase();
-            const haystackFaculty = (facultyNumber || '').toLowerCase();
-            const matches = tokens.every(t => haystackName.includes(t) || haystackFaculty.includes(t));
+            const haystack = `${name || ''} ${facultyNumber || ''}`;
+            const matches = window.Utils?.textIncludesTokens ? window.Utils.textIncludesTokens(haystack, tokens) : tokens.every(t => haystack.toLowerCase().includes(t));
             li.style.display = matches ? '' : 'none';
         });
         updateUISelections();
         const anyVisible = allStudentItems.some(i => i.li.style.display !== 'none');
         let msgEl = document.getElementById('noStudentsMessage');
         if (!msgEl) {
-            // Create message element lazily if missing (e.g. after prior cleanup)
             const body = document.getElementById('overlayMainSectionBody');
             if (body) {
                 msgEl = document.createElement('p');
@@ -1461,7 +1430,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.updateUISelections = updateUISelections;
 
     const renderStudents = (students) => {
-        console.log('Rendering students:', students);
         const main_section_body = document.getElementById('overlayMainSectionBody');
         if (!main_section_body) return;
         main_section_body.innerHTML = '';
@@ -1481,9 +1449,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         students.forEach((s, idx) => {
             const li = document.createElement('li');
             li.className = 'list-item';
-            const splitNames = splitStudentNames(s);
+            const splitNames = (window.Students?.splitNames || (()=>({ fullName: '' })))(s);
             const facultyNumber = s.faculty_number;
-            const studentId = facultyNumber || splitNames.fullName || `student_${idx}`;
+            const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(s, 'student', idx) : (facultyNumber || splitNames.fullName || `student_${idx}`));
             li.dataset.studentId = studentId;
             li.dataset.name = splitNames.fullName;
             if (facultyNumber) li.dataset.facultyNumber = facultyNumber;
@@ -1569,32 +1537,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const container = document.getElementById('overlayMainSectionBody');
         if (container) container.innerHTML = '<p>Loading...</p>';
         try {
-            const resp = await fetch('https://studentcheck-server.onrender.com/students', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            if (!resp.ok) {
-                const text = await resp.text();
-                if (container) container.innerHTML = `<p style="color:#b91c1c;">Failed to load students: ${resp.status} ${resp.statusText}</p><pre style="white-space:pre-wrap;">${text}</pre>`;
-                return;
-            }
-            const data = await resp.json();
-            renderStudents(data.students);
-            // Wire up search after initial render
+            const students = await (window.Students?.fetchAll?.() || Promise.resolve([]));
+            renderStudents(students);
             const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
             if (searchInput) {
                 searchInput.setAttribute('aria-label', 'Search students by name or faculty number');
             }
             if (searchInput && !searchInput.dataset.bound) {
-                let debounceTimer = null;
-                searchInput.addEventListener('input', (e) => {
-                    const value = e.target.value;
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => filterStudents(value), 180);
-                });
+                if (window.Utils && typeof window.Utils.debounce === 'function') {
+                    const debounced = window.Utils.debounce((value) => filterStudents(value), 180);
+                    searchInput.addEventListener('input', (e) => debounced(e.target.value));
+                } else {
+                    let debounceTimer = null;
+                    searchInput.addEventListener('input', (e) => {
+                        const value = e.target.value;
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => filterStudents(value), 180);
+                    });
+                }
                 searchInput.dataset.bound = 'true';
             }
-            // If there is already a query present, apply it
             if (searchInput && searchInput.value) {
                 filterStudents(searchInput.value);
             }
@@ -1664,7 +1626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     const loadClasses = () => {
-        console.log('[Classes] loadClasses start. Email =', teacherEmail);
+        
         let classNames = [];
         const normEmail = normalizeEmail(teacherEmail);
         try {
@@ -1697,7 +1659,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         } catch (e) { console.warn('Failed to load classes (per-class items):', e); }
-        console.log('[Classes] found', classNames.length, 'classes:', classNames);
+        
         classNames.forEach(renderClassItem);
         // Ensure container visible
         ensureClassesContainerVisible();
