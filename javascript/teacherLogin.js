@@ -65,6 +65,12 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 } catch (e) {
                     console.warn('Failed to persist teacher session data in sessionStorage:', e);
                 }
+                // Persist teacher profile locally for offline use
+                try {
+                    if (window.db) {
+                        await window.db.saveTeacher({ id: teacherData.email, email: teacherData.email, lastUsed: Date.now() });
+                    }
+                } catch (e) { console.warn('Failed to store teacher profile in IndexedDB:', e); }
                 if (errorMessage) {
                     errorMessage.textContent = '';
                     errorMessage.classList.remove('show');

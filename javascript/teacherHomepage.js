@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('addClassBtn');
     // Determine current teacher email with robust fallbacks (mobile reload safe)
     let teacherEmail = null;
+    // In-memory cache for class students loaded from IndexedDB for sync reads
+    const classStudentsCache = new Map(); // className -> Array<{ fullName, facultyNumber }>
     function deriveTeacherEmailFallback() {
         // 1) sessionStorage teacherData
         try {
@@ -11,24 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const parsed = raw ? JSON.parse(raw) : null;
             if (parsed?.email) return parsed.email;
         } catch (e) { console.warn('Failed to parse teacherData from sessionStorage:', e); }
-        // 2) last email hint
-        const last = localStorage.getItem('teacher:lastEmail');
-        if (last) return last;
-        // 3) scan localStorage for any teacher:class:<email>:
-        const emails = new Set();
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (!k) continue;
-            const m = k.match(/^teacher:class:([^:]+):/);
-            if (m && m[1]) emails.add(m[1]);
-        }
-        if (emails.size === 1) return Array.from(emails)[0];
+        // 2) Fallback attempt from IndexedDB classes (async path handled after init)
         return null;
     }
     teacherEmail = deriveTeacherEmailFallback();
-    if (teacherEmail) {
-        try { localStorage.setItem('teacher:lastEmail', teacherEmail); } catch {}
-    }
 
     const storageKey = (email) => email ? `teacher:classes:${email}` : null;
 
@@ -429,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getStudentsForClassDisplay(className) {
-        // Prefer per-class stored student objects
+        // Prefer per-class stored student objects from IndexedDB cache
         const stored = loadClassStudents(className) || [];
         if (stored.length > 0) {
             return stored.map(s => ({
@@ -509,6 +497,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update UI dot if visible
             const dot = attendanceDotIndex.get(studentId);
             if (dot) applyDotStateClass(dot, next);
+            // Persist attendance event for offline/online sync
+            try {
+                if (window.db) {
+                    const classId = window.db.classIdFor(teacherEmail, className);
+                    window.db.saveAttendanceRecord({ teacherEmail, classId, className, studentId, mode, status: next, synced: false });
+                }
+            } catch (e) { console.warn('Failed to save attendance record', e); }
         }
     }
 
@@ -590,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    function openScannerOverlay(classId) {
+    async function openScannerOverlay(classId) {
         ensureScannerOverlay();
         // Hide ready overlay to avoid stacking
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
@@ -604,6 +599,25 @@ document.addEventListener('DOMContentLoaded', () => {
         currentScanMode = 'joining';
         const joinRadio = scannerOverlay.querySelector('#scanJoin'); if (joinRadio) joinRadio.checked = true;
         const leaveRadio = scannerOverlay.querySelector('#scanLeave'); if (leaveRadio) leaveRadio.checked = false;
+        // Preload latest attendance statuses from IndexedDB for this class
+        try {
+            if (window.db && teacherEmail) {
+                const cn = (classId || currentClassName || '').trim();
+                if (cn) {
+                    const classKey = window.db.classIdFor(teacherEmail, cn);
+                    const recs = await window.db.getAttendanceRecords({ classId: classKey });
+                    if (!attendanceState.has(cn)) attendanceState.set(cn, new Map());
+                    const map = attendanceState.get(cn);
+                    const lastByStudent = new Map();
+                    recs.forEach(r => {
+                        const cur = lastByStudent.get(r.studentId);
+                        if (!cur || (r.createdAt || 0) > (cur.createdAt || 0)) lastByStudent.set(r.studentId, r);
+                    });
+                    lastByStudent.forEach((r, sid) => map.set(sid, r.status || 'none'));
+                }
+            }
+        } catch (e) { console.warn('Preload attendance from IndexedDB failed', e); }
+
         // Show overlay
         scannerOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
@@ -838,13 +852,39 @@ document.addEventListener('DOMContentLoaded', () => {
         wizardStudentContainer.innerHTML = '<p class="loading-hint">Loading...</p>';
         try {
             const resp = await fetch('https://studentcheck-server.onrender.com/students', { method:'GET', headers:{'Accept':'application/json'} });
-            if (!resp.ok) { wizardStudentContainer.innerHTML = '<p style="color:#b91c1c;">Failed to load students.</p>'; return; }
+            if (!resp.ok) { throw new Error('HTTP '+resp.status); }
             const data = await resp.json();
+            // Persist fetched students locally for offline use
+            try {
+                if (window.db && Array.isArray(data.students)) {
+                    for (const s of data.students) {
+                        const id = s.faculty_number || s.email || s.full_name || undefined;
+                        if (id) await window.db.saveStudent({
+                            id,
+                            fullName: s.full_name || '',
+                            facultyNumber: s.faculty_number || '',
+                            email: s.email || null,
+                            group: s.group || null,
+                            updatedAt: Date.now(),
+                        });
+                    }
+                }
+            } catch (e) { console.warn('Failed to cache students to IndexedDB', e); }
             wizardStudentContainer.innerHTML='';
             renderStudentsInWizard(data.students);
             wizardStudentContainer.dataset.loaded='true';
         } catch (e) {
             console.error('Wizard student fetch failed', e);
+            // Fallback to IndexedDB cache
+            try {
+                if (window.db) {
+                    const local = await window.db.getStudents();
+                    wizardStudentContainer.innerHTML='';
+                    renderStudentsInWizard(local.map(s => ({ full_name: s.fullName || s.name, faculty_number: s.facultyNumber, email: s.email })));
+                    wizardStudentContainer.dataset.loaded='true';
+                    return;
+                }
+            } catch (_) {}
             wizardStudentContainer.innerHTML = '<p style="color:#b91c1c;">Network error loading students.</p>';
         }
     }
@@ -1167,82 +1207,57 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     }
 
-    function persistReadyClasses() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':ready';
-        try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); } catch(e){ console.warn('Persist readyClasses failed', e); }
-    }
-    function loadReadyClasses() {
-        // Prefer teacher-specific readiness, but tolerate mobile reloads without session
+    async function persistReadyClasses() {
         try {
-            if (teacherEmail) {
-                const key = storageKey(teacherEmail) + ':ready';
-                const raw = localStorage.getItem(key);
-                if (raw) {
-                    const arr = JSON.parse(raw);
-                    if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
-                }
-            } else {
-                // Union all readiness across any teacher as a fallback (styling only)
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && /^(teacher:classes:[^:]+:ready)$/.test(k)) {
-                        try {
-                            const raw = localStorage.getItem(k);
-                            const arr = JSON.parse(raw);
-                            if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
-                        } catch {}
-                    }
-                }
-            }
-        } catch (e) { console.warn('Load readyClasses failed', e); }
+            if (!window.db) return;
+            const classes = await window.db.getClasses({ teacherEmail });
+            const updates = classes.map(c => ({ ...c, ready: readyClasses.has(c.className) }));
+            await window.db.saveClasses(updates);
+        } catch (e) { console.warn('Persist readyClasses (IndexedDB) failed', e); }
+    }
+    async function loadReadyClasses() {
+        try {
+            if (!window.db) return;
+            const classes = await window.db.getClasses({ teacherEmail });
+            readyClasses.clear();
+            classes.forEach(c => { if (c.ready) readyClasses.add(c.className); });
+        } catch (e) { console.warn('Load readyClasses (IndexedDB) failed', e); }
     }
 
     // Persisting class-to-students assignments for robustness across reloads
-    function persistAssignments() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':assignments';
+    function persistAssignments() { /* no-op; assignments live inside class records in IndexedDB */ }
+    async function loadAssignments() {
+        // Populate in-memory Set mapping from IndexedDB classes
         try {
-            const obj = {};
-            classStudentAssignments.forEach((set, name) => { obj[name] = Array.from(set); });
-            localStorage.setItem(key, JSON.stringify(obj));
-        } catch (e) { console.warn('Persist assignments failed', e); }
-    }
-    function loadAssignments() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':assignments';
-        try {
-            const raw = localStorage.getItem(key); if (!raw) return;
-            const obj = JSON.parse(raw);
-            if (obj && typeof obj === 'object') {
-                Object.keys(obj).forEach(name => {
-                    const arr = Array.isArray(obj[name]) ? obj[name] : [];
-                    classStudentAssignments.set(name, new Set(arr));
+            if (!window.db) return;
+            const classes = await window.db.getClasses({ teacherEmail });
+            classStudentAssignments.clear();
+            classes.forEach(c => {
+                const ids = new Set();
+                (Array.isArray(c.students) ? c.students : []).forEach(s => {
+                    const id = s.facultyNumber || s.fullName || '';
+                    if (id) ids.add(id);
                 });
-            }
-        } catch (e) { console.warn('Load assignments failed', e); }
+                classStudentAssignments.set(c.className, ids);
+                // Update local cache for sync reads
+                classStudentsCache.set(c.className, (Array.isArray(c.students) ? c.students : []));
+            });
+        } catch (e) { console.warn('Load assignments (IndexedDB) failed', e); }
     }
 
     // Per-class storage: each class has its own item with an array of student objects
-    function classItemKey(className) {
-        if (!teacherEmail) return null;
-        return `teacher:class:${teacherEmail}:${encodeURIComponent(className)}`;
-    }
-    function persistClassStudents(className, studentsArray) {
-        const key = classItemKey(className);
-        if (!key) return;
+    function classItemKey(className) { return window.db ? window.db.classIdFor(teacherEmail, className) : null; }
+    async function persistClassStudents(className, studentsArray) {
         try {
-            const payload = { name: className, students: Array.isArray(studentsArray) ? studentsArray : [] };
-            localStorage.setItem(key, JSON.stringify(payload));
-        } catch (e) { console.warn('Persist class students failed', e); }
+            if (!window.db) return;
+            const normalized = (Array.isArray(studentsArray) ? studentsArray : []).map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
+            await window.db.upsertClassStudents(teacherEmail, className, normalized);
+            classStudentsCache.set(className, normalized);
+        } catch (e) { console.warn('Persist class students (IndexedDB) failed', e); }
     }
     function loadClassStudents(className) {
-        const key = classItemKey(className);
-        if (!key) return [];
-        try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return [];
-            const obj = JSON.parse(raw);
-            const arr = Array.isArray(obj?.students) ? obj.students : [];
-            return arr.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
-        } catch (e) { console.warn('Load class students failed', e); return []; }
+        // Serve from cache; async refresh can be triggered elsewhere
+        return classStudentsCache.get(className) || [];
     }
 
     // --- Add Students to Existing Class Overlay ---
@@ -1699,17 +1714,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    const persistClasses = () => {
-        if (!teacherEmail) return;
-        const key = storageKey(teacherEmail);
+    const persistClasses = async () => {
+        if (!teacherEmail || !window.db) return;
         const names = Array.from(classList?.querySelectorAll('.newClassBtn') || [])
             .map(btn => (btn.dataset.className || btn.dataset.originalLabel || btn.textContent || '').replace(/✓\s*Ready/g, '').trim())
             .filter(Boolean);
-        try {
-            localStorage.setItem(key, JSON.stringify(names));
-        } catch (e) {
-            console.warn('Failed to persist classes:', e);
-        }
+        const classes = names.map(name => ({ teacherEmail, className: name, id: window.db.classIdFor(teacherEmail, name), ready: readyClasses.has(name), students: classStudentsCache.get(name) || [] }));
+        try { await window.db.saveClasses(classes); } catch (e) { console.warn('Failed to persist classes (IndexedDB):', e); }
     };
 
 
@@ -1734,44 +1745,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    const loadClasses = () => {
+    const loadClasses = async () => {
         console.log('[Classes] loadClasses start. Email =', teacherEmail);
-        let classNames = [];
         try {
-            if (teacherEmail) {
-                const prefix = `teacher:class:${teacherEmail}:`;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith(prefix)) {
-                        const raw = localStorage.getItem(k);
-                        try {
-                            const obj = JSON.parse(raw);
-                            const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
-                            if (name && !classNames.includes(name)) classNames.push(name);
-                        } catch (e) { console.warn('Parse class item failed', k, e); }
-                    }
+            if (!window.db) return;
+            // If teacherEmail unknown, load all and attempt to deduce email
+            const classes = await window.db.getClasses({ teacherEmail: teacherEmail || undefined });
+            if (!teacherEmail) {
+                const emails = Array.from(new Set(classes.map(c => c.teacherEmail).filter(Boolean)));
+                if (emails.length === 1) {
+                    teacherEmail = emails[0];
                 }
             }
-            // If no email or no classes found, fall back to scanning all per-class items
-            if ((!teacherEmail || classNames.length === 0)) {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith('teacher:class:')) {
-                        const raw = localStorage.getItem(k);
-                        const after = k.replace(/^teacher:class:[^:]+:/, '');
-                        try {
-                            const obj = JSON.parse(raw);
-                            const name = obj?.name || decodeURIComponent(after);
-                            if (name && !classNames.includes(name)) classNames.push(name);
-                        } catch (e) { /* tolerant */ }
-                    }
+            // Populate readiness and cache
+            readyClasses.clear();
+            const names = [];
+            classes.forEach(c => {
+                if (c.className) {
+                    names.push(c.className);
+                    if (c.ready) readyClasses.add(c.className);
+                    if (Array.isArray(c.students)) classStudentsCache.set(c.className, c.students.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' })));
                 }
-            }
-        } catch (e) { console.warn('Failed to load classes (per-class items):', e); }
-        console.log('[Classes] found', classNames.length, 'classes:', classNames);
-        classNames.forEach(renderClassItem);
-        // Ensure container visible
-        ensureClassesContainerVisible();
+            });
+            // Render
+            names.forEach(renderClassItem);
+            ensureClassesContainerVisible();
+        } catch (e) { console.warn('Failed to load classes (IndexedDB):', e); }
     };
 
     function ensureClassesContainerVisible() {
@@ -1842,18 +1841,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    // Load readiness then classes, then attach behaviors (mobile-friendly init order)
-    loadReadyClasses();
-    loadClasses();
+    // Load readiness and classes from IndexedDB, then attach behaviors
+    (async function initIndexedDBData(){
+        try {
+            // If no teacherEmail yet, try to infer from existing classes
+            if (!teacherEmail && window.db) {
+                const cls = await window.db.getClasses();
+                const emails = Array.from(new Set((cls||[]).map(c => c.teacherEmail).filter(Boolean)));
+                if (emails.length === 1) teacherEmail = emails[0];
+            }
+            await loadAssignments();
+            await loadReadyClasses();
+            await loadClasses();
+            // Apply ready styling
+            classList?.querySelectorAll('.newClassBtn')?.forEach(b => updateClassStatusUI(b));
+        } catch (e) { console.warn('Initialization from IndexedDB failed', e); }
+    })();
     // Also handle mobile bfcache/pageshow and late paints causing hidden/empty lists
-    window.addEventListener('pageshow', () => {
+    window.addEventListener('pageshow', async () => {
         try {
             ensureClassesContainerVisible();
             const existing = classList?.querySelectorAll('.newClassBtn')?.length || 0;
             if (existing === 0) {
                 console.log('[Classes] pageshow: no buttons found; attempting reload of classes');
-                loadReadyClasses();
-                loadClasses();
+                await loadReadyClasses();
+                await loadClasses();
                 classList?.querySelectorAll('.newClassBtn')?.forEach(b => updateClassStatusUI(b));
             }
         } catch (e) { console.warn('pageshow handler error', e); }

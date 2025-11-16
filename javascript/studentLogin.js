@@ -68,6 +68,21 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 } catch (e) {
                     console.warn('Failed to persist session data:', e);
                 }
+                // Persist student profile locally for offline use
+                try {
+                    if (window.db) {
+                        const s = data?.student || data?.data?.student || data;
+                        const studentRecord = {
+                            id: s?.facultyNumber || s?.faculty_number || s?.email || facultyNumber,
+                            fullName: s?.fullName || s?.full_name || s?.name || '',
+                            facultyNumber: s?.facultyNumber || s?.faculty_number || facultyNumber,
+                            email: s?.email || null,
+                            group: s?.group || s?.Group || null,
+                            updatedAt: Date.now()
+                        };
+                        if (studentRecord.id) await window.db.saveStudent(studentRecord);
+                    }
+                } catch (e) { console.warn('Failed to store student profile in IndexedDB:', e); }
                 stopLoadingAnimation();
                 window.location.href = 'studentHomepage.html';
             } else {
