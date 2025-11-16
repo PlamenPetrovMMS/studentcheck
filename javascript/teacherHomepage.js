@@ -1776,15 +1776,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     await hydrateAssignmentsFromPerClass();
     loadReadyClasses();
     loadClasses();
-    // Also handle mobile bfcache/pageshow and late paints causing hidden/empty lists
-    window.addEventListener('pageshow', () => {
+    // Handle bfcache/pageshow and ensure styles reflect current storage state
+    window.addEventListener('pageshow', (ev) => {
         try {
             ensureClassesContainerVisible();
-            const existing = classList?.querySelectorAll('.newClassBtn')?.length || 0;
-            if (existing === 0) {
-                console.log('[Classes] pageshow: no buttons found; attempting reload of classes');
+            // Recompute readiness from storage each time pageshow fires (bfcache restores stale DOM)
+            readyClasses.clear();
+            loadReadyClasses();
+            // Update styling on any existing class buttons
+            const buttons = Array.from(classList?.querySelectorAll('.newClassBtn') || []);
+            buttons.forEach(b => updateClassStatusUI(b));
+
+            // If DOM is clearly stale (e.g., mismatch with storage), rebuild the list
+            const namesInDom = buttons.map(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').replace(/✓\s*Ready/g, '').trim()).filter(Boolean);
+            const anyMismatch = namesInDom.some((n, i) => {
+                const btn = buttons[i];
+                const shouldBeReady = readyClasses.has(n);
+                const isReadyClass = btn?.classList.contains('class-ready');
+                return shouldBeReady !== isReadyClass;
+            });
+            if (ev?.persisted || anyMismatch) {
+                // Clear existing class items except the New Class button
+                Array.from(classList?.querySelectorAll('li') || []).forEach(li => {
+                    const hasAdd = !!li.querySelector('#addClassBtn');
+                    if (!hasAdd) li.remove();
+                });
+                // Reload from storage and reapply styles
                 loadAssignments();
-                hydrateAssignmentsFromPerClass();
                 loadReadyClasses();
                 loadClasses();
                 classList?.querySelectorAll('.newClassBtn')?.forEach(b => updateClassStatusUI(b));
