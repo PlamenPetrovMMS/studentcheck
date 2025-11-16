@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let scannerOverlay = null;
     let currentScanMode = 'joining';
     let html5QrCode = null; // Html5Qrcode instance
+    let allowCameraBtnEl = null;
+    let cameraPermissionNoteEl = null;
     // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
     const attendanceState = new Map();
     // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
@@ -84,6 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
                 <h2 id="scannerTitle" style="text-align:center; margin:0 0 16px 0;">Start Scanning</h2>
                 <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
+                <div id="cameraPermissionAction" style="display:none; width:100%; text-align:center; margin-bottom:12px;">
+                    <button type="button" id="allowCameraBtn" class="role-button primary" style="padding:8px 12px; font-size:14px;">Allow Camera Access</button>
+                    <div id="cameraPermissionNote" style="font-size:12px; color:#6b7280; margin-top:6px; display:none;"></div>
+                </div>
                 <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
                     <label class="mode-toggle" for="scanJoin">
                         <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
@@ -125,6 +131,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
             handleRadioChange(mode);
         }));
+        // Permission button wiring
+        allowCameraBtnEl = scannerOverlay.querySelector('#allowCameraBtn');
+        cameraPermissionNoteEl = scannerOverlay.querySelector('#cameraPermissionNote');
+        if (allowCameraBtnEl) {
+            allowCameraBtnEl.addEventListener('click', async () => {
+                allowCameraBtnEl.disabled = true;
+                try {
+                    await requestCameraPermission();
+                } finally {
+                    allowCameraBtnEl.disabled = false;
+                }
+            });
+        }
         // Footer action buttons
         const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
         stopBtn?.addEventListener('click', () => {
@@ -219,8 +238,118 @@ document.addEventListener('DOMContentLoaded', () => {
             ).catch((e) => {
                 console.error('Scanner initialization error:', e);
                 if (container) container.innerHTML = '<p style="color:#b91c1c; text-align:center;">Unable to start camera scanner.</p>';
+                // Re-throw to allow outer handlers to react (show permission UI etc.)
+                throw e;
             });
         });
+    }
+
+    // Permission helpers: show/hide permission UI and handle retry
+    function showAllowCameraUI(message, showNote) {
+        try {
+            const wrapper = document.getElementById('cameraPermissionAction');
+            if (wrapper) wrapper.style.display = 'block';
+            if (cameraPermissionNoteEl) {
+                cameraPermissionNoteEl.textContent = message || '';
+                cameraPermissionNoteEl.style.display = showNote ? 'block' : 'none';
+            }
+        } catch (_) {}
+    }
+    function hideAllowCameraUI() {
+        try {
+            const wrapper = document.getElementById('cameraPermissionAction');
+            if (wrapper) wrapper.style.display = 'none';
+            if (cameraPermissionNoteEl) {
+                cameraPermissionNoteEl.textContent = '';
+                cameraPermissionNoteEl.style.display = 'none';
+            }
+        } catch (_) {}
+    }
+
+    async function requestCameraPermission() {
+        // This will re-trigger the browser permission prompt
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showAllowCameraUI('Camera not supported on this device.', true);
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // Got access. Stop tracks (we will let Html5Qrcode start fresh) and start scanner
+            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+            hideAllowCameraUI();
+            try {
+                await initializeScanner(currentScanMode);
+            } catch (e) {
+                // If start still fails, show note
+                showAllowCameraUI('Unable to initialize camera after permission. Try again or check browser settings.', true);
+            }
+        } catch (err) {
+            console.warn('getUserMedia failed:', err);
+            const name = err && err.name ? err.name : '';
+            if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+                showAllowCameraUI('No camera detected on this device.', true);
+            } else if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
+                showAllowCameraUI('Camera access denied. Enable camera access in browser settings.', true);
+            } else {
+                showAllowCameraUI('Unable to access camera. Please check permissions and try again.', true);
+            }
+            throw err;
+        }
+    }
+
+    async function checkPermissionAndAttemptStart(mode) {
+        // Try to proactively detect permission state and attempt to start scanner.
+        // If permission denied/prompt and scanner can't start, show allow button.
+        // Prefer navigator.permissions where available.
+        const container = document.getElementById('qr-reader');
+        // Clear any previous messages/UI
+        if (container) container.innerHTML = '';
+        hideAllowCameraUI();
+        let permState = null;
+        try {
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const res = await navigator.permissions.query({ name: 'camera' });
+                    permState = res.state; // 'granted'|'denied'|'prompt'
+                } catch (_) {
+                    // Some browsers throw for camera permission queries; ignore
+                    permState = null;
+                }
+            }
+        } catch (_) { permState = null; }
+
+        // If we already have grant, start immediately
+        if (permState === 'granted') {
+            try {
+                await initializeScanner(mode);
+                hideAllowCameraUI();
+                return;
+            } catch (e) {
+                // fallthrough to show allow UI
+                console.warn('Start failed despite permission granted', e);
+            }
+        }
+
+        // Attempt to start anyway; this will trigger permission prompt in some browsers
+        try {
+            await initializeScanner(mode);
+            hideAllowCameraUI();
+            return;
+        } catch (e) {
+            // If start failed due to permission or other reasons, show the allow button
+            // Distinguish no-camera error if possible
+            const en = e && e.name ? e.name : '';
+            if (en === 'NotFoundError' || en === 'OverconstrainedError') {
+                showAllowCameraUI('No camera detected on this device.', true);
+                return;
+            }
+            // If permission state was denied, indicate settings; otherwise show generic allow button
+            if (permState === 'denied') {
+                showAllowCameraUI('Camera access blocked. Enable camera access in browser settings.', true);
+            } else {
+                showAllowCameraUI('Allow camera access to start scanning.', false);
+            }
+        }
     }
 
     function handleScannedCode(data, mode, classId) {
@@ -463,8 +592,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show overlay
         scannerOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-    // Start camera
-    initializeScanner(currentScanMode);
+    // Start camera (permission-aware)
+    checkPermissionAndAttemptStart(currentScanMode);
     }
 
     function startScanner() {
