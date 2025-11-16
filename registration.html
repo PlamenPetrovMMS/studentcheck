@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registration</title>
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="icon" href="images/new_main_logo.png" type="image/png">
+    <link rel="stylesheet" href="css/registration.css">
+</head>
+<body>
+    <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
+        <img src="images/new_main_logo.png" alt="Home">
+    </button>
+        <main class="card" role="form" aria-labelledby="signupTitle">
+            <div class="card-header">
+                <h1 id="signupTitle" class="title">Create your account</h1>
+                <div class="progress" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+            </div>
+
+            <div class="slider">
+            <div class="slides-track" id="slidesTrack">
+                    <!-- Slide 1: Names -->
+                    <section class="slide" aria-label="Names">
+                        <div class="field">
+                            <label for="firstName">First name</label>
+                            <input id="firstName" name="firstName" type="text" autocomplete="given-name" required />
+                        </div>
+                        <div class="field">
+                            <label for="middleName">Middle name</label>
+                            <input id="middleName" name="middleName" type="text" required />
+                        </div>
+                        <div class="field">
+                            <label for="lastName">Last name</label>
+                            <input id="lastName" name="lastName" type="text" autocomplete="family-name" required />
+                        </div>
+                        <div id="errorSlide1" class="error" role="alert" aria-live="polite"></div>
+                    </section>
+
+                    <!-- Slide 2: Security -->
+                     <section class="slide" aria-label="Contact">
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
+                        </div>
+                        <div class="field">
+                            <label for="facultyNumber">Faculty number</label>
+                            <input id="facultyNumber" name="facultyNumber" type="text" inputmode="numeric" required />
+                        </div>
+                        <div class="field">
+                            <label for="group">Group</label>
+                            <select id="group" name="group" required aria-required="true">
+                                <option value="" selected disabled>Select your group</option>
+                                <option value="37">37</option>
+                                <option value="38">38</option>
+                                <option value="39">39</option>
+                                <option value="40">40</option>
+                                <option value="41">41</option>
+                                <option value="42">42</option>
+                            </select>
+                        </div>
+                        <div id="errorSlide2" class="error" role="alert" aria-live="polite"></div>
+                    </section>
+
+                    <!-- Slide 3: Contact -->
+                    <section class="slide" aria-label="Security">
+                        <div class="field">
+                            <label for="password">Password</label>
+                            <div class="password-wrapper">
+                                <input id="password" name="password" type="password" autocomplete="new-password" required />
+                                <button type="button" class="toggle-password" aria-label="Show password" aria-pressed="false">
+                                    <img src="icons/show.svg" alt="Show password" />
+                                </button>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="repeatPassword">Repeat password</label>
+                            <input id="repeatPassword" name="repeatPassword" type="password" autocomplete="new-password" required />
+                        </div>
+                        <ul class="password-req" aria-live="polite" aria-label="Password requirements status">
+                            <li id="reqLength" class="unmet"><span class="indicator"></span>At least 8 characters</li>
+                            <li id="reqLetter" class="unmet"><span class="indicator"></span>Contains a letter</li>
+                            <li id="reqNumber" class="unmet"><span class="indicator"></span>Contains a number</li>
+                            <li id="reqMatch" class="unmet"><span class="indicator"></span>Passwords match</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="backBtn" class="btn btn-secondary" disabled>Back</button>
+                <div>
+                    <button type="button" id="nextBtn" class="btn btn-primary">Continue</button>
+                      <button type="button" id="finishBtn" class="btn btn-primary finish-hidden">Finish</button>
+                </div>
+            </div>
+
+            <p class="muted">Already have an account? <a href="studentLogin.html">Log in</a></p>
+        </main>
+
+    <script src="javascript/shared.js"></script>
+    <script src="javascript/registration.js"></script>
+</body>
+</html>

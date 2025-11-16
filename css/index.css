@@ -1,0 +1,37 @@
+/* Basic layout and typography */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+	margin: 0;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center; /* Center heading and buttons together vertically */
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Center the Welcome title and remove separating lines specific to the home card */
+.card-header { border-bottom: 0; }
+.card-header .title { text-align: center; }
+
+/* Reuse actions bar but stack buttons in a column and remove the top divider line */
+.actions {
+	justify-content: center;
+	align-items: stretch;
+	flex-direction: column;
+	gap: 18px;
+	border-top: 0;
+}
+
+/* Make the home buttons larger to feel like primary entry points */
+.actions .btn {
+	font-size: 1.25rem; /* ~20px */
+	padding: 18px 22px;
+	min-height: 64px;
+}
+
+/* Buttons now use shared .btn styles from registration.css */
+
+/* Optional: center the heading text */
+/* Heading is provided via .card-header .title now; no extra rules needed */
+
