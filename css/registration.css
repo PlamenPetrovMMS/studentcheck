@@ -127,7 +127,8 @@ body {
   background: rgba(17, 24, 39, 0.6); /* gray-900 @ 60% */
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  z-index: 9999;
+  /* Must be above the global navbar logo (z-index: 10000 in shared.css) */
+  z-index: 10001;
   display: none; /* hidden by default; shown when injected */
   align-items: center;
   justify-content: center;
@@ -209,3 +210,9 @@ body {
 .toggle-password:hover { background: #f3f4f6; }
 .toggle-password:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .toggle-password[aria-pressed="true"] { color: #2563eb; }
+
+/* When the page is busy (overlay shown), ensure the logo is below it and non-interactive */
+body[aria-busy="true"] .navbar-logo {
+  z-index: 0 !important;
+  pointer-events: none;
+}
