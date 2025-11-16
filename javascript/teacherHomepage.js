@@ -1219,17 +1219,37 @@ document.addEventListener('DOMContentLoaded', () => {
         persistAssignments();
         // Update per-class student objects list
         const existingStudentsObjects = loadClassStudents(className) || [];
+        // Normalize and merge new student records, preserving faculty numbers for scanner matching.
         newlyAdded.forEach(id => {
-            const info = studentIndex.get(id) || { fullName: id, facultyNumber: '' };
-            const obj = { fullName: info.fullName || id, facultyNumber: info.facultyNumber || '' };
-            // Prevent duplicate objects by facultyNumber or fullName
-            const duplicate = existingStudentsObjects.some(s => (s.facultyNumber && s.facultyNumber === obj.facultyNumber) || (s.fullName === obj.fullName));
+            const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
+            // Prefer faculty_number (server field) then fallback to facultyNumber (client), else empty.
+            const facultyNum = info.faculty_number || info.facultyNumber || '';
+            const fullName = info.fullName || info.full_name || id;
+            const obj = { fullName, facultyNumber: facultyNum };
+            // Prevent duplicates by either facultyNumber (if present) or fullName.
+            const duplicate = existingStudentsObjects.some(s => {
+                const existingFac = s.facultyNumber || '';
+                if (facultyNum && existingFac && existingFac === facultyNum) return true;
+                return s.fullName === fullName;
+            });
             if (!duplicate) existingStudentsObjects.push(obj);
         });
+        // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
+        if (!readyClasses.has(className)) {
+            readyClasses.add(className);
+            persistReadyClasses();
+            // Update button UI instantly.
+            const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
+            if (btn) updateClassStatusUI(btn);
+        }
         persistClassStudents(className, existingStudentsObjects);
         // Re-render manage list to reflect additions
         if (manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') {
             renderManageStudentsForClass(className);
+        }
+        // If attendance overlay is open for this class, refresh its list so newly added students appear immediately.
+        if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') {
+            renderAttendanceForClass(className);
         }
         closeAddStudentsToClass();
     }
