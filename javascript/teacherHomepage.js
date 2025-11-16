@@ -86,10 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
                 <h2 id="scannerTitle" style="text-align:center; margin:0 0 16px 0;">Start Scanning</h2>
                 <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
-                <div id="cameraPermissionAction" style="display:none; width:100%; text-align:center; margin-bottom:12px;">
-                    <button type="button" id="allowCameraBtn" class="role-button primary" style="padding:8px 12px; font-size:14px;">Allow Camera Access</button>
-                    <div id="cameraPermissionNote" style="font-size:12px; color:#6b7280; margin-top:6px; display:none;"></div>
-                </div>
                 <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
                     <label class="mode-toggle" for="scanJoin">
                         <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
@@ -100,7 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="mode-label">Leaving</span>
                     </label>
                 </div>
-                <div id="cameraContainer" class="camera-container">
+                <div id="cameraContainer" class="camera-container" style="position:relative;">
+                    <div id="cameraPermissionAction" style="display:none; position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:10; text-align:center;">
+                        <button type="button" id="allowCameraBtn" class="role-button" style="padding:8px 12px; font-size:14px; background:rgba(107,114,128,0.15); border:1px solid rgba(107,114,128,0.35); color:#111827;">Allow Camera Access</button>
+                        <div id="cameraPermissionNote" style="font-size:12px; color:#6b7280; margin-top:6px; display:none;"></div>
+                    </div>
                     <div id="qr-reader" style="width:100%; height:100%;"></div>
                 </div>
                 <div class="scanner-footer-actions">
