@@ -1037,6 +1037,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     const arr = JSON.parse(raw);
                     if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
                 }
+                // Additionally, infer readiness from per-class stored student objects
+                // so classes with students are considered ready even if the ready key is missing.
+                const prefix = `teacher:class:${teacherEmail}:`;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith(prefix)) {
+                        try {
+                            const rawItem = localStorage.getItem(k);
+                            const obj = JSON.parse(rawItem);
+                            const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
+                            const studentsArr = Array.isArray(obj?.students) ? obj.students : [];
+                            if (name && studentsArr.length > 0) {
+                                readyClasses.add(name);
+                            }
+                        } catch(_) {}
+                    }
+                }
+                // Persist back to keep ready key in sync for next loads
+                try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); } catch(_) {}
             } else {
                 // Union all readiness across any teacher as a fallback (styling only)
                 for (let i = 0; i < localStorage.length; i++) {
@@ -1074,6 +1093,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (e) { console.warn('Load assignments failed', e); }
+    }
+
+    // Hydrate assignments mapping from per-class stored student objects as a fallback
+    function hydrateAssignmentsFromPerClass() {
+        if (!teacherEmail) return;
+        try {
+            const prefix = `teacher:class:${teacherEmail}:`;
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(prefix)) {
+                    try {
+                        const raw = localStorage.getItem(k);
+                        const obj = JSON.parse(raw);
+                        const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
+                        const arr = Array.isArray(obj?.students) ? obj.students : [];
+                        if (name && arr.length > 0) {
+                            const ids = new Set(arr.map(s => (s.facultyNumber || s.fullName || '').trim()).filter(Boolean));
+                            const existing = classStudentAssignments.get(name) || new Set();
+                            ids.forEach(id => existing.add(id));
+                            classStudentAssignments.set(name, existing);
+                        }
+                    } catch(_) {}
+                }
+            }
+        } catch (e) { console.warn('Hydrate from per-class failed', e); }
     }
 
     // Per-class storage: each class has its own item with an array of student objects
@@ -1157,7 +1201,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function renderAddStudentsList(className) {
         if (!addStudentsListEl) return;
-        const existingSet = classStudentAssignments.get(className) || new Set();
+        // Build existing set from assignments map and as a fallback from per-class stored students
+        const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
+        try {
+            const stored = loadClassStudents(className) || [];
+            stored.forEach(s => {
+                const id = (s.facultyNumber || s.fullName || '').trim();
+                if (id) existingSet.add(id);
+            });
+        } catch(_) {}
         const studentsArray = studentCache || [];
         if (!Array.isArray(studentsArray) || studentsArray.length === 0) {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
@@ -1698,7 +1750,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    // Load readiness then classes, then attach behaviors (mobile-friendly init order)
+    // Load assignments and readiness then classes, then attach behaviors (mobile-friendly init order)
+    loadAssignments();
+    hydrateAssignmentsFromPerClass();
     loadReadyClasses();
     loadClasses();
     // Also handle mobile bfcache/pageshow and late paints causing hidden/empty lists
@@ -1708,6 +1762,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const existing = classList?.querySelectorAll('.newClassBtn')?.length || 0;
             if (existing === 0) {
                 console.log('[Classes] pageshow: no buttons found; attempting reload of classes');
+                loadAssignments();
+                hydrateAssignmentsFromPerClass();
                 loadReadyClasses();
                 loadClasses();
                 classList?.querySelectorAll('.newClassBtn')?.forEach(b => updateClassStatusUI(b));
