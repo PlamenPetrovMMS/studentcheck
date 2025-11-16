@@ -1032,58 +1032,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = '';
     }
 
-    // ---- Storage helpers (localStorage with IndexedDB fallback) ----
-    const IDB_FALLBACK_DB = 'studentcheck-fallback';
-    const IDB_FALLBACK_STORE = 'kv';
-    function openFallbackIDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open(IDB_FALLBACK_DB, 1);
-            req.onupgradeneeded = (e) => {
-                const db = req.result;
-                if (!db.objectStoreNames.contains(IDB_FALLBACK_STORE)) {
-                    db.createObjectStore(IDB_FALLBACK_STORE);
-                }
-            };
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
-        });
-    }
-    async function idbSet(key, value) {
-        try {
-            const db = await openFallbackIDB();
-            await new Promise((resolve, reject) => {
-                const tx = db.transaction(IDB_FALLBACK_STORE, 'readwrite');
-                const st = tx.objectStore(IDB_FALLBACK_STORE);
-                const r = st.put(value, key);
-                r.onsuccess = () => resolve();
-                r.onerror = () => reject(r.error);
-            });
-            db.close?.();
-        } catch (_) {}
-    }
-    async function idbGet(key) {
-        try {
-            const db = await openFallbackIDB();
-            const val = await new Promise((resolve, reject) => {
-                const tx = db.transaction(IDB_FALLBACK_STORE, 'readonly');
-                const st = tx.objectStore(IDB_FALLBACK_STORE);
-                const r = st.get(key);
-                r.onsuccess = () => resolve(r.result);
-                r.onerror = () => reject(r.error);
-            });
-            db.close?.();
-            return val;
-        } catch (_) { return undefined; }
-    }
-    async function idbHas(key) {
-        const v = await idbGet(key);
-        return typeof v !== 'undefined';
-    }
-
     function persistReadyClasses() {
         if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':ready';
         try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); }
-        catch(e){ console.warn('Persist readyClasses failed', e); idbSet(key, Array.from(readyClasses)); }
+        catch(e){ console.warn('Persist readyClasses failed', e); }
     }
     function loadReadyClasses() {
         // Prefer teacher-specific readiness, but tolerate mobile reloads without session
@@ -1102,14 +1054,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } catch(_) {}
                 }
             }
-            // IDB fallback for ready list
-            (async () => {
-                const idbKey = `teacher:classes:${normEmail}:ready`;
-                try {
-                    const arr = await idbGet(idbKey);
-                    if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
-                } catch(_) {}
-            })();
             // Infer readiness from per-class items for this teacher (case-insensitive email match)
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
@@ -1138,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const obj = {};
             classStudentAssignments.forEach((set, name) => { obj[name] = Array.from(set); });
             localStorage.setItem(key, JSON.stringify(obj));
-        } catch (e) { console.warn('Persist assignments failed', e); idbSet(key, Object.fromEntries(Array.from(classStudentAssignments, ([n,s]) => [n, Array.from(s)]))); }
+        } catch (e) { console.warn('Persist assignments failed', e); }
     }
     function loadAssignments() {
         if (!teacherEmail) return;
@@ -1161,19 +1105,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                 }
             }
-            // IDB fallback for assignments
-            (async () => {
-                const idbKey = `teacher:classes:${normEmail}:assignments`;
-                const obj = await idbGet(idbKey);
-                if (obj && typeof obj === 'object') {
-                    Object.keys(obj).forEach(name => {
-                        const arr = Array.isArray(obj[name]) ? obj[name] : [];
-                        const existing = classStudentAssignments.get(name) || new Set();
-                        arr.forEach(id => existing.add(id));
-                        classStudentAssignments.set(name, existing);
-                    });
-                }
-            })();
         } catch (e) { console.warn('Load assignments failed', e); }
     }
 
@@ -1201,20 +1132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 } catch(_) {}
             }
-            // IDB fallback per readyClasses
-            for (const name of Array.from(readyClasses)) {
-                const existing = classStudentAssignments.get(name) || new Set();
-                if (existing.size > 0) continue;
-                const lsArr = loadClassStudents(name);
-                let arr = Array.isArray(lsArr) && lsArr.length ? lsArr : await loadClassStudentsFromIDB(name);
-                if (arr && arr.length) {
-                    arr.forEach(s => {
-                        const id = (s.facultyNumber || s.fullName || '').trim();
-                        if (id) existing.add(id);
-                    });
-                    classStudentAssignments.set(name, existing);
-                }
-            }
+            // No IndexedDB fallback: rely solely on localStorage
         } catch (e) { console.warn('Hydrate from per-class failed', e); }
     }
 
@@ -1246,87 +1164,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const arr = Array.isArray(obj?.students) ? obj.students : [];
             return arr.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
         } catch (e) { console.warn('Load class students failed', e); return []; }
-    }
-
-    async function loadClassStudentsFromIDB(className) {
-        const key = classItemKey(className);
-        if (!key) return [];
-        try {
-            const obj = await idbGet(key);
-            const arr = Array.isArray(obj?.students) ? obj.students : [];
-            return arr.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
-        } catch (_) { return []; }
-    }
-
-    // Best-effort import from unknown IndexedDB stores if localStorage is empty for this teacher
-    async function importFromIndexedDBIfLocalEmpty() {
-        try {
-            const normEmail = normalizeEmail(teacherEmail);
-            // If we already have per-class entries in LS or fallback IDB, skip.
-            let hasAny = false;
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith(`teacher:class:${normEmail}:`)) { hasAny = true; break; }
-            }
-            if (!hasAny) {
-                // Check our own fallback IDB before scanning other DBs
-                const probeKey = `teacher:classes:${normEmail}:ready`;
-                if (await idbHas(probeKey)) hasAny = true;
-            }
-            if (hasAny) return; // nothing to import
-
-            if (!('databases' in indexedDB) || typeof indexedDB.databases !== 'function') return;
-            const dbs = await indexedDB.databases();
-            const imported = new Map(); // className -> students[]
-            for (const dbInfo of dbs) {
-                const name = dbInfo.name;
-                if (!name) continue;
-                const db = await new Promise((resolve, reject) => {
-                    const req = indexedDB.open(name);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => resolve(null);
-                });
-                if (!db) continue;
-                const stores = Array.from(db.objectStoreNames || []);
-                for (const storeName of stores) {
-                    try {
-                        const values = await new Promise((resolve) => {
-                            const tx = db.transaction(storeName, 'readonly');
-                            const st = tx.objectStore(storeName);
-                            const req = st.getAll ? st.getAll() : null;
-                            if (!req) { resolve([]); return; }
-                            req.onsuccess = () => resolve(req.result || []);
-                            req.onerror = () => resolve([]);
-                        });
-                        values.forEach(v => {
-                            if (v && typeof v === 'object') {
-                                const name = v.name || v.className || '';
-                                const students = Array.isArray(v.students) ? v.students : Array.isArray(v.classStudents) ? v.classStudents : [];
-                                if (name && students.length) {
-                                    const arr = students.map(s => ({ fullName: s.fullName || s.name || s.full_name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
-                                    const existing = imported.get(name) || [];
-                                    // merge unique by facultyNumber or fullName
-                                    const byKey = new Map(existing.map(s => [(s.facultyNumber || s.fullName), s]));
-                                    arr.forEach(s => { const k = s.facultyNumber || s.fullName; if (k && !byKey.has(k)) byKey.set(k, s); });
-                                    imported.set(name, Array.from(byKey.values()));
-                                }
-                            }
-                        });
-                    } catch (_) {}
-                }
-                db.close?.();
-            }
-            // Persist imported data into our scheme
-            if (imported.size > 0) {
-                imported.forEach((students, className) => {
-                    persistClassStudents(className, students);
-                    readyClasses.add(className);
-                });
-                persistReadyClasses();
-            }
-        } catch (e) {
-            console.warn('IDB import failed or not supported', e);
-        }
     }
 
     // --- Add Students to Existing Class Overlay ---
@@ -1860,23 +1697,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         } catch (e) { console.warn('Failed to load classes (per-class items):', e); }
-        // If still none, try fallback IDB store
-        const tryFromIDB = async () => {
-            if (classNames.length > 0) return classNames;
-            // Probe fallback keys by listing known ready classes in IDB
-            const idbReady = await idbGet(`teacher:classes:${normEmail}:ready`).catch(()=>undefined);
-            if (Array.isArray(idbReady) && idbReady.length) return idbReady;
-            return [];
-        };
         console.log('[Classes] found', classNames.length, 'classes:', classNames);
-        if (classNames.length === 0) {
-            tryFromIDB().then(list => {
-                list.forEach(renderClassItem);
-                ensureClassesContainerVisible();
-            });
-        } else {
-            classNames.forEach(renderClassItem);
-        }
+        classNames.forEach(renderClassItem);
         // Ensure container visible
         ensureClassesContainerVisible();
     };
@@ -1949,8 +1771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    // Load assignments and readiness then classes, with IDB import if LS is empty
-    await importFromIndexedDBIfLocalEmpty();
+    // Load assignments and readiness then classes (localStorage only)
     loadAssignments();
     await hydrateAssignmentsFromPerClass();
     loadReadyClasses();
