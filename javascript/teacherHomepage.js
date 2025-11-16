@@ -97,9 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     </label>
                 </div>
                 <div id="cameraContainer" class="camera-container" style="position:relative;">
-                    <div id="cameraPermissionAction" style="display:none; position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:10; text-align:center;">
-                        <button type="button" id="allowCameraBtn" class="role-button" style="padding:8px 12px; font-size:14px; background:rgba(107,114,128,0.15); border:1px solid rgba(107,114,128,0.35); color:#111827;">Allow Camera Access</button>
-                        <div id="cameraPermissionNote" style="font-size:12px; color:#6b7280; margin-top:6px; display:none;"></div>
+                    <div id="cameraPermissionAction" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10; text-align:center; max-width:90%;">
+                        <button type="button" id="allowCameraBtn" class="role-button" style="padding:10px 14px; font-size:15px; background:rgba(107,114,128,0.85); border:1px solid rgba(255,255,255,0.35); color:#ffffff; border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,0.25); transition: transform .12s ease, box-shadow .12s ease, background-color .2s ease;">
+                            Allow Camera Access
+                        </button>
+                        <div id="cameraPermissionNote" style="font-size:12px; color:#f9fafb; margin-top:8px; display:none; text-shadow:0 1px 2px rgba(0,0,0,0.35);"></div>
                     </div>
                     <div id="qr-reader" style="width:100%; height:100%;"></div>
                 </div>
@@ -143,6 +145,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     allowCameraBtnEl.disabled = false;
                 }
             });
+            const pressDown = () => {
+                allowCameraBtnEl.style.transform = 'scale(0.96)';
+                allowCameraBtnEl.style.boxShadow = '0 3px 10px rgba(0,0,0,0.28)';
+            };
+            const pressUp = () => {
+                allowCameraBtnEl.style.transform = 'scale(1)';
+                allowCameraBtnEl.style.boxShadow = '0 4px 14px rgba(0,0,0,0.25)';
+            };
+            allowCameraBtnEl.addEventListener('mousedown', pressDown);
+            allowCameraBtnEl.addEventListener('mouseup', pressUp);
+            allowCameraBtnEl.addEventListener('mouseleave', pressUp);
+            allowCameraBtnEl.addEventListener('touchstart', (e) => { pressDown(); }, { passive: true });
+            allowCameraBtnEl.addEventListener('touchend', (e) => { pressUp(); }, { passive: true });
         }
         // Footer action buttons
         const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
