@@ -4,23 +4,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('addClassBtn');
     // Determine current teacher email with robust fallbacks (mobile reload safe)
     let teacherEmail = null;
+    const normalizeEmail = (e) => (e || '').trim().toLowerCase();
+    const parseEmailFromPerClassKey = (key) => {
+        // key pattern: teacher:class:<email>:<className>
+        const m = key.match(/^teacher:class:([^:]+):/);
+        return m ? m[1] : null;
+    };
     function deriveTeacherEmailFallback() {
         // 1) sessionStorage teacherData
         try {
             const raw = sessionStorage.getItem('teacherData');
             const parsed = raw ? JSON.parse(raw) : null;
-            if (parsed?.email) return parsed.email;
+            if (parsed?.email) return normalizeEmail(parsed.email);
         } catch (e) { console.warn('Failed to parse teacherData from sessionStorage:', e); }
         // 2) last email hint
         const last = localStorage.getItem('teacher:lastEmail');
-        if (last) return last;
+        if (last) return normalizeEmail(last);
         // 3) scan localStorage for any teacher:class:<email>:
         const emails = new Set();
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
             if (!k) continue;
             const m = k.match(/^teacher:class:([^:]+):/);
-            if (m && m[1]) emails.add(m[1]);
+            if (m && m[1]) emails.add(normalizeEmail(m[1]));
         }
         if (emails.size === 1) return Array.from(emails)[0];
         return null;
@@ -30,7 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try { localStorage.setItem('teacher:lastEmail', teacherEmail); } catch {}
     }
 
-    const storageKey = (email) => email ? `teacher:classes:${email}` : null;
+    const storageKey = (email) => {
+        const e = normalizeEmail(email || teacherEmail);
+        return e ? `teacher:classes:${e}` : null;
+    };
 
     // --- Per-class readiness state ---
     const readyClasses = new Set(); // class name strings
@@ -1030,45 +1039,38 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadReadyClasses() {
         // Prefer teacher-specific readiness, but tolerate mobile reloads without session
         try {
-            if (teacherEmail) {
-                const key = storageKey(teacherEmail) + ':ready';
-                const raw = localStorage.getItem(key);
-                if (raw) {
-                    const arr = JSON.parse(raw);
-                    if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
-                }
-                // Additionally, infer readiness from per-class stored student objects
-                // so classes with students are considered ready even if the ready key is missing.
-                const prefix = `teacher:class:${teacherEmail}:`;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith(prefix)) {
-                        try {
-                            const rawItem = localStorage.getItem(k);
-                            const obj = JSON.parse(rawItem);
-                            const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
-                            const studentsArr = Array.isArray(obj?.students) ? obj.students : [];
-                            if (name && studentsArr.length > 0) {
-                                readyClasses.add(name);
-                            }
-                        } catch(_) {}
-                    }
-                }
-                // Persist back to keep ready key in sync for next loads
-                try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); } catch(_) {}
-            } else {
-                // Union all readiness across any teacher as a fallback (styling only)
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && /^(teacher:classes:[^:]+:ready)$/.test(k)) {
-                        try {
-                            const raw = localStorage.getItem(k);
-                            const arr = JSON.parse(raw);
-                            if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
-                        } catch {}
-                    }
+            const normEmail = normalizeEmail(teacherEmail);
+            // Merge any ready lists where the stored email matches by normalized value
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                const m = k.match(/^teacher:classes:([^:]+):ready$/);
+                if (m && normalizeEmail(m[1]) === normEmail) {
+                    try {
+                        const raw = localStorage.getItem(k);
+                        const arr = JSON.parse(raw);
+                        if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
+                    } catch(_) {}
                 }
             }
+            // Infer readiness from per-class items for this teacher (case-insensitive email match)
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k || !k.startsWith('teacher:class:')) continue;
+                const emailPart = parseEmailFromPerClassKey(k);
+                if (!emailPart || normalizeEmail(emailPart) !== normEmail) continue;
+                try {
+                    const rawItem = localStorage.getItem(k);
+                    const obj = JSON.parse(rawItem);
+                    const afterPrefix = k.replace(/^teacher:class:[^:]+:/, '');
+                    const name = obj?.name || decodeURIComponent(afterPrefix);
+                    const studentsArr = Array.isArray(obj?.students) ? obj.students : [];
+                    if (name && studentsArr.length > 0) readyClasses.add(name);
+                } catch(_) {}
+            }
+            // Persist back to a single normalized key for consistency
+            const normalizedReadyKey = `teacher:classes:${normEmail}:ready`;
+            try { localStorage.setItem(normalizedReadyKey, JSON.stringify(Array.from(readyClasses))); } catch(_){ }
         } catch (e) { console.warn('Load readyClasses failed', e); }
     }
 
@@ -1082,15 +1084,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.warn('Persist assignments failed', e); }
     }
     function loadAssignments() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':assignments';
+        if (!teacherEmail) return;
+        const normEmail = normalizeEmail(teacherEmail);
         try {
-            const raw = localStorage.getItem(key); if (!raw) return;
-            const obj = JSON.parse(raw);
-            if (obj && typeof obj === 'object') {
-                Object.keys(obj).forEach(name => {
-                    const arr = Array.isArray(obj[name]) ? obj[name] : [];
-                    classStudentAssignments.set(name, new Set(arr));
-                });
+            // Load any assignment keys for normalized-matching email
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                const m = k.match(/^teacher:classes:([^:]+):assignments$/);
+                if (!m) continue;
+                if (normalizeEmail(m[1]) !== normEmail) continue;
+                const raw = localStorage.getItem(k);
+                if (!raw) continue;
+                const obj = JSON.parse(raw);
+                if (obj && typeof obj === 'object') {
+                    Object.keys(obj).forEach(name => {
+                        const arr = Array.isArray(obj[name]) ? obj[name] : [];
+                        classStudentAssignments.set(name, new Set(arr));
+                    });
+                }
             }
         } catch (e) { console.warn('Load assignments failed', e); }
     }
@@ -1098,24 +1110,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hydrate assignments mapping from per-class stored student objects as a fallback
     function hydrateAssignmentsFromPerClass() {
         if (!teacherEmail) return;
+        const normEmail = normalizeEmail(teacherEmail);
         try {
-            const prefix = `teacher:class:${teacherEmail}:`;
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
-                if (k && k.startsWith(prefix)) {
-                    try {
-                        const raw = localStorage.getItem(k);
-                        const obj = JSON.parse(raw);
-                        const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
-                        const arr = Array.isArray(obj?.students) ? obj.students : [];
-                        if (name && arr.length > 0) {
-                            const ids = new Set(arr.map(s => (s.facultyNumber || s.fullName || '').trim()).filter(Boolean));
-                            const existing = classStudentAssignments.get(name) || new Set();
-                            ids.forEach(id => existing.add(id));
-                            classStudentAssignments.set(name, existing);
-                        }
-                    } catch(_) {}
-                }
+                if (!k || !k.startsWith('teacher:class:')) continue;
+                const emailPart = parseEmailFromPerClassKey(k);
+                if (!emailPart || normalizeEmail(emailPart) !== normEmail) continue;
+                try {
+                    const raw = localStorage.getItem(k);
+                    const obj = JSON.parse(raw);
+                    const after = k.replace(/^teacher:class:[^:]+:/, '');
+                    const name = obj?.name || decodeURIComponent(after);
+                    const arr = Array.isArray(obj?.students) ? obj.students : [];
+                    if (name && arr.length > 0) {
+                        const ids = new Set(arr.map(s => (s.facultyNumber || s.fullName || '').trim()).filter(Boolean));
+                        const existing = classStudentAssignments.get(name) || new Set();
+                        ids.forEach(id => existing.add(id));
+                        classStudentAssignments.set(name, existing);
+                    }
+                } catch(_) {}
             }
         } catch (e) { console.warn('Hydrate from per-class failed', e); }
     }
@@ -1123,7 +1137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Per-class storage: each class has its own item with an array of student objects
     function classItemKey(className) {
         if (!teacherEmail) return null;
-        return `teacher:class:${teacherEmail}:${encodeURIComponent(className)}`;
+        const normEmail = normalizeEmail(teacherEmail);
+        return `teacher:class:${normEmail}:${encodeURIComponent(className)}`;
     }
     function persistClassStudents(className, studentsArray) {
         const key = classItemKey(className);
@@ -1645,23 +1660,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadClasses = () => {
         console.log('[Classes] loadClasses start. Email =', teacherEmail);
         let classNames = [];
+        const normEmail = normalizeEmail(teacherEmail);
         try {
-            if (teacherEmail) {
-                const prefix = `teacher:class:${teacherEmail}:`;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith(prefix)) {
-                        const raw = localStorage.getItem(k);
-                        try {
-                            const obj = JSON.parse(raw);
-                            const name = obj?.name || decodeURIComponent(k.slice(prefix.length));
-                            if (name && !classNames.includes(name)) classNames.push(name);
-                        } catch (e) { console.warn('Parse class item failed', k, e); }
-                    }
-                }
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k || !k.startsWith('teacher:class:')) continue;
+                const emailPart = parseEmailFromPerClassKey(k);
+                if (!emailPart || normalizeEmail(emailPart) !== normEmail) continue;
+                const raw = localStorage.getItem(k);
+                try {
+                    const obj = JSON.parse(raw);
+                    const after = k.replace(/^teacher:class:[^:]+:/, '');
+                    const name = obj?.name || decodeURIComponent(after);
+                    if (name && !classNames.includes(name)) classNames.push(name);
+                } catch (e) { console.warn('Parse class item failed', k, e); }
             }
-            // If no email or no classes found, fall back to scanning all per-class items
-            if ((!teacherEmail || classNames.length === 0)) {
+            // If none found (rare), tolerant fallback to any per-class entries
+            if (classNames.length === 0) {
                 for (let i = 0; i < localStorage.length; i++) {
                     const k = localStorage.key(i);
                     if (k && k.startsWith('teacher:class:')) {
@@ -1807,18 +1822,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Wire Add Students overlay button to set readiness if selection present
+    // Wire Add Students overlay button to add selected students and mark ready
     const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
     if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
         addStudentsOverlayBtn.addEventListener('click', () => {
             const selected = window.getSelectedStudents?.() || [];
-            if (selected.length > 0) {
-                setClassReady();
-            } else {
-                // Provide subtle feedback if no selection
+            const className = (currentClassName || '').trim();
+            if (!className) {
                 addStudentsOverlayBtn.classList.add('pulse-warn');
                 setTimeout(() => addStudentsOverlayBtn.classList.remove('pulse-warn'), 600);
+                return;
             }
+            if (selected.length === 0) {
+                addStudentsOverlayBtn.classList.add('pulse-warn');
+                setTimeout(() => addStudentsOverlayBtn.classList.remove('pulse-warn'), 600);
+                return;
+            }
+            // Merge with existing students stored for the class
+            const existing = loadClassStudents(className) || [];
+            const byFac = new Map();
+            existing.forEach(s => {
+                const key = (s.facultyNumber || s.fullName || '').trim();
+                if (key) byFac.set(key, { fullName: s.fullName || '', facultyNumber: s.facultyNumber || '' });
+            });
+            selected.forEach(s => {
+                const key = (s.facultyNumber || s.fullName || '').trim();
+                if (!key) return;
+                const fullName = s.fullName || '';
+                const facultyNumber = s.facultyNumber || '';
+                if (!byFac.has(key)) byFac.set(key, { fullName, facultyNumber });
+            });
+            const merged = Array.from(byFac.values());
+            persistClassStudents(className, merged);
+            // Mark ready and persist
+            readyClasses.add(className);
+            persistReadyClasses();
+            // Update UI state for the button of this class
+            const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
+            if (btn) updateClassStatusUI(btn);
+            // Close overlay and clear selection
+            closeStudentsOverlay();
+            studentSelection.clear();
         });
         addStudentsOverlayBtn.dataset.bound = 'true';
     }

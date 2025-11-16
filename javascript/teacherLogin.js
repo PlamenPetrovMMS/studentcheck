@@ -26,7 +26,8 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     const password = document.getElementById('password').value.trim();
     const errorMessage = document.getElementById('error-message');
 
-    const teacherData = { email, password };
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    const teacherData = { email: normalizedEmail, password };
     console.log('Teacher Login Attempt:', teacherData);
 
     if (!email || !password) {
@@ -60,8 +61,10 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             const data = await response.json();
             if (data.loginSuccess) {
                 try {
-                    // Store minimal teacher session data in sessionStorage only.
+                    // Store minimal teacher session data in sessionStorage only (normalized email).
                     sessionStorage.setItem('teacherData', JSON.stringify({ email: teacherData.email }));
+                    // Also remember last teacher email for reload fallbacks
+                    try { localStorage.setItem('teacher:lastEmail', teacherData.email); } catch(_) {}
                 } catch (e) {
                     console.warn('Failed to persist teacher session data in sessionStorage:', e);
                 }
