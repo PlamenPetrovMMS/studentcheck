@@ -871,7 +871,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div id="manageStudentsList" class="manage-students-list"></div>
                 <div class="manage-footer-actions">
                     <button type="button" id="backToReadyBtn" class="role-button">Back</button>
-                    <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Student">Add Student</button>
+                    <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Students">Add Students</button>
                 </div>
             </div>`;
         document.body.appendChild(manageStudentsOverlay);
