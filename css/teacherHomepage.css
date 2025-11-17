@@ -591,6 +591,34 @@ body {
     padding: 0 2px;
 }
 
+/* Two-line fixed layout for students in Manage Students overlay */
+#manageStudentsOverlay .manage-students-list .list-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: 64px; /* keep consistent height */
+}
+#manageStudentsOverlay .manage-students-list .student-card-text { width: 100%; }
+#manageStudentsOverlay .manage-students-list .student-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+#manageStudentsOverlay .manage-students-list .student-fac {
+    color: #4b5563; /* gray-600 */
+    font-size: 0.92rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
 #studentInfoOverlay .ready-class-popup.student-info-popup {
     background: #ffffff;
     color: #111827;
