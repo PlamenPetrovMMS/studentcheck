@@ -374,6 +374,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Update UI dot if visible
             const dot = attendanceDotIndex.get(studentId);
             if (dot) applyDotStateClass(dot, next);
+            // Increment attendance when completing a session (joined -> completed)
+            if (current === 'joined' && next === 'completed') {
+                incrementAttendanceForStudent(className, studentId);
+            }
         }
     }
 
@@ -936,7 +940,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return studentInfoOverlay;
     }
 
-    function buildStudentInfoContent(studentObj, studentId) {
+    function buildStudentInfoContent(studentObj, studentId, className) {
         const wrapper = document.createElement('div');
         wrapper.className = 'ready-class-popup student-info-popup';
         wrapper.setAttribute('role', 'dialog');
@@ -960,9 +964,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             emailP.style.margin = '0 0 10px 0';
             wrapper.appendChild(emailP);
         }
-        // Attended classes counter (stub logic for now)
-        const attended = getStudentAttendanceCount(studentObj);
+        // Attended classes counter (per-class, live)
+        const attended = getStudentAttendanceCountForClass(className || currentClassName, studentId);
         const attendedP = document.createElement('p');
+        attendedP.setAttribute('data-attendance-counter', '');
         attendedP.textContent = `Attended Classes: ${attended}`;
         attendedP.style.margin = '10px 0 0 0';
         attendedP.style.fontWeight = '700';
@@ -972,15 +977,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return wrapper;
     }
 
-    // Stub attendance counter – replace with real logic when attendance tracking is implemented.
-    function getStudentAttendanceCount(studentObj) {
-        // Use faculty_number as stable key; fallback to full name.
-        const key = studentObj.faculty_number || studentObj.facultyNumber || studentObj.fullName || studentObj.full_name || '';
-        if (!key) return 0;
-        // Future: read from localStorage or server. For now, always 0.
-        // Example future key pattern: `attendance:${teacherEmail}:${key}`.
-        return 0;
-    }
 
     function openStudentInfoOverlay(studentId, className) {
         ensureStudentInfoOverlay();
@@ -991,8 +987,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const info = studentIndex.get(studentId) || { fullName: studentId };
         // Clear and insert new content
         studentInfoOverlay.innerHTML = '';
-        const content = buildStudentInfoContent(info, studentId);
+        const content = buildStudentInfoContent(info, studentId, className);
         studentInfoOverlay.appendChild(content);
+        // Store context for live updates
+        studentInfoOverlay.dataset.studentId = String(studentId);
+        studentInfoOverlay.dataset.className = String(className || currentClassName || '');
         studentInfoOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
     }
@@ -1155,8 +1154,74 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!raw) return [];
             const obj = JSON.parse(raw);
             const arr = Array.isArray(obj?.students) ? obj.students : [];
-            return arr.map(s => ({ fullName: s.fullName || s.name || '', facultyNumber: s.facultyNumber || s.faculty_number || '' }));
+            return arr.map(s => ({
+                fullName: s.fullName || s.name || '',
+                facultyNumber: s.facultyNumber || s.faculty_number || '',
+                attendedClasses: Number.isFinite(s.attendedClasses) ? s.attendedClasses : 0
+            }));
         } catch (e) { console.warn('Load class students failed', e); return []; }
+    }
+
+    // --- Attendance persistence helpers ---
+    function attendanceQueueKey() {
+        if (!teacherEmail) return null;
+        const norm = (window.Utils?.normalizeEmail || ((e)=> (e||'').trim().toLowerCase()))(teacherEmail);
+        return `teacher:attendance:${norm}:pending`;
+    }
+    function enqueueAttendanceIncrement(className, studentId, timestamp) {
+        const key = attendanceQueueKey();
+        if (!key) return;
+        try {
+            const raw = localStorage.getItem(key);
+            const arr = raw ? JSON.parse(raw) : [];
+            arr.push({ className, studentId, timestamp: timestamp || Date.now() });
+            localStorage.setItem(key, JSON.stringify(arr));
+        } catch(_) {}
+    }
+    async function trySyncAttendanceIncrements() {
+        // Placeholder: no server endpoint to sync. Keep queue for future use.
+        return;
+    }
+    window.addEventListener('online', () => { trySyncAttendanceIncrements(); });
+
+    function findStudentRecordInClass(className, studentId) {
+        const students = loadClassStudents(className) || [];
+        if (students.length === 0) return { students, index: -1 };
+        const byId = (s) => ((s.facultyNumber || s.fullName || '').trim() === (studentId || '').trim());
+        let idx = students.findIndex(byId);
+        if (idx === -1 && studentIndex) {
+            const info = studentIndex.get(studentId);
+            if (info && (info.fullName || info.faculty_number)) {
+                idx = students.findIndex(s => (s.facultyNumber && info.faculty_number && s.facultyNumber === info.faculty_number) || s.fullName === info.fullName);
+            }
+        }
+        return { students, index: idx };
+    }
+    function incrementAttendanceForStudent(className, studentId) {
+        const { students, index } = findStudentRecordInClass(className, studentId);
+        if (index === -1) return;
+        const rec = students[index];
+        const current = Number.isFinite(rec.attendedClasses) ? rec.attendedClasses : 0;
+        rec.attendedClasses = current + 1;
+        persistClassStudents(className, students);
+        enqueueAttendanceIncrement(className, studentId, Date.now());
+        updateStudentInfoOverlayCount(studentId, className, rec.attendedClasses);
+    }
+    function getStudentAttendanceCountForClass(className, studentId) {
+        const { students, index } = findStudentRecordInClass(className, studentId);
+        if (index === -1) return 0;
+        const rec = students[index];
+        return Number.isFinite(rec.attendedClasses) ? rec.attendedClasses : 0;
+    }
+    function updateStudentInfoOverlayCount(studentId, className, forcedValue) {
+        if (!studentInfoOverlay || studentInfoOverlay.style.visibility !== 'visible') return;
+        const overlayStudentId = studentInfoOverlay?.dataset?.studentId || '';
+        const overlayClass = studentInfoOverlay?.dataset?.className || '';
+        if (overlayStudentId && overlayClass && (overlayStudentId !== String(studentId) || overlayClass !== String(className))) return;
+        const counterEl = studentInfoOverlay.querySelector('[data-attendance-counter]');
+        if (!counterEl) return;
+        const val = Number.isFinite(forcedValue) ? forcedValue : getStudentAttendanceCountForClass(className, studentId);
+        counterEl.textContent = `Attended Classes: ${val}`;
     }
 
     // --- Add Students to Existing Class Overlay ---
