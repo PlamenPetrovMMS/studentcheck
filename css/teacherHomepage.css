@@ -663,6 +663,21 @@ body {
     width: 100%;
 }
 
+/* Make Attendance History + Back buttons compact on mobile */
+@media (max-width: 480px) {
+    .attendance-history-btn {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        font-size: 0.95rem !important;
+    }
+    #attendanceHistoryOverlay .manage-footer-actions .role-button {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        font-size: 0.95rem !important;
+        min-width: 120px;
+    }
+}
+
 #manageStudentsOverlay .manage-footer-actions {
     display: flex;
     justify-content: flex-end; /* Move Back button to far right */
