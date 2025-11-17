@@ -145,10 +145,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return scannerOverlay;
     }
 
-    function closeScannerOverlay() {
+    function closeScannerOverlay(onClosed) {
         const finish = () => {
             if (scannerOverlay) scannerOverlay.style.visibility = 'hidden';
             document.body.style.overflow = '';
+            try { if (typeof onClosed === 'function') onClosed(); } catch(_) {}
         };
         try {
             if (html5QrCode) {
@@ -504,7 +505,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Confirm: clear temp attendance, close attendance overlay if open, then close scanner
                 clearTemporaryAttendanceData(currentClassName);
                 if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay();
-                closeScannerOverlay();
+                const className = currentClassName;
+                closeScannerOverlay(() => {
+                    // After scanner fully closed, return to ready class popup
+                    openReadyClassPopup(className);
+                });
             },
             () => {
                 // Cancel: do nothing; keep scanner running
