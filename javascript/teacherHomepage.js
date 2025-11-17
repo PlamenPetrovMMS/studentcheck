@@ -1159,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const ul = document.createElement('ul');
         ul.className = 'attendance-history-ul';
-        sessions.slice().reverse().forEach((sess, idx) => {
+        sessions.slice().reverse().forEach((sess) => {
             const li = document.createElement('li');
             li.className = 'attendance-history-item';
             const joined = new Date(sess.joinAt || sess.leaveAt || Date.now());
@@ -1170,12 +1170,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             const leaveTime = left.toLocaleTimeString([], timeOpts);
             const joinDate = joined.toLocaleDateString([], dateOpts);
             const leaveDate = left.toLocaleDateString([], dateOpts);
-            const joinP = document.createElement('p');
-            joinP.textContent = `Joined: ${joinTime} — ${joinDate}`;
-            const leaveP = document.createElement('p');
-            leaveP.textContent = `Left: ${leaveTime} — ${leaveDate}`;
-            li.appendChild(joinP);
-            li.appendChild(leaveP);
+
+            const row1 = document.createElement('div');
+            row1.className = 'att-row';
+            const joinLabel = document.createElement('span');
+            joinLabel.className = 'att-label att-label-joined';
+            joinLabel.textContent = 'Joined';
+            const joinVal = document.createElement('span');
+            joinVal.className = 'att-value';
+            joinVal.textContent = `${joinTime} — ${joinDate}`;
+            row1.appendChild(joinLabel);
+            row1.appendChild(joinVal);
+
+            const row2 = document.createElement('div');
+            row2.className = 'att-row';
+            const leaveLabel = document.createElement('span');
+            leaveLabel.className = 'att-label att-label-left';
+            leaveLabel.textContent = 'Left';
+            const leaveVal = document.createElement('span');
+            leaveVal.className = 'att-value';
+            leaveVal.textContent = `${leaveTime} — ${leaveDate}`;
+            row2.appendChild(leaveLabel);
+            row2.appendChild(leaveVal);
+
+            li.appendChild(row1);
+            li.appendChild(row2);
             ul.appendChild(li);
         });
         container.appendChild(ul);

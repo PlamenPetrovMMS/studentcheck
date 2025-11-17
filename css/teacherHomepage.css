@@ -737,6 +737,22 @@ body {
     border-radius: 12px;
 }
 
+/* Aligned rows inside each history item */
+#attendanceHistoryOverlay .attendance-history-item .att-row {
+    display: grid;
+    grid-template-columns: 90px 1fr; /* fixed label column, flexible value column */
+    align-items: baseline;
+    gap: 8px;
+}
+#attendanceHistoryOverlay .attendance-history-item .att-label {
+    font-weight: 700;
+}
+#attendanceHistoryOverlay .attendance-history-item .att-label-joined { color: #059669; } /* emerald-600 */
+#attendanceHistoryOverlay .attendance-history-item .att-label-left { color: #b91c1c; }   /* red-700 */
+#attendanceHistoryOverlay .attendance-history-item .att-value {
+    color: #111827;
+}
+
 /* Align Attendance History footer Back button to the right */
 #attendanceHistoryOverlay .manage-footer-actions {
     display: flex;
