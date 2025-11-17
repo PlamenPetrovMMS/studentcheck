@@ -595,7 +595,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     scannerBtn?.addEventListener('click', () => { startScanner(); });
         downloadBtn?.addEventListener('click', () => {
-            try { handleDownloadAttendanceTable(currentClassName); } catch (e) { console.error('Download Attendance Table failed unexpectedly:', e); }
+            try {
+                const resolved = getActiveClassName();
+                console.log('[Attendance Export] Resolved active class for download button click:', resolved);
+                handleDownloadAttendanceTable(resolved);
+            } catch (e) {
+                console.error('Download Attendance Table failed unexpectedly:', e);
+            }
         });
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
@@ -2198,6 +2204,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     /* =============================
        Attendance Table Export (XLSX)
        ============================= */
+    function getActiveClassName() {
+        // Prefer currentClassButton dataset
+        if (currentClassButton) {
+            const fromBtn = (currentClassButton.dataset.className || currentClassButton.dataset.originalLabel || currentClassButton.textContent || '')
+                .replace(/✓\s*Ready/g, '')
+                .trim();
+            if (fromBtn) return fromBtn;
+        }
+        // Try ready popup title
+        const titleEl = document.querySelector('#readyClassTitle');
+        if (titleEl && titleEl.textContent) {
+            const fromTitle = titleEl.textContent.replace(/✓\s*Ready/g, '').trim();
+            if (fromTitle) return fromTitle;
+        }
+        // Fallback to global currentClassName
+        return (currentClassName || '').trim();
+    }
     function ensureXlsxLoaded() {
         if (window.XLSX && window.XLSX.utils) return Promise.resolve(window.XLSX);
         if (ensureXlsxLoaded._promise) return ensureXlsxLoaded._promise;
@@ -2338,13 +2361,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function handleDownloadAttendanceTable(className) {
-        const targetClass = className || currentClassName || '';
+        const resolvedNow = getActiveClassName();
+        const targetClass = (className || resolvedNow || currentClassName || '').trim();
+        if (className && className !== resolvedNow) {
+            console.log(`[Attendance Export] Provided className ("${className}") differs from resolved active ("${resolvedNow}"). Using resolved.`);
+        }
         if (!targetClass) {
             console.warn('[Attendance Export] No class selected. Aborting export.');
             alert('Select a class first.');
             return;
         }
-        console.log(`[Attendance Export] Download Attendance Table button clicked for class: ${targetClass}`);
+        console.log(`[Attendance Export] Download Attendance Table button clicked. Target class: "${targetClass}" (resolved: "${resolvedNow}")`);
         const entries = collectAttendanceEntriesForClass(targetClass);
         console.log('[Attendance Export] Before sorting entries.');
         const sorted = sortAttendanceEntries(entries);
