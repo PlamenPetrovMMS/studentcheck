@@ -1429,7 +1429,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
         const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
         closeBtn?.addEventListener('click', () => closeAddStudentsToClass());
-        confirmBtn?.addEventListener('click', () => finalizeAddStudentsToClass());
+        if (confirmBtn) {
+            confirmBtn.textContent = 'Add (0)';
+            confirmBtn.addEventListener('click', () => finalizeAddStudentsToClass());
+        }
         searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
         addStudentsClassOverlay.addEventListener('click', (e) => { if (e.target === addStudentsClassOverlay) closeAddStudentsToClass(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addStudentsClassOverlay.style.visibility === 'visible') closeAddStudentsToClass(); });
@@ -1439,9 +1442,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!className) return;
         ensureAddStudentsClassOverlay();
         addStudentsSelections.clear();
+        const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
+        if (confirmBtn) confirmBtn.textContent = 'Add (0)';
         // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
         await fetchStudentsCache();
         renderAddStudentsList(className);
+        updateAddStudentsCounter();
         addStudentsClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
         const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
@@ -1478,30 +1484,66 @@ document.addEventListener('DOMContentLoaded', async () => {
             const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(s);
             const facultyNumber = s.faculty_number;
             const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(s, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
+
+            if (existingSet.has(studentId)) {
+                // Render without checkbox, with two-line text and 'Already in' badge
+                li.classList.add('already-in');
+                const textWrap = document.createElement('div');
+                textWrap.className = 'student-card-text';
+                const nameEl = document.createElement('span');
+                nameEl.className = 'student-name';
+                nameEl.textContent = parts.fullName;
+                const facEl = document.createElement('span');
+                facEl.className = 'student-fac';
+                facEl.textContent = facultyNumber || '';
+                textWrap.appendChild(nameEl);
+                textWrap.appendChild(facEl);
+                const badge = document.createElement('span');
+                badge.className = 'already-in-badge';
+                badge.textContent = 'Already in';
+                li.appendChild(textWrap);
+                li.appendChild(badge);
+                ul.appendChild(li);
+                return;
+            }
+
             const checkbox = document.createElement('input');
             checkbox.type='checkbox';
             checkbox.id = `addStudent_${idx}`;
             const label = document.createElement('label');
-            label.htmlFor = checkbox.id; label.textContent = `${parts.fullName} ${facultyNumber || ''}`.trim();
-            // Disable checkbox if already in class
-            if (existingSet.has(studentId)) {
-                checkbox.disabled = true;
-                li.classList.add('already-in');
-                const badge = document.createElement('span');
-                badge.className = 'already-in-badge';
-                badge.textContent = 'Already in';
-                li.appendChild(badge);
-            }
+            label.htmlFor = checkbox.id;
+            // Two-line text inside the label for better touch target
+            const wrap = document.createElement('div');
+            wrap.className = 'student-card-text';
+            const nameEl = document.createElement('span');
+            nameEl.className = 'student-name';
+            nameEl.textContent = parts.fullName;
+            const facEl = document.createElement('span');
+            facEl.className = 'student-fac';
+            facEl.textContent = facultyNumber || '';
+            wrap.appendChild(nameEl);
+            wrap.appendChild(facEl);
+            label.appendChild(wrap);
+
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked) { addStudentsSelections.add(studentId); li.classList.add('selected'); }
                 else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
+                updateAddStudentsCounter();
             });
-            li.addEventListener('click', (e)=>{ if (e.target===checkbox || e.target.tagName==='LABEL') return; if (checkbox.disabled) return; checkbox.checked=!checkbox.checked; checkbox.dispatchEvent(new Event('change')); });
-            ul.appendChild(li);
+            li.addEventListener('click', (e)=>{
+                if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
             li.appendChild(checkbox); li.appendChild(label);
+            ul.appendChild(li);
         });
         addStudentsListEl.innerHTML='';
         addStudentsListEl.appendChild(ul);
+    }
+    function updateAddStudentsCounter() {
+        const confirmBtn = addStudentsClassOverlay?.querySelector('#confirmAddStudentsBtn');
+        if (confirmBtn) confirmBtn.textContent = `Add (${addStudentsSelections.size})`;
     }
     function filterAddStudentsList(query) {
         const q = (query||'').trim().toLowerCase();

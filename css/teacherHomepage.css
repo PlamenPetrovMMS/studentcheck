@@ -555,6 +555,34 @@ body {
 }
 #addStudentsClassOverlay .add-students-list ul { margin:0; padding:0; }
 
+/* Improve list items in Add Students overlay */
+#addStudentsClassOverlay .add-students-list .list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+#addStudentsClassOverlay .add-students-list label { flex: 1; cursor: pointer; }
+#addStudentsClassOverlay .add-students-list .student-card-text {
+    display: flex;
+    flex-direction: column;
+}
+#addStudentsClassOverlay .add-students-list .student-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#addStudentsClassOverlay .add-students-list .student-fac {
+    color: #4b5563;
+    font-size: 0.92rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 #addStudentsClassOverlay .add-students-footer {
     display: flex;
     justify-content: center; /* center Add button */
