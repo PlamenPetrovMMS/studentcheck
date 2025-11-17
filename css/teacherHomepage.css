@@ -1000,3 +1000,20 @@ body {
     }
 }
 
+/* Make all overlays full width on small screens for more space */
+@media (max-width: 480px) {
+    #readyClassPopupOverlay .ready-class-popup,
+    #manageStudentsOverlay .ready-class-popup,
+    #addStudentsClassOverlay .add-students-popup,
+    #scannerOverlay .ready-class-popup,
+    #attendanceOverlay .attendance-popup,
+    #studentInfoOverlay .ready-class-popup.student-info-popup,
+    #attendanceHistoryOverlay .attendance-history-popup,
+    #confirmOverlay .confirm-popup,
+    .overlay-content {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        box-sizing: border-box;
+    }
+}
+
