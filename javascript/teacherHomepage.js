@@ -578,12 +578,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="ready-class-actions">
                     <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
                     <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
+                    <button type="button" id="downloadAttendanceTableBtn" class="role-button secondary" aria-label="Download Attendance Table">Download Attendance Table</button>
                 </div>
                 <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
             </div>`;
         document.body.appendChild(readyPopupOverlay);
         const manageBtn = readyPopupOverlay.querySelector('#manageStudentsBtn');
         const scannerBtn = readyPopupOverlay.querySelector('#startScannerBtn');
+        const downloadBtn = readyPopupOverlay.querySelector('#downloadAttendanceTableBtn');
         const closeBtn = readyPopupOverlay.querySelector('#closeReadyPopupBtn');
         manageBtn?.addEventListener('click', () => {
             // Replace the current ready overlay with Manage Students overlay
@@ -592,6 +594,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             openManageStudentsOverlay((className || '').trim());
         });
     scannerBtn?.addEventListener('click', () => { startScanner(); });
+        downloadBtn?.addEventListener('click', () => {
+            try { handleDownloadAttendanceTable(currentClassName); } catch (e) { console.error('Download Attendance Table failed unexpectedly:', e); }
+        });
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
@@ -2189,5 +2194,162 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Apply ready styling to rendered classes
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
+
+    /* =============================
+       Attendance Table Export (XLSX)
+       ============================= */
+    function ensureXlsxLoaded() {
+        if (window.XLSX && window.XLSX.utils) return Promise.resolve(window.XLSX);
+        if (ensureXlsxLoaded._promise) return ensureXlsxLoaded._promise;
+        const sources = [
+            'javascript/xlsx.full.min.js',
+            '/javascript/xlsx.full.min.js',
+            './xlsx.full.min.js',
+            '/xlsx.full.min.js',
+            'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
+            'https://unpkg.com/xlsx/dist/xlsx.full.min.js',
+            'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+        ];
+        console.log('[Attendance Export] XLSX not present. Attempting dynamic load...');
+        ensureXlsxLoaded._promise = new Promise((resolve, reject) => {
+            let i = 0;
+            const tryNext = () => {
+                if (i >= sources.length) {
+                    console.error('[Attendance Export] Failed to load XLSX library from all sources.');
+                    reject(new Error('XLSX load failure'));
+                    return;
+                }
+                const src = sources[i++];
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                script.onload = () => {
+                    if (window.XLSX) {
+                        console.log('[Attendance Export] XLSX library loaded from', src);
+                        resolve(window.XLSX);
+                    } else {
+                        console.warn('[Attendance Export] Script loaded but XLSX missing, trying next source.');
+                        tryNext();
+                    }
+                };
+                script.onerror = () => {
+                    console.warn('[Attendance Export] Failed to load', src, 'trying next...');
+                    script.remove();
+                    tryNext();
+                };
+                document.head.appendChild(script);
+            };
+            tryNext();
+        });
+        return ensureXlsxLoaded._promise;
+    }
+
+    function formatDateTime(ms) {
+        if (!ms && ms !== 0) return '';
+        const d = new Date(ms);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mi = String(d.getMinutes()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+    }
+
+    function collectAttendanceEntriesForClass(className) {
+        console.log('[Attendance Export] Collecting attendance entries for class:', className);
+        const students = loadClassStudents(className) || [];
+        console.log(`[Attendance Export] Number of students found: ${students.length}`);
+        const entries = [];
+        students.forEach((s, idx) => {
+            const studentId = (s.facultyNumber || s.fullName || '').trim();
+            console.log(`[Attendance Export] Student loop START #${idx + 1} id="${studentId}" name="${s.fullName}"`);
+            if (!studentId) {
+                console.warn('[Attendance Export] Skipping student with missing ID (facultyNumber/fullName).');
+                return;
+            }
+            const logs = loadAttendanceLog(className, studentId) || [];
+            console.log(`[Attendance Export] Attendance entries collected for student ${studentId}: ${logs.length}`);
+            logs.forEach(sess => {
+                if (!sess) return;
+                const joinMs = sess.joinAt || sess.leaveAt || null;
+                const leaveMs = sess.leaveAt || sess.joinAt || null;
+                if (!joinMs) return; // require at least a join timestamp
+                entries.push({
+                    studentName: s.fullName || '',
+                    facultyNumber: s.facultyNumber || '',
+                    joinedAt: joinMs,
+                    leftAt: leaveMs
+                });
+            });
+            console.log(`[Attendance Export] Student loop END #${idx + 1} id="${studentId}"`);
+        });
+        console.log(`[Attendance Export] Total raw attendance entries before sorting: ${entries.length}`);
+        return entries;
+    }
+
+    function sortAttendanceEntries(entries) {
+        console.log('[Attendance Export] Sorting entries...');
+        entries.sort((a, b) => {
+            const aDate = new Date(a.joinedAt);
+            const bDate = new Date(b.joinedAt);
+            const diff = aDate - bDate;
+            if (diff !== 0) return diff;
+            // Same timestamp; sort by name alphabetically
+            return (a.studentName || '').localeCompare(b.studentName || '');
+        });
+        console.log('[Attendance Export] Sorting complete.');
+        return entries;
+    }
+
+    function buildWorksheetData(entries) {
+        const header = ['Student Name', 'Faculty Number', 'Joined Time', 'Left Time'];
+        return [header, ...entries.map(e => [
+            e.studentName,
+            e.facultyNumber,
+            formatDateTime(e.joinedAt),
+            formatDateTime(e.leftAt)
+        ])];
+    }
+
+    async function generateAndDownloadAttendanceXlsx(className, entries) {
+        console.log('[Attendance Export] Before generating file.');
+        const XLSX = await ensureXlsxLoaded().catch(err => {
+            console.error('[Attendance Export] XLSX load failed. Cannot generate .xlsx.', err);
+            return null;
+        });
+        if (!XLSX) {
+            alert('Unable to load XLSX library. Attendance export failed.');
+            return;
+        }
+        const wsData = buildWorksheetData(entries);
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+        const safeClass = (className || 'class').replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').slice(0, 50) || 'class';
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const filename = `attendance_export_${safeClass}_${yyyy}-${mm}-${dd}.xlsx`;
+        console.log(`[Attendance Export] Writing workbook with ${entries.length} rows to file: ${filename}`);
+        XLSX.writeFile(wb, filename);
+        console.log('[Attendance Export] File generation complete.');
+        console.log('[Attendance Export] Download triggered.');
+    }
+
+    function handleDownloadAttendanceTable(className) {
+        const targetClass = className || currentClassName || '';
+        if (!targetClass) {
+            console.warn('[Attendance Export] No class selected. Aborting export.');
+            alert('Select a class first.');
+            return;
+        }
+        console.log(`[Attendance Export] Download Attendance Table button clicked for class: ${targetClass}`);
+        const entries = collectAttendanceEntriesForClass(targetClass);
+        console.log('[Attendance Export] Before sorting entries.');
+        const sorted = sortAttendanceEntries(entries);
+        console.log('[Attendance Export] After sorting. First 5 entries preview:', sorted.slice(0,5));
+        generateAndDownloadAttendanceXlsx(targetClass, sorted);
+    }
 });
 
