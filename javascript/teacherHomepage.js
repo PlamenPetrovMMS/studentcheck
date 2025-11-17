@@ -145,10 +145,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         return scannerOverlay;
     }
 
+    function stopAllCameraTracks() {
+        try {
+            const videos = document.querySelectorAll('#qr-reader video, #cameraContainer video, video');
+            videos.forEach(v => {
+                try {
+                    const s = v.srcObject;
+                    if (s && typeof s.getTracks === 'function') {
+                        s.getTracks().forEach(t => { try { t.stop(); } catch(_){} });
+                    }
+                    v.srcObject = null;
+                } catch(_){}
+            });
+        } catch(_) {}
+    }
+
     function closeScannerOverlay(onClosed) {
         const finish = () => {
             if (scannerOverlay) scannerOverlay.style.visibility = 'hidden';
             document.body.style.overflow = '';
+             // Hard-stop any lingering camera tracks as a safety net
+            stopAllCameraTracks();
             try { if (typeof onClosed === 'function') onClosed(); } catch(_) {}
         };
         try {
@@ -161,11 +178,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }).catch(() => {
                     try { html5QrCode.clear(); } catch(_){}
                     html5QrCode = null;
+                    // Fallback hard stop if library couldn't stop cleanly
+                    stopAllCameraTracks();
                     finish();
                 });
                 return;
             }
         } catch (e) { console.warn('Scanner cleanup error:', e); }
+        // If no instance or error, still attempt to hard-stop camera tracks
+        stopAllCameraTracks();
         finish();
     }
 
