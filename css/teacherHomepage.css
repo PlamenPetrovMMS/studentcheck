@@ -387,6 +387,21 @@ body {
 #addStudentsOverlayBtn:hover { background: #1d4ed8; }
 #addStudentsOverlayBtn:active { transform: translateY(2px); }
 
+/* Dark buttons with white text for specific overlays */
+#manageStudentsOverlay .role-button,
+#studentInfoOverlay .role-button,
+#addStudentsClassOverlay .role-button {
+    background: #374151; /* gray-700 */
+    color: #ffffff;
+    border-color: #374151;
+}
+#manageStudentsOverlay .role-button:hover,
+#studentInfoOverlay .role-button:hover,
+#addStudentsClassOverlay .role-button:hover {
+    background: #4b5563; /* gray-600 */
+    border-color: #4b5563;
+}
+
 /* Ready class popup */
 #readyClassPopupOverlay .ready-class-popup {
     background: #ffffff;
