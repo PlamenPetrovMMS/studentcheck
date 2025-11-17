@@ -1113,10 +1113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.appendChild(attendanceHistoryOverlay);
         const closeBtn = attendanceHistoryOverlay.querySelector('#closeAttendanceHistoryBtn');
         const backBtn = attendanceHistoryOverlay.querySelector('#attendanceHistoryBackBtn');
-        closeBtn?.addEventListener('click', () => closeAttendanceHistoryOverlay());
+        closeBtn?.addEventListener('click', () => returnToManageStudentsFromHistory());
         backBtn?.addEventListener('click', () => returnToStudentInfoOverlay());
-        attendanceHistoryOverlay.addEventListener('click', (e) => { if (e.target === attendanceHistoryOverlay) returnToStudentInfoOverlay(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceHistoryOverlay.style.visibility === 'visible') returnToStudentInfoOverlay(); });
+        attendanceHistoryOverlay.addEventListener('click', (e) => { if (e.target === attendanceHistoryOverlay) returnToManageStudentsFromHistory(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceHistoryOverlay.style.visibility === 'visible') returnToManageStudentsFromHistory(); });
         return attendanceHistoryOverlay;
     }
     function renderAttendanceHistoryList(className, studentId) {
@@ -1175,6 +1175,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function closeAttendanceHistoryOverlay() {
         if (!attendanceHistoryOverlay) return;
         attendanceHistoryOverlay.style.visibility = 'hidden';
+    }
+
+    function returnToManageStudentsFromHistory() {
+        closeAttendanceHistoryOverlay();
+        if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
+        if (manageStudentsOverlay) {
+            manageStudentsOverlay.style.visibility = 'visible';
+            if (manageStudentsListEl) manageStudentsListEl.scrollTop = manageStudentsScrollPos;
+        }
+        document.body.style.overflow = 'hidden';
     }
     // Close every class-related overlay and return to base Classes view.
     function closeAllClassOverlays() {
