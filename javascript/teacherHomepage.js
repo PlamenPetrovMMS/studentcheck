@@ -358,6 +358,53 @@ document.addEventListener('DOMContentLoaded', async () => {
         else dotEl.classList.add('status-none');
     }
 
+    // --- Attendance session logs (per class, per student) ---
+    // In-memory pending joins: Map<className, Map<studentId, number(joinAtMs)>>
+    const pendingJoinTimes = new Map();
+    function ensurePendingMap(className) {
+        if (!pendingJoinTimes.has(className)) pendingJoinTimes.set(className, new Map());
+        return pendingJoinTimes.get(className);
+    }
+    function markJoinTime(className, studentId, when) {
+        const m = ensurePendingMap(className);
+        m.set(studentId, when || Date.now());
+    }
+    function takeJoinTime(className, studentId) {
+        const m = ensurePendingMap(className);
+        const t = m.get(studentId);
+        m.delete(studentId);
+        return t || Date.now();
+    }
+    function attendanceLogKey(className, studentId) {
+        if (!teacherEmail) return null;
+        const norm = (window.Utils?.normalizeEmail || ((e)=> (e||'').trim().toLowerCase()))(teacherEmail);
+        const c = encodeURIComponent(className || '');
+        const s = encodeURIComponent(studentId || '');
+        return `teacher:attendance:${norm}:logs:${c}:${s}`;
+    }
+    function loadAttendanceLog(className, studentId) {
+        const key = attendanceLogKey(className, studentId);
+        if (!key) return [];
+        try {
+            const raw = localStorage.getItem(key);
+            const arr = raw ? JSON.parse(raw) : [];
+            if (Array.isArray(arr)) return arr.filter(x => x && typeof x === 'object');
+            return [];
+        } catch(_) { return []; }
+    }
+    function saveAttendanceLog(className, studentId, sessions) {
+        const key = attendanceLogKey(className, studentId);
+        if (!key) return;
+        try { localStorage.setItem(key, JSON.stringify(Array.isArray(sessions) ? sessions : [])); } catch(_) {}
+    }
+    function appendAttendanceSession(className, studentId, joinAt, leaveAt) {
+        const list = loadAttendanceLog(className, studentId);
+        list.push({ joinAt, leaveAt });
+        saveAttendanceLog(className, studentId, list);
+        // Optional: enqueue for future sync when API exists
+        enqueueAttendanceIncrement(className, studentId, leaveAt || Date.now());
+    }
+
     function updateAttendanceState(className, studentId, mode) {
         if (!className || !studentId) return;
         if (!attendanceState.has(className)) attendanceState.set(className, new Map());
@@ -365,7 +412,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const current = map.get(studentId) || 'none';
         let next = current;
         if (mode === 'joining') {
-            if (current === 'none') next = 'joined';
+            if (current === 'none') {
+                next = 'joined';
+                markJoinTime(className, studentId, Date.now());
+            }
         } else if (mode === 'leaving') {
             if (current === 'joined') next = 'completed';
         }
@@ -376,6 +426,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (dot) applyDotStateClass(dot, next);
             // Increment attendance when completing a session (joined -> completed)
             if (current === 'joined' && next === 'completed') {
+                const joinAt = takeJoinTime(className, studentId);
+                const leaveAt = Date.now();
+                appendAttendanceSession(className, studentId, joinAt, leaveAt);
                 incrementAttendanceForStudent(className, studentId);
             }
         }
@@ -974,6 +1027,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         attendedP.style.fontSize = '1.15rem';
         attendedP.style.letterSpacing = '.5px';
         wrapper.appendChild(attendedP);
+
+        // Attendance History button (full width)
+        const historyBtn = document.createElement('button');
+        historyBtn.type = 'button';
+        historyBtn.className = 'role-button attendance-history-btn';
+        historyBtn.textContent = 'Attendance History';
+        historyBtn.style.marginTop = '16px';
+        historyBtn.style.width = '100%';
+        historyBtn.addEventListener('click', () => openAttendanceHistoryOverlay(className || currentClassName, studentId));
+        wrapper.appendChild(historyBtn);
         return wrapper;
     }
 
@@ -1015,6 +1078,89 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // ---- Attendance History Overlay ----
+    let attendanceHistoryOverlay = null;
+    function ensureAttendanceHistoryOverlay() {
+        if (attendanceHistoryOverlay) return attendanceHistoryOverlay;
+        attendanceHistoryOverlay = document.createElement('div');
+        attendanceHistoryOverlay.id = 'attendanceHistoryOverlay';
+        attendanceHistoryOverlay.className = 'overlay';
+        attendanceHistoryOverlay.style.visibility = 'hidden';
+        attendanceHistoryOverlay.innerHTML = `
+            <div class="attendance-history-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceHistoryTitle">
+                <h2 id="attendanceHistoryTitle">Attendance History</h2>
+                <button type="button" id="closeAttendanceHistoryBtn" class="close-small" aria-label="Close">×</button>
+                <div id="attendanceHistoryList" class="attendance-history-list"></div>
+                <div class="manage-footer-actions">
+                    <button type="button" id="attendanceHistoryBackBtn" class="role-button">Back</button>
+                </div>
+            </div>`;
+        document.body.appendChild(attendanceHistoryOverlay);
+        const closeBtn = attendanceHistoryOverlay.querySelector('#closeAttendanceHistoryBtn');
+        const backBtn = attendanceHistoryOverlay.querySelector('#attendanceHistoryBackBtn');
+        closeBtn?.addEventListener('click', () => closeAttendanceHistoryOverlay());
+        backBtn?.addEventListener('click', () => returnToStudentInfoOverlay());
+        attendanceHistoryOverlay.addEventListener('click', (e) => { if (e.target === attendanceHistoryOverlay) returnToStudentInfoOverlay(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceHistoryOverlay.style.visibility === 'visible') returnToStudentInfoOverlay(); });
+        return attendanceHistoryOverlay;
+    }
+    function renderAttendanceHistoryList(className, studentId) {
+        const container = document.getElementById('attendanceHistoryList');
+        if (!container) return;
+        const sessions = loadAttendanceLog(className, studentId);
+        container.innerHTML = '';
+        if (!Array.isArray(sessions) || sessions.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'muted';
+            p.textContent = 'No attendance records.';
+            container.appendChild(p);
+            return;
+        }
+        const ul = document.createElement('ul');
+        ul.className = 'attendance-history-ul';
+        sessions.slice().reverse().forEach((sess, idx) => {
+            const li = document.createElement('li');
+            li.className = 'attendance-history-item';
+            const joined = new Date(sess.joinAt || sess.leaveAt || Date.now());
+            const left = new Date(sess.leaveAt || sess.joinAt || Date.now());
+            const timeOpts = { hour: 'numeric', minute: '2-digit' };
+            const dateOpts = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+            const joinTime = joined.toLocaleTimeString([], timeOpts);
+            const leaveTime = left.toLocaleTimeString([], timeOpts);
+            const joinDate = joined.toLocaleDateString([], dateOpts);
+            const leaveDate = left.toLocaleDateString([], dateOpts);
+            const joinP = document.createElement('p');
+            joinP.textContent = `Joined: ${joinTime} — ${joinDate}`;
+            const leaveP = document.createElement('p');
+            leaveP.textContent = `Left: ${leaveTime} — ${leaveDate}`;
+            li.appendChild(joinP);
+            li.appendChild(leaveP);
+            ul.appendChild(li);
+        });
+        container.appendChild(ul);
+    }
+    function openAttendanceHistoryOverlay(className, studentId) {
+        ensureAttendanceHistoryOverlay();
+        // Hide student info overlay while viewing history
+        if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
+        // Title detail
+        const titleEl = attendanceHistoryOverlay.querySelector('#attendanceHistoryTitle');
+        if (titleEl) titleEl.textContent = 'Attendance History';
+        renderAttendanceHistoryList(className, studentId);
+        attendanceHistoryOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+        attendanceHistoryOverlay.dataset.studentId = String(studentId);
+        attendanceHistoryOverlay.dataset.className = String(className || currentClassName || '');
+    }
+    function returnToStudentInfoOverlay() {
+        closeAttendanceHistoryOverlay();
+        if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeAttendanceHistoryOverlay() {
+        if (!attendanceHistoryOverlay) return;
+        attendanceHistoryOverlay.style.visibility = 'hidden';
+    }
     // Close every class-related overlay and return to base Classes view.
     function closeAllClassOverlays() {
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';

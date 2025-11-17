@@ -611,6 +611,49 @@ body {
 }
 #studentInfoOverlay p { font-size: 0.95rem; line-height: 1.35; }
 
+/* Full-width Attendance History button in student info */
+.attendance-history-btn {
+    width: 100%;
+}
+
+/* Attendance History overlay styling */
+#attendanceHistoryOverlay .attendance-history-popup {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 16px;
+    width: min(92vw, 560px);
+    min-height: 320px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    padding: 24px 22px 26px 22px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+#attendanceHistoryOverlay h2 {
+    margin: 0 0 12px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+}
+#attendanceHistoryOverlay .attendance-history-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0 2px;
+}
+#attendanceHistoryOverlay .attendance-history-ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+#attendanceHistoryOverlay .attendance-history-item {
+    padding: 12px 14px;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+}
+
 #manageStudentsOverlay .manage-footer-actions {
     display: flex;
     justify-content: flex-end; /* Move Back button to far right */
