@@ -599,7 +599,11 @@ body {
     gap: 4px;
     min-height: 64px; /* keep consistent height */
 }
-#manageStudentsOverlay .manage-students-list .student-card-text { width: 100%; }
+#manageStudentsOverlay .manage-students-list .student-card-text {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
 #manageStudentsOverlay .manage-students-list .student-name {
     font-weight: 700;
     font-size: 1.05rem;
