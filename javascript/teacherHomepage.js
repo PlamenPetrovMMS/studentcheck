@@ -262,7 +262,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch(_) {}
         const studentId = deriveStudentIdFromPayload(payload);
         if (studentId) {
-            updateAttendanceState(classId, studentId, mode);
+            // Resolve active class (fallback if classId missing)
+            const activeClass = (classId || getActiveClassName() || '').trim();
+            if (!activeClass) {
+                console.log('[Attendance] Ignoring scan – no active class context.');
+            } else if (!isStudentInClass(activeClass, studentId)) {
+                console.log('[Attendance] Ignoring scan for unassigned student:', studentId, 'class:', activeClass);
+            } else {
+                updateAttendanceState(activeClass, studentId, mode);
+            }
         }
         // For UX feedback, briefly flash camera border
         const cam = document.getElementById('cameraContainer');
@@ -407,6 +415,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function loadAttendanceLog(className, studentId) {
         const key = attendanceLogKey(className, studentId);
         if (!key) return [];
+        // Suppress logs for students not currently assigned to the class
+        if (!isStudentInClass(className, studentId)) {
+            return [];
+        }
         try {
             const raw = localStorage.getItem(key);
             const arr = raw ? JSON.parse(raw) : [];
