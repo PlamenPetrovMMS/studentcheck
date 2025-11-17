@@ -590,6 +590,14 @@ body {
     overflow-y: auto;
     padding: 0 2px;
 }
+/* Space between student boxes */
+#manageStudentsOverlay .manage-students-list ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
 /* Two-line fixed layout for students in Manage Students overlay */
 #manageStudentsOverlay .manage-students-list .list-item {
