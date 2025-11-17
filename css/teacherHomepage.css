@@ -654,6 +654,15 @@ body {
     border-radius: 12px;
 }
 
+/* Align Attendance History footer Back button to the right */
+#attendanceHistoryOverlay .manage-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
 #manageStudentsOverlay .manage-footer-actions {
     display: flex;
     justify-content: flex-end; /* Move Back button to far right */
