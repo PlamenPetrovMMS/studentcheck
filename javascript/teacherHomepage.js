@@ -420,6 +420,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { localStorage.setItem(key, JSON.stringify(Array.isArray(sessions) ? sessions : [])); } catch(_) {}
     }
     function appendAttendanceSession(className, studentId, joinAt, leaveAt) {
+        // Prevent recording sessions for students not in this class
+        if (!isStudentInClass(className, studentId)) {
+            console.log('[Attendance] Skipping session append for unassigned student:', studentId, 'class:', className);
+            return;
+        }
         const list = loadAttendanceLog(className, studentId);
         list.push({ joinAt, leaveAt });
         saveAttendanceLog(className, studentId, list);
@@ -429,6 +434,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function updateAttendanceState(className, studentId, mode) {
         if (!className || !studentId) return;
+        // Guard: ignore scans for students not assigned to the class
+        if (!isStudentInClass(className, studentId)) {
+            console.log('[Attendance] Ignoring scan for unassigned student:', studentId, 'in class:', className);
+            return;
+        }
         if (!attendanceState.has(className)) attendanceState.set(className, new Map());
         const map = attendanceState.get(className);
         const current = map.get(studentId) || 'none';
@@ -1433,6 +1443,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         persistClassStudents(className, students);
         enqueueAttendanceIncrement(className, studentId, Date.now());
         updateStudentInfoOverlayCount(studentId, className, rec.attendedClasses);
+    }
+    function isStudentInClass(className, studentId) {
+        if (!className || !studentId) return false;
+        // Check per-class stored students first
+        const stored = loadClassStudents(className) || [];
+        if (stored.length > 0) {
+            const found = stored.some(s => {
+                const id = (s.facultyNumber || s.fullName || '').trim();
+                return id && id === String(studentId).trim();
+            });
+            if (found) return true;
+        }
+        // Fallback: check assignments set
+        const set = classStudentAssignments.get(className);
+        if (set && set.size > 0) {
+            if (set.has(String(studentId).trim())) return true;
+        }
+        return false;
     }
     function getStudentAttendanceCountForClass(className, studentId) {
         const { students, index } = findStudentRecordInClass(className, studentId);
