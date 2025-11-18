@@ -1,23 +1,4 @@
-function startLoadingAnimation() {
-    if (document.getElementById('loginOverlay')) return;
-    const overlay = document.createElement('div');
-    overlay.id = 'loginOverlay';
-    overlay.className = 'loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-box" role="status" aria-live="polite">
-            <div class="spinner" aria-hidden="true"></div>
-            <div class="loading-text">Logging In...</div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    document.body.setAttribute('aria-busy', 'true');
-}
-
-function stopLoadingAnimation() {
-    const overlay = document.getElementById('loginOverlay');
-    if (overlay) overlay.remove();
-    document.body.removeAttribute('aria-busy');
-}
+// Loading overlay now handled by shared LoadingOverlay utility
 
 document.getElementById('teacherLoginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -47,7 +28,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     const submitBtn = form?.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     const t0 = performance.now();
-    startLoadingAnimation();
+    LoadingOverlay.show('Logging in...');
     try {
         const response = await fetch("https://studentcheck-server.onrender.com/teacherLogin", {
             method: 'POST',
@@ -75,10 +56,10 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 }
                 
                 // Ensure any loading overlay is stopped before navigating
-                stopLoadingAnimation();
+                LoadingOverlay.hide();
                 window.location.href = 'teacherHomepage.html';
             } else {
-                stopLoadingAnimation();
+                LoadingOverlay.hide();
                 if (errorMessage) {
                     errorMessage.textContent = 'Login failed: ' + (data.message || 'Invalid credentials');
                     errorMessage.style.removeProperty('display');
@@ -89,7 +70,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                 // Do not show loading overlay for wrong credentials
             }
         } else {
-            stopLoadingAnimation();
+            LoadingOverlay.hide();
             if (errorMessage) {
                 errorMessage.textContent = 'Login failed: Invalid credentials';
                 errorMessage.style.removeProperty('display');
@@ -100,7 +81,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             // Do not show loading overlay for wrong credentials
         }
     } catch (err) {
-        stopLoadingAnimation();
+        LoadingOverlay.hide();
         console.error('Login request failed:', err);
         if (errorMessage) {
             errorMessage.textContent = 'Login failed: Network error or unavailable server.';

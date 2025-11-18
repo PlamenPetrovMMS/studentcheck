@@ -48,6 +48,25 @@ html, body {
   }
 }
 
+/* While busy, make global logo non-interactive and behind overlay */
+body[aria-busy="true"] .navbar-logo {
+  z-index: 0 !important;
+  pointer-events: none;
+}
+
+/* Overlay shared enhancements (used by login/registration pages) */
+.loading-overlay { flex-direction: column; }
+
+/* Ensure overlays created with id show immediately (some pages default to display:none) */
+#loginOverlay.loading-overlay { display: flex; }
+
+.overlay-long-wait {
+  margin-top: 12px;
+  color: #f9fafb; /* near-white on dark backdrop */
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+
 /* Global mobile button sizing: add ~30px vertical size for better touch targets */
 @media (max-width: 480px) {
   .btn,

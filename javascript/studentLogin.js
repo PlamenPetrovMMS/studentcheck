@@ -1,24 +1,4 @@
-
-function startLoadingAnimation() {
-    if (document.getElementById('loginOverlay')) return;
-    const overlay = document.createElement('div');
-    overlay.id = 'loginOverlay';
-    overlay.className = 'loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-box" role="status" aria-live="polite">
-            <div class="spinner" aria-hidden="true"></div>
-            <div class="loading-text">Logging In...</div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    document.body.setAttribute('aria-busy', 'true');
-}
-
-function stopLoadingAnimation() {
-    const overlay = document.getElementById('loginOverlay');
-    if (overlay) overlay.remove();
-    document.body.removeAttribute('aria-busy');
-}
+// Loading overlay now handled by shared LoadingOverlay utility
 
 
 // --- Login submit handler ---
@@ -41,7 +21,7 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
         return;
     }
 
-    startLoadingAnimation();
+    LoadingOverlay.show('Logging in...');
 
     // Optional: measure request duration
     const t0 = performance.now();
@@ -68,25 +48,25 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                 } catch (e) {
                     console.warn('Failed to persist session data:', e);
                 }
-                stopLoadingAnimation();
+                LoadingOverlay.hide();
                 window.location.href = 'studentHomepage.html';
             } else {
                 console.log("data.loginSuccess = false")
                 errorMessage.style.color = "red";
                 errorMessage.textContent = 'Login failed';
-                stopLoadingAnimation();
+                LoadingOverlay.hide();
             }
         } else {
             console.error('Login failed: response is not OK', response.statusText);
             errorMessage.style.color = "red";
             errorMessage.textContent = 'Invalid credentials';
-            stopLoadingAnimation();
+            LoadingOverlay.hide();
         }
     } catch (err) {
         console.error('Login request failed:', err);
         errorMessage.style.color = "red";
         errorMessage.textContent = 'Login failed: Network error or unavailable server.';
-        stopLoadingAnimation();
+        LoadingOverlay.hide();
     }
 
 });

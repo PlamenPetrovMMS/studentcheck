@@ -26,27 +26,7 @@
     const errorSlide2 = document.getElementById('errorSlide2');
     // Removed dedicated errorSlide3 element; requirements list now provides all feedback.
 
-    // Loading overlay helpers (same structure as studentLogin)
-    function startLoadingAnimation() {
-        if (document.getElementById('loginOverlay')) return;
-        const overlay = document.createElement('div');
-        overlay.id = 'loginOverlay';
-        overlay.className = 'loading-overlay';
-        overlay.innerHTML = `
-            <div class="loading-box" role="status" aria-live="polite">
-                <div class="spinner" aria-hidden="true"></div>
-                <div class="loading-text">Submitting...</div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        document.body.setAttribute('aria-busy', 'true');
-    }
-
-    function stopLoadingAnimation() {
-        const overlay = document.getElementById('loginOverlay');
-        if (overlay) overlay.remove();
-        document.body.removeAttribute('aria-busy');
-    }
+    // Loading overlay handled by shared LoadingOverlay utility
 
     const slides = Array.from(track.querySelectorAll('.slide'));
     const TOTAL_STEPS = slides.length; // derive dynamically
@@ -253,7 +233,7 @@
             finishBtn.disabled = true;
             const originalText = finishBtn.textContent;
             finishBtn.textContent = 'Submitting...';
-            startLoadingAnimation();
+            LoadingOverlay.show('Submitting...');
 
             const resp = await fetch('https://studentcheck-server.onrender.com/registration', {
                 method: 'POST',
@@ -314,7 +294,7 @@
             submitting = false;
             finishBtn.disabled = false;
             finishBtn.textContent = 'Finish';
-            stopLoadingAnimation();
+            LoadingOverlay.hide();
         }
     }
 
