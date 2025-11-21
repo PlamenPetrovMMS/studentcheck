@@ -980,6 +980,16 @@ body {
     background: #1d4ed8;
 }
 
+/* Primary (blue) action style inside Options overlay */
+#classOptionsOverlay .role-button.primary {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+#classOptionsOverlay .role-button.primary:hover {
+    background: #1d4ed8;
+}
+
 /* Attendance overlay styles */
 #attendanceOverlay .attendance-popup {
     background: #ffffff;

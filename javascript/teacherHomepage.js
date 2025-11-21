@@ -609,8 +609,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="ready-class-actions">
                     <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
                     <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
-                    <button type="button" id="downloadAttendanceTableBtn" class="role-button secondary" aria-label="Download Attendance Table">Download Attendance Table</button>
-                    <button type="button" id="classOptionsBtn" class="role-button" aria-label="Class Options">Options</button>
+                    <button type="button" id="downloadAttendanceTableBtn" class="role-button primary" aria-label="Download Attendance Table">Download Attendance Table</button>
+                    <button type="button" id="classOptionsBtn" class="role-button primary" aria-label="Class Options">Options</button>
                 </div>
                 <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
             </div>`;
