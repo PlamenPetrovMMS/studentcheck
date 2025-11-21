@@ -1,4 +1,4 @@
-// Sliding 3-step registration controller
+// Sliding 4-step registration controller (Password now last, after email verification)
 (function(){
     // Debug toggle: set to false to silence internal diagnostic messages.
     const DEBUG = true;
@@ -29,9 +29,9 @@
     // Loading overlay handled by shared LoadingOverlay utility
 
     const slides = Array.from(track.querySelectorAll('.slide'));
-    const TOTAL_STEPS = slides.length; // derives dynamically (now 4 with verification)
-    let step = 0;
-    let emailVerified = false; // becomes true only after successful code verification
+    const TOTAL_STEPS = slides.length; // should be 4
+    let step = 0; // 0=names,1=contact,2=verification,3=password
+    let emailVerified = false; // true only after successful code verification
     // Initialize active slide visibility (show only first)
     slides.forEach((sl,i)=> sl.classList.toggle('active', i===0));
 
@@ -56,8 +56,13 @@
         } else {
             nextBtn.style.display = 'none';
             finishBtn.classList.remove('finish-hidden');
-            // On verification slide, disable Finish until emailVerified
-            finishBtn.disabled = !emailVerified;
+            finishBtn.disabled = !validatePassword(); // enable finish only if password requirements met
+        }
+        // Disable Next on verification slide until email verified
+        if (step === 2) {
+            nextBtn.disabled = !emailVerified;
+        } else {
+            nextBtn.disabled = false;
         }
         // On first slide align the lone Continue button to the right
         if (actions) {
@@ -152,7 +157,7 @@
         }
     }
 
-    // Slide 3 (index 2): Passwords
+    // Slide 4 (index 3): Passwords (moved after verification)
     function validatePassword() {
         const p1 = password.value;
         const p2 = repeatPassword.value;
@@ -183,17 +188,24 @@
         setState(reqMatch, matchOk);
     }
 
-    function next() {
+    async function next() {
         dbg('next() invoked at step', step);
         if (step === 0 && !validateNames()) { dbg('Names validation failed'); return; }
-    if (step === 1 && !validateContact()) { dbg('Contact validation failed'); return; }
+        if (step === 1) {
+            if (!validateContact()) { dbg('Contact validation failed'); return; }
+            // Send verification code immediately after contact info is valid (before password creation)
+            try {
+                LoadingOverlay.show('Sending code...');
+                await sendVerificationCode(email.value);
+            } catch(e){ console.error('Failed to send verification code early:', e); }
+            finally { LoadingOverlay.hide(); }
+        }
+        if (step === 2 && !emailVerified) { dbg('Cannot advance; email not verified yet'); return; }
         if (step < TOTAL_STEPS - 1) {
             step++;
             dbg('Advancing to step', step);
             updateUI();
             focusFirstInput();
-        } else {
-            dbg('Already at last step; next() ignored');
         }
     }
 
@@ -209,7 +221,8 @@
         requestAnimationFrame(() => {
             if (step === 0) firstName.focus();
             else if (step === 1) email.focus();
-            else if (step === 2) password.focus();
+            else if (step === 2) document.getElementById('verificationCode')?.focus();
+            else if (step === 3) password.focus();
         });
     }
 
@@ -254,32 +267,17 @@
         return data || { success: true };
     }
 
-    function goToVerificationStep() {
-        // Move to 4th slide and focus the input
-        step = 3;
-        emailVerified = false;
-        updateUI();
-        const hint = document.getElementById('verifyHint');
-        if (hint) hint.textContent = `We sent a 6-digit code to ${email.value.trim()}.`;
-        requestAnimationFrame(() => document.getElementById('verificationCode')?.focus());
-    }
+    // Removed goToVerificationStep: verification now precedes password (step index 2)
 
     // Validate 6-digit numeric code
     function isValidCode(v) { return /^\d{6}$/.test((v||'').trim()); }
 
     async function finish() {
-        // Two-phase finish: phase 1 (password slide) performs registration & moves to verification.
-        // Phase 2 (verification slide) only proceeds if emailVerified.
+        // Finish now only on final password slide (step 3)
         if (submitting) return;
-        if (step === 2) { // password slide
-            if (!validateContact()) { alert('Please correct contact details before finishing.'); return; }
-            if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
-        } else if (step === 3) { // verification slide
-            if (!emailVerified) return; // Finish blocked until verification success
-            // Verified: redirect and conclude
-            window.location.href = 'studentHomepage.html';
-            return;
-        }
+        if (step !== 3) return;
+        if (!emailVerified) { alert('Verify your email before finishing.'); return; }
+        if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
 
         const payload = {
             firstName: firstName.value.trim(),
@@ -330,24 +328,13 @@
             }
             dbg('Server response', data);
             if (data && (data.registrationSuccess || data.success)) {
-                // At this point, trigger email verification flow
-                try {
-                    LoadingOverlay.show('Sending code...');
-                    await sendVerificationCode(email.value);
-                } catch (e) {
-                    console.error('Failed to send verification code:', e);
-                    alert('We could not send a verification code. Please try Resend on the next step.');
-                } finally {
-                    LoadingOverlay.hide();
-                }
-                goToVerificationStep();
+                window.location.href = 'studentHomepage.html';
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
-                    // Prepare duplicate state BEFORE updating UI so live validator preserves the message
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide2.textContent = 'This email is already registered. Please change it.';
                     errorSlide2.style.display = 'block';
                     step = 1; updateUI();
                     email.focus();
@@ -360,8 +347,7 @@
             alert('Network error or server unavailable.');
         } finally {
             submitting = false;
-            // On verification slide keep Finish disabled until emailVerified
-            finishBtn.disabled = (step === 3) ? !emailVerified : false;
+            finishBtn.disabled = !validatePassword();
             finishBtn.textContent = 'Finish';
             LoadingOverlay.hide();
         }
@@ -404,9 +390,9 @@
                         errorEl.style.color = '#059669'; // green
                     }
                     const hint = document.getElementById('verifyHint');
-                    if (hint) hint.textContent = 'Email verified! Click Finish to continue.';
-                    finishBtn.disabled = false;
-                    finishBtn.focus();
+                    if (hint) hint.textContent = 'Email verified! Continue to create your password.';
+                    updateUI();
+                    nextBtn.focus();
                 } else {
                     if (errorEl) {
                         errorEl.textContent = 'Invalid code';
@@ -434,7 +420,7 @@
                 await sendVerificationCode(email.value);
                 if (errorEl) errorEl.textContent = 'A new code has been sent.';
                 emailVerified = false; // Must re-verify with new code
-                finishBtn.disabled = true;
+                updateUI();
             } catch (e) {
                 if (errorEl) errorEl.textContent = 'Failed to resend. Try again later.';
             } finally {
@@ -454,16 +440,18 @@
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            if (step < TOTAL_STEPS - 1) { e.preventDefault(); next(); }
-            else {
-                // On verification slide Enter should attempt verification if not verified yet
-                if (step === 3 && !emailVerified) {
+            if (step < TOTAL_STEPS - 1) {
+                // On verification slide Enter triggers verify if not verified yet
+                if (step === 2 && !emailVerified) {
                     e.preventDefault();
                     document.getElementById('verifyEmailBtn')?.click();
                 } else {
                     e.preventDefault();
-                    finish();
+                    next();
                 }
+            } else {
+                e.preventDefault();
+                finish();
             }
         }
     });
