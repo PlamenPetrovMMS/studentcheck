@@ -499,6 +499,15 @@ body {
 }
 
 /* Class Options popup layout */
+.class-options-popup {
+    background: #ffffff;
+    color: #111827;
+    border-radius: 16px;
+    width: min(92vw, 560px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    padding: 32px 30px 26px 30px;
+    position: relative;
+}
 .class-options-popup .class-options-row {
     display: flex;
     gap: 10px;
