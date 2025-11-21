@@ -50,10 +50,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     let wizardSelections = new Set();
     let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
 
+    // Helper: Get normalized class name text from a class button
+    // Purpose: Centralizes extraction from dataset/text and removes the "✓ Ready" suffix.
+    function getRawClassNameFromButton(button) {
+        if (!button) return '';
+        return (button.dataset.className || button.dataset.originalLabel || button.textContent || '')
+            .replace(/✓\s*Ready/g, '')
+            .trim();
+    }
+
     function updateClassStatusUI(btn) {
         const button = btn || currentClassButton;
         if (!button) return;
-        const className = (button.dataset.className || button.dataset.originalLabel || button.textContent || '').trim();
+        const className = getRawClassNameFromButton(button);
         const isReady = readyClasses.has(className);
         if (isReady) {
             button.classList.add('class-ready');
@@ -650,8 +659,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Set the title to the selected class name
             const titleEl = popup.querySelector('#readyClassTitle');
             if (titleEl) {
-                const rawFromBtn = currentClassButton ? (currentClassButton.dataset.className || currentClassButton.dataset.originalLabel || currentClassButton.textContent || '') : '';
-                const name = (currentClassName || rawFromBtn || '').replace(/✓\s*Ready/g, '').trim();
+                const rawFromBtn = currentClassButton ? getRawClassNameFromButton(currentClassButton) : '';
+                const name = (currentClassName || rawFromBtn || '').trim();
                 titleEl.textContent = name || 'Class';
             }
         }
@@ -1055,9 +1064,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         readyClasses.add(className); if (studentIds) classStudentAssignments.set(className, new Set(studentIds)); persistReadyClasses(); }
     function handleClassButtonClick(buttonEl) {
         currentClassButton = buttonEl;
-        const raw = (buttonEl.dataset.className || buttonEl.dataset.originalLabel || buttonEl.textContent || '')
-            .replace(/✓\s*Ready/g, '')
-            .trim();
+        const raw = getRawClassNameFromButton(buttonEl);
         currentClassName = raw;
         if (!buttonEl.dataset.className) buttonEl.dataset.className = raw;
         if (!buttonEl.dataset.originalLabel) buttonEl.dataset.originalLabel = raw;
@@ -2126,18 +2133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    const persistClasses = () => {
-        if (!teacherEmail) return;
-        const key = storageKey(teacherEmail);
-        const names = Array.from(classList?.querySelectorAll('.newClassBtn') || [])
-            .map(btn => (btn.dataset.className || btn.dataset.originalLabel || btn.textContent || '').replace(/✓\s*Ready/g, '').trim())
-            .filter(Boolean);
-        try {
-            localStorage.setItem(key, JSON.stringify(names));
-        } catch (e) {
-            console.warn('Failed to persist classes:', e);
-        }
-    };
+    // Removed unused legacy persistClasses function (replaced by per-class item storage)
 
 
 
@@ -2227,45 +2223,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    // Build a reusable overlay + modal dialog dynamically (no HTML changes needed)
-    let overlay = document.getElementById('classOverlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'classOverlay';
-        overlay.className = 'overlay hidden';
-        overlay.style.visibility = 'hidden'; // ensure hidden initial state
-        overlay.innerHTML = `
-            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="createClassTitle">
-                <form id="createClassForm">
-                    <h2 id="createClassTitle" style="margin:0 0 12px 0; font-size:1.25rem;">Create Class</h2>
-                    <input id="classNameInput" aria-label="Name" name="className" type="text" required minlength="2" maxlength="64" />
-                    <div class="modal-actions">
-                        <button type="submit" id="createClassBtn">Create</button>
-                        <button type="button" id="cancelCreateBtn" class="secondary">Cancel</button>
-                    </div>
-                </form>
-            </div>`;
-        document.body.appendChild(overlay);
-    }
-
-    const form = overlay.querySelector('#createClassForm');
-    const input = overlay.querySelector('#classNameInput');
-    const cancelBtn = overlay.querySelector('#cancelCreateBtn');
-
-    const openModal = () => {
-        overlay.classList.remove('hidden');
-        overlay.style.visibility = 'visible';
-        input.value = '';
-        input.focus();
-        document.body.style.overflow = 'hidden';
-    };
-
-    const closeModal = () => {
-        overlay.classList.add('hidden');
-        overlay.style.visibility = 'hidden';
-        document.body.style.overflow = '';
-    };
-
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
@@ -2309,39 +2266,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     addBtn?.addEventListener('click', () => {
-        // Replace old modal flow with wizard
+        // Open the class creation wizard (replaces legacy modal)
         openClassCreationWizard();
-    });
-
-    form?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = input.value.trim();
-        if (name.length < 2) {
-            input.focus();
-            return;
-        }
-        // Append new class item with the provided name and persist
-        renderClassItem(name);
-        // Do not persist legacy class list anymore
-        closeModal();
-    });
-
-    cancelBtn?.addEventListener('click', () => {
-        closeModal();
-    });
-
-    // Close when clicking outside the modal content
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            closeModal();
-        }
-    });
-
-    // Close with Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
-            closeModal();
-        }
     });
 
     // Wire Add Students overlay button to add selected students and mark ready
@@ -2435,7 +2361,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'https://unpkg.com/xlsx/dist/xlsx.full.min.js',
             'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
         ];
-        console.log('[Attendance Export] XLSX not present. Attempting dynamic load...');
+        // Silenced verbose logs for production readiness
         ensureXlsxLoaded._promise = new Promise((resolve, reject) => {
             let i = 0;
             const tryNext = () => {
@@ -2450,15 +2376,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 script.async = true;
                 script.onload = () => {
                     if (window.XLSX) {
-                        console.log('[Attendance Export] XLSX library loaded from', src);
+                        // XLSX library loaded
                         resolve(window.XLSX);
                     } else {
-                        console.warn('[Attendance Export] Script loaded but XLSX missing, trying next source.');
+                        // Try next source
                         tryNext();
                     }
                 };
                 script.onerror = () => {
-                    console.warn('[Attendance Export] Failed to load', src, 'trying next...');
+                    // Failed to load this source, try next
                     script.remove();
                     tryNext();
                 };
@@ -2481,19 +2407,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function collectAttendanceEntriesForClass(className) {
-        console.log('[Attendance Export] Collecting attendance entries for class:', className);
         const students = loadClassStudents(className) || [];
-        console.log(`[Attendance Export] Number of students found: ${students.length}`);
         const entries = [];
         students.forEach((s, idx) => {
             const studentId = (s.facultyNumber || s.fullName || '').trim();
-            console.log(`[Attendance Export] Student loop START #${idx + 1} id="${studentId}" name="${s.fullName}"`);
             if (!studentId) {
                 console.warn('[Attendance Export] Skipping student with missing ID (facultyNumber/fullName).');
                 return;
             }
             const logs = loadAttendanceLog(className, studentId) || [];
-            console.log(`[Attendance Export] Attendance entries collected for student ${studentId}: ${logs.length}`);
             logs.forEach(sess => {
                 if (!sess) return;
                 const joinMs = sess.joinAt || sess.leaveAt || null;
@@ -2506,14 +2428,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     leftAt: leaveMs
                 });
             });
-            console.log(`[Attendance Export] Student loop END #${idx + 1} id="${studentId}"`);
         });
-        console.log(`[Attendance Export] Total raw attendance entries before sorting: ${entries.length}`);
         return entries;
     }
 
     function sortAttendanceEntries(entries) {
-        console.log('[Attendance Export] Sorting entries...');
         entries.sort((a, b) => {
             const aDate = new Date(a.joinedAt);
             const bDate = new Date(b.joinedAt);
@@ -2522,7 +2441,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Same timestamp; sort by name alphabetically
             return (a.studentName || '').localeCompare(b.studentName || '');
         });
-        console.log('[Attendance Export] Sorting complete.');
         return entries;
     }
 
@@ -2537,7 +2455,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function generateAndDownloadAttendanceXlsx(className, entries) {
-        console.log('[Attendance Export] Before generating file.');
         const XLSX = await ensureXlsxLoaded().catch(err => {
             console.error('[Attendance Export] XLSX load failed. Cannot generate .xlsx.', err);
             return null;
@@ -2556,28 +2473,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         const filename = `attendance_export_${safeClass}_${yyyy}-${mm}-${dd}.xlsx`;
-        console.log(`[Attendance Export] Writing workbook with ${entries.length} rows to file: ${filename}`);
         XLSX.writeFile(wb, filename);
-        console.log('[Attendance Export] File generation complete.');
-        console.log('[Attendance Export] Download triggered.');
     }
 
     function handleDownloadAttendanceTable(className) {
         const resolvedNow = getActiveClassName();
         const targetClass = (className || resolvedNow || currentClassName || '').trim();
-        if (className && className !== resolvedNow) {
-            console.log(`[Attendance Export] Provided className ("${className}") differs from resolved active ("${resolvedNow}"). Using resolved.`);
-        }
         if (!targetClass) {
             console.warn('[Attendance Export] No class selected. Aborting export.');
             alert('Select a class first.');
             return;
         }
-        console.log(`[Attendance Export] Download Attendance Table button clicked. Target class: "${targetClass}" (resolved: "${resolvedNow}")`);
         const entries = collectAttendanceEntriesForClass(targetClass);
-        console.log('[Attendance Export] Before sorting entries.');
         const sorted = sortAttendanceEntries(entries);
-        console.log('[Attendance Export] After sorting. First 5 entries preview:', sorted.slice(0,5));
         generateAndDownloadAttendanceXlsx(targetClass, sorted);
     }
 });
