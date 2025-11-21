@@ -29,7 +29,7 @@
     // Loading overlay handled by shared LoadingOverlay utility
 
     const slides = Array.from(track.querySelectorAll('.slide'));
-    const TOTAL_STEPS = slides.length; // derive dynamically
+    const TOTAL_STEPS = slides.length; // derives dynamically (now 4 with verification)
     let step = 0;
     // Initialize active slide visibility (show only first)
     slides.forEach((sl,i)=> sl.classList.toggle('active', i===0));
@@ -211,6 +211,58 @@
     }
 
     let submitting = false;
+    // Modular: API base for registration endpoints
+    const API_BASE = 'https://studentcheck-server.onrender.com';
+
+    // Helper: send verification code to user's email
+    // Purpose: After initial registration succeeds, trigger an email with a 6-digit code
+    async function sendVerificationCode(emailAddr) {
+        const url = API_BASE + '/registration/sendVerificationCode';
+        const payload = { email: (emailAddr || '').trim().toLowerCase() };
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+            const msg = await resp.text().catch(()=> '');
+            throw new Error(msg || 'Failed to send verification code');
+        }
+        return resp.json().catch(()=>({ success:true }));
+    }
+
+    // Helper: verify a 6-digit code
+    // Purpose: Validate the code with the backend and finalize registration
+    async function verifyEmailCode(emailAddr, code) {
+        const url = API_BASE + '/registration/verifyEmailCode';
+        const payload = { email: (emailAddr || '').trim().toLowerCase(), code: String(code||'').trim() };
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json().catch(()=> null);
+        if (!resp.ok) {
+            const message = (data && (data.message || data.error)) || 'Verification failed';
+            const err = new Error(message);
+            err.code = data && data.code;
+            throw err;
+        }
+        return data || { success: true };
+    }
+
+    function goToVerificationStep() {
+        // Move to 4th slide and focus the input
+        step = 3;
+        updateUI();
+        const hint = document.getElementById('verifyHint');
+        if (hint) hint.textContent = `We sent a 6-digit code to ${email.value.trim()}.`;
+        requestAnimationFrame(() => document.getElementById('verificationCode')?.focus());
+    }
+
+    // Validate 6-digit numeric code
+    function isValidCode(v) { return /^\d{6}$/.test((v||'').trim()); }
+
     async function finish() {
         if (submitting) return; // guard against double click
         // Re-validate contact & password on final step
@@ -235,7 +287,7 @@
             finishBtn.textContent = 'Submitting...';
             LoadingOverlay.show('Submitting...');
 
-            const resp = await fetch('https://studentcheck-server.onrender.com/registration', {
+            const resp = await fetch(API_BASE + '/registration', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -266,13 +318,17 @@
             }
             dbg('Server response', data);
             if (data && (data.registrationSuccess || data.success)) {
-                // Optionally store token if provided
-                if (data.token) {
-                    // Store token ONLY in sessionStorage so closing the tab ends implicit login.
-                    try { sessionStorage.setItem('authToken', data.token); } catch (_) {}
+                // At this point, trigger email verification flow
+                try {
+                    LoadingOverlay.show('Sending code...');
+                    await sendVerificationCode(email.value);
+                } catch (e) {
+                    console.error('Failed to send verification code:', e);
+                    alert('We could not send a verification code. Please try Resend on the next step.');
+                } finally {
+                    LoadingOverlay.hide();
                 }
-                alert('Registration successful! Redirecting...');
-                window.location.href = 'studentHomepage.html';
+                goToVerificationStep();
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
                     // Prepare duplicate state BEFORE updating UI so live validator preserves the message
@@ -301,6 +357,55 @@
     nextBtn.addEventListener('click', next);
     backBtn.addEventListener('click', back);
     finishBtn.addEventListener('click', finish);
+
+    // Wire verification slide actions
+    (function wireVerificationSlide(){
+        const verifyBtn = document.getElementById('verifyEmailBtn');
+        const resendBtn = document.getElementById('resendCodeBtn');
+        const codeInput = document.getElementById('verificationCode');
+        const errorEl = document.getElementById('errorVerify');
+        if (codeInput) {
+            codeInput.addEventListener('input', () => {
+                const v = codeInput.value.replace(/\D/g,'').slice(0,6);
+                if (codeInput.value !== v) codeInput.value = v;
+                if (errorEl) errorEl.textContent = '';
+            });
+        }
+        if (verifyBtn) verifyBtn.addEventListener('click', async () => {
+            const code = codeInput?.value || '';
+            if (!isValidCode(code)) {
+                if (errorEl) { errorEl.textContent = 'Enter a valid 6-digit code.'; }
+                codeInput?.focus();
+                return;
+            }
+            try {
+                LoadingOverlay.show('Verifying...');
+                const res = await verifyEmailCode(email.value, code);
+                if (res && (res.success || res.verified)) {
+                    alert('Email verified! Redirecting...');
+                    window.location.href = 'studentHomepage.html';
+                } else {
+                    if (errorEl) errorEl.textContent = (res && res.message) || 'Verification failed. Try again.';
+                }
+            } catch (e) {
+                const msg = (e && e.code === 'EXPIRED') ? 'Code expired. Please resend.' : (e?.message || 'Verification failed.');
+                if (errorEl) errorEl.textContent = msg;
+            } finally {
+                LoadingOverlay.hide();
+            }
+        });
+        if (resendBtn) resendBtn.addEventListener('click', async () => {
+            try {
+                LoadingOverlay.show('Sending code...');
+                await sendVerificationCode(email.value);
+                if (errorEl) errorEl.textContent = 'A new code has been sent.';
+            } catch (e) {
+                if (errorEl) errorEl.textContent = 'Failed to resend. Try again later.';
+            } finally {
+                LoadingOverlay.hide();
+            }
+        });
+    })();
 
     // Attach live validation listeners
     password.addEventListener('input', livePasswordFeedback);
