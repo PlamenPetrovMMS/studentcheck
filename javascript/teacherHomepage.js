@@ -601,6 +601,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
                     <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
                     <button type="button" id="downloadAttendanceTableBtn" class="role-button secondary" aria-label="Download Attendance Table">Download Attendance Table</button>
+                    <button type="button" id="classOptionsBtn" class="role-button" aria-label="Class Options">Options</button>
                 </div>
                 <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
             </div>`;
@@ -608,6 +609,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const manageBtn = readyPopupOverlay.querySelector('#manageStudentsBtn');
         const scannerBtn = readyPopupOverlay.querySelector('#startScannerBtn');
         const downloadBtn = readyPopupOverlay.querySelector('#downloadAttendanceTableBtn');
+        const optionsBtn = readyPopupOverlay.querySelector('#classOptionsBtn');
         const closeBtn = readyPopupOverlay.querySelector('#closeReadyPopupBtn');
         manageBtn?.addEventListener('click', () => {
             // Replace the current ready overlay with Manage Students overlay
@@ -624,6 +626,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (e) {
                 console.error('Download Attendance Table failed unexpectedly:', e);
             }
+        });
+        optionsBtn?.addEventListener('click', () => {
+            const name = getActiveClassName();
+            openClassOptionsOverlay(name);
         });
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
@@ -653,6 +659,162 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = 'hidden';
     }
     function closeReadyClassPopup() { if (!readyPopupOverlay) return; readyPopupOverlay.style.visibility = 'hidden'; document.body.style.overflow = ''; }
+
+    // ---- Class Options (Rename / Delete) ----
+    let classOptionsOverlay = null;
+    function ensureClassOptionsOverlay(){
+        if (classOptionsOverlay) return classOptionsOverlay;
+        classOptionsOverlay = document.createElement('div');
+        classOptionsOverlay.id = 'classOptionsOverlay';
+        classOptionsOverlay.className = 'overlay';
+        classOptionsOverlay.style.visibility = 'hidden';
+        classOptionsOverlay.innerHTML = `
+            <div class="ready-class-popup class-options-popup" role="dialog" aria-modal="true" aria-labelledby="classOptionsTitle">
+                <h2 id="classOptionsTitle">Class Options</h2>
+                <button type="button" id="closeClassOptionsBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
+                <div class="class-options-row">
+                    <input type="text" id="classOptionsNameInput" placeholder="Class name" />
+                    <button type="button" id="classOptionsSaveBtn" class="role-button primary">Save</button>
+                </div>
+                <div class="class-options-footer">
+                    <button type="button" id="classOptionsDeleteBtn" class="role-button danger">Delete Class</button>
+                </div>
+            </div>`;
+        document.body.appendChild(classOptionsOverlay);
+        // Wire events
+        const closeBtn = classOptionsOverlay.querySelector('#closeClassOptionsBtn');
+        closeBtn?.addEventListener('click', () => closeClassOptionsOverlay());
+        classOptionsOverlay.addEventListener('click', (e) => { if (e.target === classOptionsOverlay) closeClassOptionsOverlay(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && classOptionsOverlay.style.visibility === 'visible') closeClassOptionsOverlay(); });
+        const saveBtn = classOptionsOverlay.querySelector('#classOptionsSaveBtn');
+        const deleteBtn = classOptionsOverlay.querySelector('#classOptionsDeleteBtn');
+        saveBtn?.addEventListener('click', onSaveClassOptions);
+        deleteBtn?.addEventListener('click', onDeleteClassFromOptions);
+        return classOptionsOverlay;
+    }
+    function openClassOptionsOverlay(className){
+        ensureClassOptionsOverlay();
+        const input = classOptionsOverlay.querySelector('#classOptionsNameInput');
+        input.value = (className || getActiveClassName() || '').trim();
+        const titleEl = classOptionsOverlay.querySelector('#classOptionsTitle');
+        if (titleEl) titleEl.textContent = `Class Options — ${input.value || 'Class'}`;
+        classOptionsOverlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden';
+        input.focus();
+    }
+    function closeClassOptionsOverlay(){ if (classOptionsOverlay) classOptionsOverlay.style.visibility = 'hidden'; if (!readyPopupOverlay || readyPopupOverlay.style.visibility !== 'visible') document.body.style.overflow = ''; }
+
+    function classExists(name){
+        const norm = (name||'').trim();
+        if (!norm) return false;
+        const key = classItemKey(norm);
+        try { if (key && localStorage.getItem(key)) return true; } catch(_) {}
+        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').replace(/✓\s*Ready/g,'').trim() === norm);
+        return !!btn;
+    }
+    function renameClass(oldName, newName){
+        const from = (oldName||'').trim();
+        const to = (newName||'').trim();
+        if (!from || !to || from === to) return false;
+        if (classExists(to)) { alert('A class with this name already exists.'); return false; }
+        // Migrate per-class storage
+        try {
+            const oldKey = classItemKey(from);
+            const newKey = classItemKey(to);
+            const raw = oldKey ? localStorage.getItem(oldKey) : null;
+            let studentsArr = [];
+            if (raw) {
+                try { const obj = JSON.parse(raw); studentsArr = Array.isArray(obj?.students) ? obj.students : []; } catch(_) {}
+            } else {
+                studentsArr = loadClassStudents(from) || [];
+            }
+            if (newKey) localStorage.setItem(newKey, JSON.stringify({ name: to, students: studentsArr }));
+            if (oldKey) localStorage.removeItem(oldKey);
+        } catch(e){ console.warn('Rename class storage migrate failed', e); }
+        // Update readiness set
+        if (readyClasses.has(from)) { readyClasses.delete(from); readyClasses.add(to); persistReadyClasses(); }
+        // Update assignments map
+        if (classStudentAssignments.has(from)) { const set = classStudentAssignments.get(from); classStudentAssignments.delete(from); classStudentAssignments.set(to, set); persistAssignments(); }
+        // Migrate attendance logs keys
+        try {
+            if (teacherEmail) {
+                const normEmail = normalizeEmail(teacherEmail);
+                const oldPrefix = `teacher:attendance:${normEmail}:logs:${encodeURIComponent(from)}:`;
+                const newPrefix = `teacher:attendance:${normEmail}:logs:${encodeURIComponent(to)}:`;
+                const toMove = [];
+                for (let i=0;i<localStorage.length;i++){
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith(oldPrefix)) toMove.push(k);
+                }
+                toMove.forEach(k => {
+                    const tail = k.substring(oldPrefix.length);
+                    const val = localStorage.getItem(k);
+                    localStorage.setItem(newPrefix + tail, val);
+                    localStorage.removeItem(k);
+                });
+            }
+        } catch(e){ console.warn('Attendance logs migrate failed', e); }
+        // Update UI: button, titles, currentClassName, datasets
+        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').replace(/✓\s*Ready/g,'').trim() === from);
+        if (btn) {
+            btn.dataset.className = to;
+            btn.dataset.originalLabel = to;
+            btn.textContent = to;
+            updateClassStatusUI(btn);
+        }
+        if (currentClassName === from) currentClassName = to;
+        if (currentClassButton === btn) currentClassButton.dataset.className = to;
+        // Update any open overlay titles
+        const readyTitle = document.getElementById('readyClassTitle'); if (readyTitle && readyPopupOverlay && readyPopupOverlay.style.visibility === 'visible') readyTitle.textContent = to;
+        const manageTitle = document.getElementById('manageStudentsTitle'); if (manageTitle && manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') manageTitle.textContent = `Manage Students — ${to}`;
+        const scannerTitle = document.getElementById('scannerTitle'); if (scannerTitle && scannerOverlay && scannerOverlay.style.visibility === 'visible') scannerTitle.textContent = to;
+        const attendanceTitle = document.getElementById('attendanceTitle'); if (attendanceTitle && attendanceOverlay && attendanceOverlay.style.visibility === 'visible') attendanceTitle.textContent = `Attendance — ${to}`;
+        return true;
+    }
+    function deleteClassCompletely(name){
+        const n = (name||'').trim(); if (!n) return;
+        // Remove per-class item
+        try { const key = classItemKey(n); if (key) localStorage.removeItem(key); } catch(_){}
+        // Remove readiness
+        if (readyClasses.has(n)) { readyClasses.delete(n); persistReadyClasses(); }
+        // Remove assignments
+        if (classStudentAssignments.has(n)) { classStudentAssignments.delete(n); persistAssignments(); }
+        // Remove attendance logs
+        try {
+            if (teacherEmail) {
+                const normEmail = normalizeEmail(teacherEmail);
+                const prefix = `teacher:attendance:${normEmail}:logs:${encodeURIComponent(n)}:`;
+                const keys = [];
+                for (let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); if (k && k.startsWith(prefix)) keys.push(k); }
+                keys.forEach(k => localStorage.removeItem(k));
+            }
+        } catch(_){}
+        // Remove button from UI
+        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').replace(/✓\s*Ready/g,'').trim() === n);
+        if (btn) { const li = btn.closest('li'); if (li) li.remove(); }
+        // If current class matches, reset and close overlays
+        if (currentClassName === n) {
+            currentClassName = '';
+            currentClassButton = null;
+            closeAllClassOverlays();
+        }
+    }
+    function onSaveClassOptions(){
+        const input = classOptionsOverlay.querySelector('#classOptionsNameInput');
+        const proposed = (input.value||'').trim();
+        const oldName = getActiveClassName();
+        if (!proposed) { alert('Name cannot be empty.'); input.focus(); return; }
+        if (proposed === oldName) { closeClassOptionsOverlay(); return; }
+        const ok = renameClass(oldName, proposed);
+        if (ok) { closeClassOptionsOverlay(); }
+    }
+    function onDeleteClassFromOptions(){
+        const name = getActiveClassName();
+        openConfirmOverlay('Are you sure you want to delete this class?', () => {
+            deleteClassCompletely(name);
+            closeClassOptionsOverlay();
+        }, () => { /* canceled */ });
+    }
 
     // ---- CLASS CREATION WIZARD ----
     let wizardOverlay = null;

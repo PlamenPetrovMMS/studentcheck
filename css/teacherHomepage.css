@@ -498,6 +498,35 @@ body {
     flex-direction: column;
 }
 
+/* Class Options popup layout */
+.class-options-popup .class-options-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+.class-options-popup #classOptionsNameInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+.class-options-popup #classOptionsNameInput:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+    background: #ffffff;
+}
+.class-options-popup .class-options-footer {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+}
+.role-button.danger { background: #b91c1c; color: #fff; border-color: #b91c1c; }
+.role-button.danger:hover { background: #991b1b; }
+
 /* On very small screens, give a bit more breathing room for the close (X) area */
 @media (max-width: 480px) {
     #manageStudentsOverlay .ready-class-popup {
