@@ -31,6 +31,7 @@
     const slides = Array.from(track.querySelectorAll('.slide'));
     const TOTAL_STEPS = slides.length; // derives dynamically (now 4 with verification)
     let step = 0;
+    let emailVerified = false; // becomes true only after successful code verification
     // Initialize active slide visibility (show only first)
     slides.forEach((sl,i)=> sl.classList.toggle('active', i===0));
 
@@ -55,6 +56,8 @@
         } else {
             nextBtn.style.display = 'none';
             finishBtn.classList.remove('finish-hidden');
+            // On verification slide, disable Finish until emailVerified
+            finishBtn.disabled = !emailVerified;
         }
         // On first slide align the lone Continue button to the right
         if (actions) {
@@ -254,6 +257,7 @@
     function goToVerificationStep() {
         // Move to 4th slide and focus the input
         step = 3;
+        emailVerified = false;
         updateUI();
         const hint = document.getElementById('verifyHint');
         if (hint) hint.textContent = `We sent a 6-digit code to ${email.value.trim()}.`;
@@ -264,10 +268,18 @@
     function isValidCode(v) { return /^\d{6}$/.test((v||'').trim()); }
 
     async function finish() {
-        if (submitting) return; // guard against double click
-        // Re-validate contact & password on final step
-        if (!validateContact()) { alert('Please correct contact details before finishing.'); return; }
-        if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
+        // Two-phase finish: phase 1 (password slide) performs registration & moves to verification.
+        // Phase 2 (verification slide) only proceeds if emailVerified.
+        if (submitting) return;
+        if (step === 2) { // password slide
+            if (!validateContact()) { alert('Please correct contact details before finishing.'); return; }
+            if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
+        } else if (step === 3) { // verification slide
+            if (!emailVerified) return; // Finish blocked until verification success
+            // Verified: redirect and conclude
+            window.location.href = 'studentHomepage.html';
+            return;
+        }
 
         const payload = {
             firstName: firstName.value.trim(),
@@ -348,7 +360,8 @@
             alert('Network error or server unavailable.');
         } finally {
             submitting = false;
-            finishBtn.disabled = false;
+            // On verification slide keep Finish disabled until emailVerified
+            finishBtn.disabled = (step === 3) ? !emailVerified : false;
             finishBtn.textContent = 'Finish';
             LoadingOverlay.hide();
         }
@@ -374,7 +387,10 @@
         if (verifyBtn) verifyBtn.addEventListener('click', async () => {
             const code = codeInput?.value || '';
             if (!isValidCode(code)) {
-                if (errorEl) { errorEl.textContent = 'Enter a valid 6-digit code.'; }
+                if (errorEl) {
+                    errorEl.textContent = 'Invalid code';
+                    errorEl.style.color = '#b91c1c'; // red
+                }
                 codeInput?.focus();
                 return;
             }
@@ -382,14 +398,32 @@
                 LoadingOverlay.show('Verifying...');
                 const res = await verifyEmailCode(email.value, code);
                 if (res && (res.success || res.verified)) {
-                    alert('Email verified! Redirecting...');
-                    window.location.href = 'studentHomepage.html';
+                    emailVerified = true;
+                    if (errorEl) {
+                        errorEl.textContent = 'Verified email';
+                        errorEl.style.color = '#059669'; // green
+                    }
+                    const hint = document.getElementById('verifyHint');
+                    if (hint) hint.textContent = 'Email verified! Click Finish to continue.';
+                    finishBtn.disabled = false;
+                    finishBtn.focus();
                 } else {
-                    if (errorEl) errorEl.textContent = (res && res.message) || 'Verification failed. Try again.';
+                    if (errorEl) {
+                        errorEl.textContent = 'Invalid code';
+                        errorEl.style.color = '#b91c1c';
+                    }
                 }
             } catch (e) {
-                const msg = (e && e.code === 'EXPIRED') ? 'Code expired. Please resend.' : (e?.message || 'Verification failed.');
-                if (errorEl) errorEl.textContent = msg;
+                if (errorEl) {
+                    if (e && e.code === 'EXPIRED') {
+                        errorEl.textContent = 'Code expired. Please resend.';
+                        errorEl.style.color = '#b91c1c';
+                    } else {
+                        // Treat any other failure as invalid code per requirement
+                        errorEl.textContent = 'Invalid code';
+                        errorEl.style.color = '#b91c1c';
+                    }
+                }
             } finally {
                 LoadingOverlay.hide();
             }
@@ -399,6 +433,8 @@
                 LoadingOverlay.show('Sending code...');
                 await sendVerificationCode(email.value);
                 if (errorEl) errorEl.textContent = 'A new code has been sent.';
+                emailVerified = false; // Must re-verify with new code
+                finishBtn.disabled = true;
             } catch (e) {
                 if (errorEl) errorEl.textContent = 'Failed to resend. Try again later.';
             } finally {
@@ -419,7 +455,16 @@
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (step < TOTAL_STEPS - 1) { e.preventDefault(); next(); }
-            else { e.preventDefault(); finish(); }
+            else {
+                // On verification slide Enter should attempt verification if not verified yet
+                if (step === 3 && !emailVerified) {
+                    e.preventDefault();
+                    document.getElementById('verifyEmailBtn')?.click();
+                } else {
+                    e.preventDefault();
+                    finish();
+                }
+            }
         }
     });
 
