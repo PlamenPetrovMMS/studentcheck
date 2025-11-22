@@ -1,4 +1,4 @@
-// Sliding 4-step registration controller (Password now last, after email verification)
+// Sliding 3-step registration controller
 (function(){
     // Debug toggle: set to false to silence internal diagnostic messages.
     const DEBUG = true;
@@ -29,9 +29,8 @@
     // Loading overlay handled by shared LoadingOverlay utility
 
     const slides = Array.from(track.querySelectorAll('.slide'));
-    const TOTAL_STEPS = slides.length; // should be 4
-    let step = 0; // 0=names,1=contact,2=verification,3=password
-    let emailVerified = false; // true only after successful code verification
+    const TOTAL_STEPS = slides.length; // derive dynamically
+    let step = 0;
     // Initialize active slide visibility (show only first)
     slides.forEach((sl,i)=> sl.classList.toggle('active', i===0));
 
@@ -56,13 +55,6 @@
         } else {
             nextBtn.style.display = 'none';
             finishBtn.classList.remove('finish-hidden');
-            finishBtn.disabled = !validatePassword(); // enable finish only if password requirements met
-        }
-        // Disable Next on verification slide until email verified
-        if (step === 2) {
-            nextBtn.disabled = !emailVerified;
-        } else {
-            nextBtn.disabled = false;
         }
         // On first slide align the lone Continue button to the right
         if (actions) {
@@ -157,7 +149,7 @@
         }
     }
 
-    // Slide 4 (index 3): Passwords (moved after verification)
+    // Slide 3 (index 2): Passwords
     function validatePassword() {
         const p1 = password.value;
         const p2 = repeatPassword.value;
@@ -188,24 +180,17 @@
         setState(reqMatch, matchOk);
     }
 
-    async function next() {
+    function next() {
         dbg('next() invoked at step', step);
         if (step === 0 && !validateNames()) { dbg('Names validation failed'); return; }
-        if (step === 1) {
-            if (!validateContact()) { dbg('Contact validation failed'); return; }
-            // Send verification code immediately after contact info is valid (before password creation)
-            try {
-                LoadingOverlay.show('Sending code...');
-                await sendVerificationCode(email.value);
-            } catch(e){ console.error('Failed to send verification code early:', e); }
-            finally { LoadingOverlay.hide(); }
-        }
-        if (step === 2 && !emailVerified) { dbg('Cannot advance; email not verified yet'); return; }
+    if (step === 1 && !validateContact()) { dbg('Contact validation failed'); return; }
         if (step < TOTAL_STEPS - 1) {
             step++;
             dbg('Advancing to step', step);
             updateUI();
             focusFirstInput();
+        } else {
+            dbg('Already at last step; next() ignored');
         }
     }
 
@@ -221,62 +206,15 @@
         requestAnimationFrame(() => {
             if (step === 0) firstName.focus();
             else if (step === 1) email.focus();
-            else if (step === 2) document.getElementById('verificationCode')?.focus();
-            else if (step === 3) password.focus();
+            else if (step === 2) password.focus();
         });
     }
 
     let submitting = false;
-    // Modular: API base for registration endpoints
-    const API_BASE = 'https://studentcheck-server.onrender.com';
-
-    // Helper: send verification code to user's email
-    // Purpose: After initial registration succeeds, trigger an email with a 6-digit code
-    async function sendVerificationCode(emailAddr) {
-        const url = API_BASE + '/registration/sendVerificationCode';
-        const payload = { email: (emailAddr || '').trim().toLowerCase() };
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (!resp.ok) {
-            const msg = await resp.text().catch(()=> '');
-            throw new Error(msg || 'Failed to send verification code');
-        }
-        return resp.json().catch(()=>({ success:true }));
-    }
-
-    // Helper: verify a 6-digit code
-    // Purpose: Validate the code with the backend and finalize registration
-    async function verifyEmailCode(emailAddr, code) {
-        const url = API_BASE + '/registration/verifyEmailCode';
-        const payload = { email: (emailAddr || '').trim().toLowerCase(), code: String(code||'').trim() };
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await resp.json().catch(()=> null);
-        if (!resp.ok) {
-            const message = (data && (data.message || data.error)) || 'Verification failed';
-            const err = new Error(message);
-            err.code = data && data.code;
-            throw err;
-        }
-        return data || { success: true };
-    }
-
-    // Removed goToVerificationStep: verification now precedes password (step index 2)
-
-    // Validate 6-digit numeric code
-    function isValidCode(v) { return /^\d{6}$/.test((v||'').trim()); }
-
     async function finish() {
-        // Finish now only on final password slide (step 3)
-        if (submitting) return;
-        if (step !== 3) return;
-        if (!emailVerified) { alert('Verify your email before finishing.'); return; }
+        if (submitting) return; // guard against double click
+        // Re-validate contact & password on final step
+        if (!validateContact()) { alert('Please correct contact details before finishing.'); return; }
         if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
 
         const payload = {
@@ -297,7 +235,7 @@
             finishBtn.textContent = 'Submitting...';
             LoadingOverlay.show('Submitting...');
 
-            const resp = await fetch(API_BASE + '/registration', {
+            const resp = await fetch('https://studentcheck-server.onrender.com/registration', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -328,13 +266,20 @@
             }
             dbg('Server response', data);
             if (data && (data.registrationSuccess || data.success)) {
+                // Optionally store token if provided
+                if (data.token) {
+                    // Store token ONLY in sessionStorage so closing the tab ends implicit login.
+                    try { sessionStorage.setItem('authToken', data.token); } catch (_) {}
+                }
+                alert('Registration successful! Redirecting...');
                 window.location.href = 'studentHomepage.html';
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
+                    // Prepare duplicate state BEFORE updating UI so live validator preserves the message
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide2.textContent = 'This email is already registered. Please change it.';
+                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     errorSlide2.style.display = 'block';
                     step = 1; updateUI();
                     email.focus();
@@ -347,7 +292,7 @@
             alert('Network error or server unavailable.');
         } finally {
             submitting = false;
-            finishBtn.disabled = !validatePassword();
+            finishBtn.disabled = false;
             finishBtn.textContent = 'Finish';
             LoadingOverlay.hide();
         }
@@ -356,78 +301,6 @@
     nextBtn.addEventListener('click', next);
     backBtn.addEventListener('click', back);
     finishBtn.addEventListener('click', finish);
-
-    // Wire verification slide actions
-    (function wireVerificationSlide(){
-        const verifyBtn = document.getElementById('verifyEmailBtn');
-        const resendBtn = document.getElementById('resendCodeBtn');
-        const codeInput = document.getElementById('verificationCode');
-        const errorEl = document.getElementById('errorVerify');
-        if (codeInput) {
-            codeInput.addEventListener('input', () => {
-                const v = codeInput.value.replace(/\D/g,'').slice(0,6);
-                if (codeInput.value !== v) codeInput.value = v;
-                if (errorEl) errorEl.textContent = '';
-            });
-        }
-        if (verifyBtn) verifyBtn.addEventListener('click', async () => {
-            const code = codeInput?.value || '';
-            if (!isValidCode(code)) {
-                if (errorEl) {
-                    errorEl.textContent = 'Invalid code';
-                    errorEl.style.color = '#b91c1c'; // red
-                }
-                codeInput?.focus();
-                return;
-            }
-            try {
-                LoadingOverlay.show('Verifying...');
-                const res = await verifyEmailCode(email.value, code);
-                if (res && (res.success || res.verified)) {
-                    emailVerified = true;
-                    if (errorEl) {
-                        errorEl.textContent = 'Verified email';
-                        errorEl.style.color = '#059669'; // green
-                    }
-                    const hint = document.getElementById('verifyHint');
-                    if (hint) hint.textContent = 'Email verified! Continue to create your password.';
-                    updateUI();
-                    nextBtn.focus();
-                } else {
-                    if (errorEl) {
-                        errorEl.textContent = 'Invalid code';
-                        errorEl.style.color = '#b91c1c';
-                    }
-                }
-            } catch (e) {
-                if (errorEl) {
-                    if (e && e.code === 'EXPIRED') {
-                        errorEl.textContent = 'Code expired. Please resend.';
-                        errorEl.style.color = '#b91c1c';
-                    } else {
-                        // Treat any other failure as invalid code per requirement
-                        errorEl.textContent = 'Invalid code';
-                        errorEl.style.color = '#b91c1c';
-                    }
-                }
-            } finally {
-                LoadingOverlay.hide();
-            }
-        });
-        if (resendBtn) resendBtn.addEventListener('click', async () => {
-            try {
-                LoadingOverlay.show('Sending code...');
-                await sendVerificationCode(email.value);
-                if (errorEl) errorEl.textContent = 'A new code has been sent.';
-                emailVerified = false; // Must re-verify with new code
-                updateUI();
-            } catch (e) {
-                if (errorEl) errorEl.textContent = 'Failed to resend. Try again later.';
-            } finally {
-                LoadingOverlay.hide();
-            }
-        });
-    })();
 
     // Attach live validation listeners
     password.addEventListener('input', livePasswordFeedback);
@@ -440,19 +313,8 @@
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            if (step < TOTAL_STEPS - 1) {
-                // On verification slide Enter triggers verify if not verified yet
-                if (step === 2 && !emailVerified) {
-                    e.preventDefault();
-                    document.getElementById('verifyEmailBtn')?.click();
-                } else {
-                    e.preventDefault();
-                    next();
-                }
-            } else {
-                e.preventDefault();
-                finish();
-            }
+            if (step < TOTAL_STEPS - 1) { e.preventDefault(); next(); }
+            else { e.preventDefault(); finish(); }
         }
     });
 
