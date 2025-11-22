@@ -35,6 +35,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (teacherEmail) {
         try { localStorage.setItem('teacher:lastEmail', teacherEmail); } catch {}
     }
+    const API_BASE = '/api';
+    const ENDPOINTS = {
+        createClass: `${API_BASE}/classes`,
+        markAttendance: `${API_BASE}/attendance`,
+        classAttendanceSummary: (classId) => `${API_BASE}/classes/${classId}/attendance`
+    };
+    async function apiCreateClass(name, studentIds) {
+        const res = await fetch(ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds }) });
+        if (!res.ok) throw new Error('Class create failed');
+        return res.json();
+    }
+    async function apiMarkAttendance(classId, studentId) {
+        const res = await fetch(ENDPOINTS.markAttendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
+        if (!res.ok) throw new Error('Attendance mark failed');
+        return res.json();
+    }
+    async function apiFetchClassAttendance(classId) {
+        const res = await fetch(ENDPOINTS.classAttendanceSummary(classId), { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Attendance summary fetch failed');
+        return res.json();
+    }
+    const classIdByName = new Map();
+    const attendanceCountCache = new Map();
 
     const storageKey = (email) => {
         const e = normalizeEmail(email || teacherEmail);
@@ -415,42 +438,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         return t || Date.now();
     }
     function attendanceLogKey(className, studentId) {
-        if (!teacherEmail) return null;
-        const norm = (window.Utils?.normalizeEmail || ((e)=> (e||'').trim().toLowerCase()))(teacherEmail);
-        const c = encodeURIComponent(className || '');
-        const s = encodeURIComponent(studentId || '');
-        return `teacher:attendance:${norm}:logs:${c}:${s}`;
+        return null;
     }
     function loadAttendanceLog(className, studentId) {
-        const key = attendanceLogKey(className, studentId);
-        if (!key) return [];
-        // Suppress logs for students not currently assigned to the class
-        if (!isStudentInClass(className, studentId)) {
-            return [];
-        }
-        try {
-            const raw = localStorage.getItem(key);
-            const arr = raw ? JSON.parse(raw) : [];
-            if (Array.isArray(arr)) return arr.filter(x => x && typeof x === 'object');
-            return [];
-        } catch(_) { return []; }
+        return [];
     }
     function saveAttendanceLog(className, studentId, sessions) {
-        const key = attendanceLogKey(className, studentId);
-        if (!key) return;
-        try { localStorage.setItem(key, JSON.stringify(Array.isArray(sessions) ? sessions : [])); } catch(_) {}
+        return;
     }
     function appendAttendanceSession(className, studentId, joinAt, leaveAt) {
-        // Prevent recording sessions for students not in this class
-        if (!isStudentInClass(className, studentId)) {
-            console.log('[Attendance] Skipping session append for unassigned student:', studentId, 'class:', className);
-            return;
-        }
-        const list = loadAttendanceLog(className, studentId);
-        list.push({ joinAt, leaveAt });
-        saveAttendanceLog(className, studentId, list);
-        // Optional: enqueue for future sync when API exists
-        enqueueAttendanceIncrement(className, studentId, leaveAt || Date.now());
+        return;
     }
 
     function updateAttendanceState(className, studentId, mode) {
@@ -480,9 +477,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Increment attendance when completing a session (joined -> completed)
             if (current === 'joined' && next === 'completed') {
                 const joinAt = takeJoinTime(className, studentId);
-                const leaveAt = Date.now();
-                appendAttendanceSession(className, studentId, joinAt, leaveAt);
-                incrementAttendanceForStudent(className, studentId);
+                const classId = classIdByName.get(className);
+                if (!classId) {
+                    console.warn('Missing class id for', className);
+                } else {
+                    if (dot) dot.classList.add('status-loading');
+                    apiMarkAttendance(classId, studentId).then(() => {
+                        if (dot) dot.classList.remove('status-loading');
+                        const counts = attendanceCountCache.get(classId) || new Map();
+                        const existing = counts.get(studentId) || 0;
+                        counts.set(studentId, existing + 1);
+                        attendanceCountCache.set(classId, counts);
+                        updateStudentInfoOverlayCount(studentId, className);
+                    }).catch(e => {
+                        if (dot) dot.classList.remove('status-loading');
+                        alert('Failed to record attendance: ' + e.message);
+                        map.set(studentId, 'joined');
+                        if (dot) applyDotStateClass(dot, 'joined');
+                    });
+                }
             }
         }
     }
@@ -966,27 +979,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (selectedIds.length === 0) {
             if (!confirm('No students selected. Create an empty ready class?')) return;
         }
-        // Create class UI item
-        renderClassItem(className);
-        readyClasses.add(className);
-        classStudentAssignments.set(className, new Set(selectedIds));
-        // Build and persist per-class student objects { fullName, facultyNumber }
-        const studentsForClass = selectedIds.map(id => {
-            const s = wizardStudentIndex.get(id) || {};
-            return { fullName: s.fullName || '', facultyNumber: s.facultyNumber || '' };
+        wizardFinishBtn.disabled = true;
+        wizardFinishBtn.textContent = 'Creating...';
+        apiCreateClass(className, selectedIds).then(data => {
+            const newClassId = data.class_id || data.id;
+            renderClassItem(className);
+            classIdByName.set(className, newClassId);
+            readyClasses.add(className);
+            classStudentAssignments.set(className, new Set(selectedIds));
+            const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
+            if (btn) {
+                btn.dataset.classId = newClassId;
+                updateClassStatusUI(btn);
+                flashReadyBadge(btn);
+            }
+            closeWizard();
+        }).catch(err => {
+            alert('Failed to create class: ' + err.message);
+        }).finally(() => {
+            wizardSelections.clear();
+            wizardClassName = '';
+            wizardFinishBtn.disabled = false;
+            wizardFinishBtn.textContent = 'Finish';
         });
-        persistClassStudents(className, studentsForClass);
-        // Persist readiness only (no legacy class list or assignments object)
-        persistReadyClasses();
-        // Update button style
-        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
-        if (btn) {
-            updateClassStatusUI(btn);
-            flashReadyBadge(btn);
-        }
-        closeWizard();
-        wizardSelections.clear();
-        wizardClassName='';
     }
 
     // Student loading for wizard
@@ -1443,9 +1458,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function persistReadyClasses() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':ready';
-        try { localStorage.setItem(key, JSON.stringify(Array.from(readyClasses))); }
-        catch(e){ console.warn('Persist readyClasses failed', e); }
+        return;
     }
     function loadReadyClasses() {
         // Prefer teacher-specific readiness, but tolerate mobile reloads without session
@@ -1553,31 +1566,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `teacher:class:${normEmail}:${encodeURIComponent(className)}`;
     }
     function persistClassStudents(className, studentsArray) {
-        const key = classItemKey(className);
-        if (!key) return;
-        try {
-            const payload = { name: className, students: Array.isArray(studentsArray) ? studentsArray : [] };
-            localStorage.setItem(key, JSON.stringify(payload));
-        } catch (e) {
-            console.warn('Persist class students failed', e);
-            // Fallback to IDB store
-            idbSet(key, { name: className, students: Array.isArray(studentsArray) ? studentsArray : [] });
-        }
+        return;
     }
     function loadClassStudents(className) {
-        const key = classItemKey(className);
-        if (!key) return [];
-        try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return [];
-            const obj = JSON.parse(raw);
-            const arr = Array.isArray(obj?.students) ? obj.students : [];
-            return arr.map(s => ({
-                fullName: s.fullName || s.name || '',
-                facultyNumber: s.facultyNumber || s.faculty_number || '',
-                attendedClasses: Number.isFinite(s.attendedClasses) ? s.attendedClasses : 0
-            }));
-        } catch (e) { console.warn('Load class students failed', e); return []; }
+        return [];
     }
 
     // --- Attendance persistence helpers ---
@@ -1587,17 +1579,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `teacher:attendance:${norm}:pending`;
     }
     function enqueueAttendanceIncrement(className, studentId, timestamp) {
-        const key = attendanceQueueKey();
-        if (!key) return;
-        try {
-            const raw = localStorage.getItem(key);
-            const arr = raw ? JSON.parse(raw) : [];
-            arr.push({ className, studentId, timestamp: timestamp || Date.now() });
-            localStorage.setItem(key, JSON.stringify(arr));
-        } catch(_) {}
+        return;
     }
     async function trySyncAttendanceIncrements() {
-        // Placeholder: no server endpoint to sync. Keep queue for future use.
         return;
     }
     window.addEventListener('online', () => { trySyncAttendanceIncrements(); });
@@ -1616,14 +1600,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return { students, index: idx };
     }
     function incrementAttendanceForStudent(className, studentId) {
-        const { students, index } = findStudentRecordInClass(className, studentId);
-        if (index === -1) return;
-        const rec = students[index];
-        const current = Number.isFinite(rec.attendedClasses) ? rec.attendedClasses : 0;
-        rec.attendedClasses = current + 1;
-        persistClassStudents(className, students);
-        enqueueAttendanceIncrement(className, studentId, Date.now());
-        updateStudentInfoOverlayCount(studentId, className, rec.attendedClasses);
+        return;
     }
     function isStudentInClass(className, studentId) {
         if (!className || !studentId) return false;
@@ -1644,10 +1621,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         return false;
     }
     function getStudentAttendanceCountForClass(className, studentId) {
-        const { students, index } = findStudentRecordInClass(className, studentId);
-        if (index === -1) return 0;
-        const rec = students[index];
-        return Number.isFinite(rec.attendedClasses) ? rec.attendedClasses : 0;
+        const classId = classIdByName.get(className);
+        if (!classId) return 0;
+        const cache = attendanceCountCache.get(classId);
+        if (cache && cache.has(studentId)) return cache.get(studentId);
+        apiFetchClassAttendance(classId).then(data => {
+            const map = new Map();
+            const list = data.attendances || data.items || [];
+            list.forEach(r => { if (r.student_id) map.set(String(r.student_id), Number(r.count || r.attendance_count || 0)); });
+            attendanceCountCache.set(classId, map);
+            updateStudentInfoOverlayCount(studentId, className);
+        }).catch(() => {});
+        return 0;
     }
     function updateStudentInfoOverlayCount(studentId, className, forcedValue) {
         if (!studentInfoOverlay || studentInfoOverlay.style.visibility !== 'visible') return;
