@@ -2156,40 +2156,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    const loadClasses = () => {
+    const loadClasses = async () => {
         
-        let classNames = [];
-        const normEmail = normalizeEmail(teacherEmail);
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (!k || !k.startsWith('teacher:class:')) continue;
-                const emailPart = parseEmailFromPerClassKey(k);
-                if (!emailPart || normalizeEmail(emailPart) !== normEmail) continue;
-                const raw = localStorage.getItem(k);
-                try {
-                    const obj = JSON.parse(raw);
-                    const after = k.replace(/^teacher:class:[^:]+:/, '');
-                    const name = obj?.name || decodeURIComponent(after);
-                    if (name && !classNames.includes(name)) classNames.push(name);
-                } catch (e) { console.warn('Parse class item failed', k, e); }
-            }
-            // If none found (rare), tolerant fallback to any per-class entries
-            if (classNames.length === 0) {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith('teacher:class:')) {
-                        const raw = localStorage.getItem(k);
-                        const after = k.replace(/^teacher:class:[^:]+:/, '');
-                        try {
-                            const obj = JSON.parse(raw);
-                            const name = obj?.name || decodeURIComponent(after);
-                            if (name && !classNames.includes(name)) classNames.push(name);
-                        } catch (e) { /* tolerant */ }
-                    }
-                }
-            }
-        } catch (e) { console.warn('Failed to load classes (per-class items):', e); }
+        let classNames = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'GET' });
+        console.log('Fetched class names from server:', classNames);
         
         classNames.forEach(renderClassItem);
         // Ensure container visible
