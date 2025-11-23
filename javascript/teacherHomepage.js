@@ -2158,7 +2158,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const loadClasses = async () => {
         
-        let classNames = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'GET' });
+        console.log("Fetching class names from server...");
+        let classNames = await fetch(`${serverBaseUrl + ENDPOINTS.createClass}?teacherEmail=${encodeURIComponent(teacherEmail)}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+        });
         console.log('Fetched class names from server:', classNames);
         
         classNames.forEach(renderClassItem);
