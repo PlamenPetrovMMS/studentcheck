@@ -2195,10 +2195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    // Load assignments and readiness then classes (localStorage only)
-    loadAssignments();
-    await hydrateAssignmentsFromPerClass();
-    loadReadyClasses();
+    console.log("Loading classes...")
     loadClasses();
     // Handle bfcache/pageshow and ensure styles reflect current storage state
     window.addEventListener('pageshow', (ev) => {
