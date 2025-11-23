@@ -2171,7 +2171,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log(className);
         });
         
-        classNames.forEach(renderClassItem);
+        console.log("Rendering class items...");
+        result.classes.forEach(renderClassItem);
         // Ensure container visible
         ensureClassesContainerVisible();
     };
