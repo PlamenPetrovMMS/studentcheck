@@ -45,7 +45,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
                     // Store minimal teacher session data in sessionStorage only (normalized email).
                     sessionStorage.setItem('teacherData', JSON.stringify({ email: teacherData.email }));
                     // Also remember last teacher email for reload fallbacks
-                    try { localStorage.setItem('teacher:lastEmail', teacherData.email); } catch(_) {}
+                    try { localStorage.setItem('teacherEmail', teacherData.email); } catch(_) {}
                 } catch (e) {
                     console.warn('Failed to persist teacher session data in sessionStorage:', e);
                 }

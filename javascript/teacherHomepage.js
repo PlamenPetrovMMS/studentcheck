@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         markAttendance: `/attendance`
     };
 
-    async function apiCreateClass(name, studentIds) {
+    async function apiCreateClass(name, studentIds, teacherEmail) {
         console.log('[API] Creating class:', name, 'with students:', studentIds);
-        const res = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds }) });
+        const res = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds, teacherEmail }) });
         if (!res.ok) throw new Error('Class create failed');
         return res.json();
     }
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!res.ok) throw new Error('Attendance summary fetch failed');
         return res.json();
     }
-    
+
     const classIdByName = new Map();
     const attendanceCountCache = new Map();
 
@@ -958,12 +958,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     function collectSelectedStudents() { return Array.from(wizardSelections); }
 
     function submitNewClass() {
+
         const className = collectClassName();
         if (!className) { alert('Class name missing.'); goToSlide(0); return; }
         const selectedIds = collectSelectedStudents();
         if (selectedIds.length === 0) {
             if (!confirm('No students selected. Create an empty ready class?')) return;
         }
+        
         wizardFinishBtn.disabled = true;
         wizardFinishBtn.textContent = 'Creating...';
         // Debug logging for class creation flow
@@ -975,7 +977,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             timestamp: new Date(creationStartTs).toISOString()
         });
         console.time('[Class Creation] apiCreateClass duration');
-        apiCreateClass(className, selectedIds).then(data => {
+        apiCreateClass(className, selectedIds, teacherEmail).then(data => {
             const newClassId = data.class_id || data.id;
             console.log('[Class Creation] Created class ID:', newClassId);
             console.log('[Class Creation] API success', {
