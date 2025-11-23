@@ -1,60 +1,46 @@
+const serverBaseUrl = 'https://studentcheck-server.onrender.com'; // Set to your server base URL if needed
+
 // Add click logging and behavior for dynamically created "New Class" buttons
 document.addEventListener('DOMContentLoaded', async () => {
+
     const classList = document.getElementById('classList');
     const addBtn = document.getElementById('addClassBtn');
+
     // Determine current teacher email with robust fallbacks (mobile reload safe)
     let teacherEmail = null;
+
     const normalizeEmail = (e) => (e || '').trim().toLowerCase();
+
     const parseEmailFromPerClassKey = (key) => {
         // key pattern: teacher:class:<email>:<className>
         const m = key.match(/^teacher:class:([^:]+):/);
         return m ? m[1] : null;
     };
-    function deriveTeacherEmailFallback() {
-        // 1) sessionStorage teacherData
-        try {
-            const raw = sessionStorage.getItem('teacherData');
-            const parsed = raw ? JSON.parse(raw) : null;
-            if (parsed?.email) return normalizeEmail(parsed.email);
-        } catch (e) { console.warn('Failed to parse teacherData from sessionStorage:', e); }
-        // 2) last email hint
-        const last = localStorage.getItem('teacher:lastEmail');
-        if (last) return normalizeEmail(last);
-        // 3) scan localStorage for any teacher:class:<email>:
-        const emails = new Set();
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (!k) continue;
-            const m = k.match(/^teacher:class:([^:]+):/);
-            if (m && m[1]) emails.add(normalizeEmail(m[1]));
-        }
-        if (emails.size === 1) return Array.from(emails)[0];
-        return null;
-    }
-    teacherEmail = deriveTeacherEmailFallback();
-    if (teacherEmail) {
-        try { localStorage.setItem('teacher:lastEmail', teacherEmail); } catch {}
-    }
+
     const ENDPOINTS = {
         createClass: `/classes`,
-        markAttendance: `/attendance`,
-        classAttendanceSummary: (classId) => `/classes/${classId}/attendance`
+        markAttendance: `/attendance`
     };
+
     async function apiCreateClass(name, studentIds) {
-        const res = await fetch(ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds }) });
+        console.log('[API] Creating class:', name, 'with students:', studentIds);
+        const res = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds }) });
         if (!res.ok) throw new Error('Class create failed');
         return res.json();
     }
+    
     async function apiMarkAttendance(classId, studentId) {
-        const res = await fetch(ENDPOINTS.markAttendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
+        const res = await fetch(serverBaseUrl + ENDPOINTS.markAttendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
         if (!res.ok) throw new Error('Attendance mark failed');
         return res.json();
     }
+
     async function apiFetchClassAttendance(classId) {
-        const res = await fetch(ENDPOINTS.classAttendanceSummary(classId), { headers: { 'Accept': 'application/json' } });
+        const res = await fetch(serverBaseUrl + ENDPOINTS.classAttendanceSummary(classId), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) throw new Error('Attendance summary fetch failed');
         return res.json();
     }
+    
     const classIdByName = new Map();
     const attendanceCountCache = new Map();
 
@@ -991,12 +977,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.time('[Class Creation] apiCreateClass duration');
         apiCreateClass(className, selectedIds).then(data => {
             const newClassId = data.class_id || data.id;
+            console.log('[Class Creation] Created class ID:', newClassId);
             console.log('[Class Creation] API success', {
                 className,
                 newClassId,
                 rawResponse: data
             });
             renderClassItem(className);
+            console.log('[Class Creation] Rendered class item for', className);
             classIdByName.set(className, newClassId);
             readyClasses.add(className);
             classStudentAssignments.set(className, new Set(selectedIds));
