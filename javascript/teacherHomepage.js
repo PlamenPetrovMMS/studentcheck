@@ -1579,9 +1579,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const normEmail = normalizeEmail(teacherEmail);
         return `teacher:class:${normEmail}:${encodeURIComponent(className)}`;
     }
-    function persistClassStudents(className, studentsArray) {
-        return;
-    }
     function loadClassStudents(className) {
         return [];
     }
@@ -1850,7 +1847,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
             if (btn) updateClassStatusUI(btn);
         }
-        persistClassStudents(className, existingStudentsObjects);
         // Re-render manage list to reflect additions
         if (manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') {
             renderManageStudentsForClass(className);
@@ -2172,7 +2168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         result.classes.forEach(_class => {
             renderClassItem(_class.name);
         });
-        
+
         // Ensure container visible
         ensureClassesContainerVisible();
     };
