@@ -2163,6 +2163,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
         });
+
+        console.log("Parsing response...");
+        result = await result.json();
+        console.log("Response received:", result);
         result.classes.forEach(className => {
             console.log(className);
         });
