@@ -2163,7 +2163,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
         });
-        console.log('Fetched class names from server:', classNames);
+        classNames.forEach(className => {
+            console.log(className);
+        });
         
         classNames.forEach(renderClassItem);
         // Ensure container visible
