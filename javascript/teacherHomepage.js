@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addBtn = document.getElementById('addClassBtn');
 
     // Determine current teacher email with robust fallbacks (mobile reload safe)
-    let teacherEmail = null;
+    let teacherEmail = localStorage.getItem('teacherEmail') || null;
+    if(!teacherEmail) console.error('No teacher email found in localStorage for session.');
 
     const normalizeEmail = (e) => (e || '').trim().toLowerCase();
 
