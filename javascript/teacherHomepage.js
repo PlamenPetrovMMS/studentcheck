@@ -35,11 +35,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (teacherEmail) {
         try { localStorage.setItem('teacher:lastEmail', teacherEmail); } catch {}
     }
-    const API_BASE = '/api';
     const ENDPOINTS = {
-        createClass: `${API_BASE}/classes`,
-        markAttendance: `${API_BASE}/attendance`,
-        classAttendanceSummary: (classId) => `${API_BASE}/classes/${classId}/attendance`
+        createClass: `/classes`,
+        markAttendance: `/attendance`,
+        classAttendanceSummary: (classId) => `/classes/${classId}/attendance`
     };
     async function apiCreateClass(name, studentIds) {
         const res = await fetch(ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds }) });
@@ -981,8 +980,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         wizardFinishBtn.disabled = true;
         wizardFinishBtn.textContent = 'Creating...';
+        // Debug logging for class creation flow
+        const creationStartTs = Date.now();
+        console.log('[Class Creation] Starting submitNewClass', {
+            className,
+            selectedIdsCount: selectedIds.length,
+            selectedIds: selectedIds.slice(0, 25), // limit log size
+            timestamp: new Date(creationStartTs).toISOString()
+        });
+        console.time('[Class Creation] apiCreateClass duration');
         apiCreateClass(className, selectedIds).then(data => {
             const newClassId = data.class_id || data.id;
+            console.log('[Class Creation] API success', {
+                className,
+                newClassId,
+                rawResponse: data
+            });
             renderClassItem(className);
             classIdByName.set(className, newClassId);
             readyClasses.add(className);
@@ -995,8 +1008,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             closeWizard();
         }).catch(err => {
+            console.error('[Class Creation] API failure', {
+                className,
+                error: err && err.message ? err.message : err
+            });
             alert('Failed to create class: ' + err.message);
         }).finally(() => {
+            console.timeEnd('[Class Creation] apiCreateClass duration');
+            console.log('[Class Creation] Finalizing submitNewClass', {
+                className,
+                totalSelected: selectedIds.length,
+                elapsedMs: Date.now() - creationStartTs
+            });
             wizardSelections.clear();
             wizardClassName = '';
             wizardFinishBtn.disabled = false;
