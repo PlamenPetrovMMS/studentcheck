@@ -2159,11 +2159,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadClasses = async () => {
         
         console.log("Fetching class names from server...");
-        let classNames = await fetch(`${serverBaseUrl + ENDPOINTS.createClass}?teacherEmail=${encodeURIComponent(teacherEmail)}`, {
+        let result = await fetch(`${serverBaseUrl + ENDPOINTS.createClass}?teacherEmail=${encodeURIComponent(teacherEmail)}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
         });
-        classNames.forEach(className => {
+        result.classes.forEach(className => {
             console.log(className);
         });
         
