@@ -2138,7 +2138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    const renderClassItem = (name) => {
+    function renderClassItem(name) {
         const li = document.createElement('li');
         const btn = document.createElement('button');
         btn.className = 'newClassBtn';
@@ -2167,12 +2167,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Parsing response...");
         result = await result.json();
         console.log("Response received:", result);
-        result.classes.forEach(className => {
-            console.log(className);
-        });
         
         console.log("Rendering class items...");
-        result.classes.forEach(renderClassItem);
+        result.classes.forEach(_class => {
+            renderClassItem(_class.name);
+        });
+        
         // Ensure container visible
         ensureClassesContainerVisible();
     };
