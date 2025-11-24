@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const ENDPOINTS = {
         createClass: `/classes`,
-        markAttendance: `/attendance`
+        markAttendance: `/attendance`,
+        class_students: '/class_students',
     };
 
     async function apiCreateClass(name, studentIds, teacherEmail) {
@@ -1579,7 +1580,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const normEmail = normalizeEmail(teacherEmail);
         return `teacher:class:${normEmail}:${encodeURIComponent(className)}`;
     }
-    function loadClassStudents(className) {
+    async function loadClassStudents(className, classId) {
+
+        console.log(className, classId);
+
+        let result = await fetch(`${serverBaseUrl + ENDPOINTS.class_students}?class_id=${encodeURIComponent(classId)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (result.ok) {
+            let data = await result.json();
+            console.log("data.students", data.students);
+        }else{
+            console.error("Failed to fetch class students", result.status);
+        }
         return [];
     }
 
@@ -1597,22 +1613,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     window.addEventListener('online', () => { trySyncAttendanceIncrements(); });
 
-    function findStudentRecordInClass(className, studentId) {
-        const students = loadClassStudents(className) || [];
-        if (students.length === 0) return { students, index: -1 };
-        const byId = (s) => ((s.facultyNumber || s.fullName || '').trim() === (studentId || '').trim());
-        let idx = students.findIndex(byId);
-        if (idx === -1 && studentIndex) {
-            const info = studentIndex.get(studentId);
-            if (info && (info.fullName || info.faculty_number)) {
-                idx = students.findIndex(s => (s.facultyNumber && info.faculty_number && s.facultyNumber === info.faculty_number) || s.fullName === info.fullName);
-            }
-        }
-        return { students, index: idx };
-    }
-    function incrementAttendanceForStudent(className, studentId) {
-        return;
-    }
     function isStudentInClass(className, studentId) {
         if (!className || !studentId) return false;
         // Check per-class stored students first
@@ -2134,18 +2134,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    function renderClassItem(name) {
+    function renderClassItem(name, id) {
         const li = document.createElement('li');
         const btn = document.createElement('button');
+
         btn.className = 'newClassBtn';
         btn.textContent = name;
         btn.dataset.className = name;
         btn.dataset.originalLabel = name;
+
         attachNewClassButtonBehavior(btn);
+
         li.appendChild(btn);
         classList?.appendChild(li);
+
         // Apply readiness if already stored
         if (readyClasses.has(name)) updateClassStatusUI(btn);
+
+        loadClassStudents(name, id); // Preload students for this class
     };
 
 
@@ -2166,7 +2172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         console.log("Rendering class items...");
         result.classes.forEach(_class => {
-            renderClassItem(_class.name);
+            renderClassItem(_class.name, _class.id);
         });
 
         // Ensure container visible
@@ -2247,18 +2253,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
     if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
         addStudentsOverlayBtn.addEventListener('click', () => {
+
             const selected = window.getSelectedStudents?.() || [];
+            console.log('Selected students to add:', selected);
             const className = (currentClassName || '').trim();
+
             if (!className) {
                 addStudentsOverlayBtn.classList.add('pulse-warn');
                 setTimeout(() => addStudentsOverlayBtn.classList.remove('pulse-warn'), 600);
                 return;
             }
+
             if (selected.length === 0) {
                 addStudentsOverlayBtn.classList.add('pulse-warn');
                 setTimeout(() => addStudentsOverlayBtn.classList.remove('pulse-warn'), 600);
                 return;
             }
+
             // Merge with existing students stored for the class
             const existing = loadClassStudents(className) || [];
             const byFac = new Map();
