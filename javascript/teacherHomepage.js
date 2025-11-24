@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const classStudentAssignments = new Map(); // className -> Set(studentIds)
     let currentClassButton = null;
     let currentClassName = '';
-    let wizardClassName = '';
     let wizardSelections = new Set();
+    let wizardClassName = '';
     let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
 
     // Helper: Get normalized class name text from a class button
@@ -959,15 +959,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     function collectClassName() { return wizardClassName.trim(); }
     function collectSelectedStudents() { return Array.from(wizardSelections); }
 
-    function submitNewClass() {
+    async function submitNewClass() {
 
         const className = collectClassName();
+
         if (!className) { alert('Class name missing.'); goToSlide(0); return; }
+
         const selectedIds = collectSelectedStudents();
+
         if (selectedIds.length === 0) {
             if (!confirm('No students selected. Create an empty ready class?')) return;
         }
-        
+
+        var result = await fetch(serverBaseUrl + ENDPOINTS.class_students, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                class_name: className,
+                student_ids: selectedIds
+            })
+        });
+
+        if (!result.ok) {
+            const errorText = await result.text();
+            console.error('[Class Creation] Server error response', { errorText });
+        }
+
         wizardFinishBtn.disabled = true;
         wizardFinishBtn.textContent = 'Creating...';
         // Debug logging for class creation flow
