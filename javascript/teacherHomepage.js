@@ -2231,20 +2231,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const byFac = new Map();
 
-            existing.forEach(student => {
+            classStudents.forEach(student => {
                 const key = student.facultyNumber.trim();
-                if (key) byFac.set(key, { 
-                    fullName: student.fullName, 
-                    facultyNumber: student.facultyNumber
-                });
+
+                if (key){
+                    byFac.set(key, { 
+                        fullName: student.fullName, 
+                        facultyNumber: student.facultyNumber
+                    });
+                } 
             });
 
             selected.forEach(student => {
-                const key = (student.facultyNumber || student.fullName || '').trim();
+                const key = student.facultyNumber.trim();
+
                 if (!key) return;
-                const fullName = student.fullName || '';
-                const facultyNumber = student.facultyNumber || '';
-                if (!byFac.has(key)) byFac.set(key, { fullName, facultyNumber });
+
+                const fullName = student.fullName;
+                const facultyNumber = student.facultyNumber;
+
+                if (!byFac.has(key)){
+                    byFac.set(key, { fullName, facultyNumber });
+                } 
             });
 
 
