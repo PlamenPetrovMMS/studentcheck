@@ -2197,6 +2197,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderClassItem(_class.name, _class.id);
         });
 
+        const classesMapArray = Array.from(classesMap.entries());
+        console.log("Storing classes map in localStorage:", classesMapArray);
+
         localStorage.setItem('classesMap', JSON.stringify(classesMap.entries()));
 
         // Ensure container visible
