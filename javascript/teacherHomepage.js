@@ -1571,6 +1571,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (result.ok) {
             let data = await result.json();
             let students = data.students;
+            localStorage.setItem(`${className}:students`, JSON.stringify(students));
             console.log("Fetched students:", students);
             return students;
         }else{
