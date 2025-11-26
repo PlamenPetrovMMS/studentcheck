@@ -2199,7 +2199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("Storing classesMap in localStorage:", classesMap);
 
-        localStorage.setItem('classesMap', JSON.stringify(classesMap.entries()));
+        localStorage.setItem('classesMap', JSON.stringify(classesMap));
 
         // Ensure container visible
         ensureClassesContainerVisible();
