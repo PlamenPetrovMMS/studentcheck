@@ -2197,18 +2197,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderClassItem(_class.name, _class.id);
         });
 
-        console.log("Storing classesMap in localStorage:", classesMap);
-
-        // Maps are not JSON-serializable by default; store as array of [key, value]
-        
         localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
 
-        var restoredClassesMap = getStoredClassesMap();
+        console.log("Getting 'class' id:", getClassIdByName("class"));
 
-        // Example access (ensure the key type matches what was stored: number vs string)
-        console.log("Example class id=1 ->", restoredClassesMap.get("1"));
-
-        // Ensure container visible
         ensureClassesContainerVisible();
     };
 
@@ -2227,6 +2219,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         return storedClassesMap;
     }
+
+
+
+
+    function getClassIdByName(className) {
+        const storedClassesMap = getStoredClassesMap();
+
+        if(!storedClassesMap){
+            console.error("No stored classes map found.");
+            return null;
+        }
+
+        for (const [id, name] of storedClassesMap.entries()) {
+            if ((name).trim() === className) {
+                return id;
+            }
+        }
+
+        console.error("Class ID not found for class name:", className);
+        return null;
+    }
+
+
+
+
+
 
 
     function ensureClassesContainerVisible() {
@@ -2306,7 +2324,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const selected = window.getSelectedStudents?.() || [];
             console.log('Selected students to add:', selected);
-            const className = (currentClassName || '').trim();
+            const className = (currentClassName).trim();
+            
+
 
             if (!className) {
                 addStudentsOverlayBtn.classList.add('pulse-warn');
