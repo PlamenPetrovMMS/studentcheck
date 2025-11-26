@@ -2197,7 +2197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderClassItem(_class.name, _class.id);
         });
 
-        localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
+        localStorage.setItem('classesMap', JSON.stringify(classesMap.entries()));
 
         // Ensure container visible
         ensureClassesContainerVisible();
