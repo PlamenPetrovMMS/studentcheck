@@ -1616,12 +1616,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (result.ok) {
             let data = await result.json();
-            console.log("data.students", data.students);
+            let students = data.students;
+            return students;
         }else{
             console.error("Failed to fetch class students", result.status);
         }
-
-        return [];
+        
+        return null;
     }
 
     // --- Attendance persistence helpers ---
