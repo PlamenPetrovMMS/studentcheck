@@ -2203,13 +2203,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
 
-        var storedClasses = localStorage.getItem('classesMap');
-        console.log("Stored classesMap:", storedClasses);
+        // Retrieve and safely restore the classesMap from localStorage
+        var storedClassesRaw = localStorage.getItem('classesMap');
+        console.log("Stored classesMap raw:", storedClassesRaw);
 
-        var storedClassesMap = JSON.parse(storedClasses);
-        console.log("Parsed stored classesMap:", storedClasses);
+        var storedClassesEntries = JSON.parse(storedClassesRaw);
+        var restoredClassesMap = new Map(storedClassesEntries);
+        
+        console.log("Restored classesMap size:", restoredClassesMap.size);
 
-        console.log(storedClassesMap.get(1)); // Example of accessing class name by ID
+        // Example access (ensure the key type matches what was stored: number vs string)
+        console.log("Example class id=1 ->", restoredClassesMap.get(1));
 
         // Ensure container visible
         ensureClassesContainerVisible();
