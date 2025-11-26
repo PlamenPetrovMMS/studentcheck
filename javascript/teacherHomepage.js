@@ -425,17 +425,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         m.delete(studentId);
         return t || Date.now();
     }
-    function attendanceLogKey(className, studentId) {
-        return null;
-    }
     function loadAttendanceLog(className, studentId) {
         return [];
-    }
-    function saveAttendanceLog(className, studentId, sessions) {
-        return;
-    }
-    function appendAttendanceSession(className, studentId, joinAt, leaveAt) {
-        return;
     }
 
     function updateAttendanceState(className, studentId, mode) {
@@ -742,7 +733,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (oldKey) localStorage.removeItem(oldKey);
         } catch(e){ console.warn('Rename class storage migrate failed', e); }
         // Update readiness set
-        if (readyClasses.has(from)) { readyClasses.delete(from); readyClasses.add(to); persistReadyClasses(); }
+        if (readyClasses.has(from)) { readyClasses.delete(from); readyClasses.add(to); }
         // Update assignments map
         if (classStudentAssignments.has(from)) { const set = classStudentAssignments.get(from); classStudentAssignments.delete(from); classStudentAssignments.set(to, set); persistAssignments(); }
         // Migrate attendance logs keys
@@ -786,7 +777,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Remove per-class item
         try { const key = classItemKey(n); if (key) localStorage.removeItem(key); } catch(_){}
         // Remove readiness
-        if (readyClasses.has(n)) { readyClasses.delete(n); persistReadyClasses(); }
+        if (readyClasses.has(n)) { readyClasses.delete(n); }
         // Remove assignments
         if (classStudentAssignments.has(n)) { classStudentAssignments.delete(n); persistAssignments(); }
         // Remove attendance logs
@@ -829,7 +820,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---- CLASS CREATION WIZARD ----
     let wizardOverlay = null;
     let wizardTrack = null; // slides container
-    let wizardSlideIndex = 0;
     let wizardNameInput = null;
     let wizardErrorName = null;
     let wizardBackBtn = null;
@@ -1110,8 +1100,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function openAddStudentsPopup() { addStudentsFromDatabase(); }
-    function setClassReady(className, studentIds) {
-        readyClasses.add(className); if (studentIds) classStudentAssignments.set(className, new Set(studentIds)); persistReadyClasses(); }
     function handleClassButtonClick(buttonEl) {
         currentClassButton = buttonEl;
         const raw = getRawClassNameFromButton(buttonEl);
@@ -1363,14 +1351,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = 'hidden'; // keep modal context since manage overlay is still open
     }
 
-    function restoreManageStudentsOverlay(classId) {
-        closeStudentInfoOverlay();
-        if (manageStudentsOverlay) {
-            manageStudentsOverlay.style.visibility = 'visible';
-            if (manageStudentsListEl) manageStudentsListEl.scrollTop = manageStudentsScrollPos;
-        }
-    }
-
     // ---- Attendance History Overlay ----
     let attendanceHistoryOverlay = null;
     function ensureAttendanceHistoryOverlay() {
@@ -1491,10 +1471,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (scannerOverlay) closeScannerOverlay();
         document.body.style.overflow = '';
     }
-
-    function persistReadyClasses() {
-        return;
-    }
     function loadReadyClasses() {
         // Prefer teacher-specific readiness, but tolerate mobile reloads without session
         try {
@@ -1566,33 +1542,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { console.warn('Load assignments failed', e); }
     }
 
-    // Hydrate assignments mapping from per-class stored student objects as a fallback
-    async function hydrateAssignmentsFromPerClass() {
-        if (!teacherEmail) return;
-        const normEmail = normalizeEmail(teacherEmail);
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (!k || !k.startsWith('teacher:class:')) continue;
-                const emailPart = parseEmailFromPerClassKey(k);
-                if (!emailPart || normalizeEmail(emailPart) !== normEmail) continue;
-                try {
-                    const raw = localStorage.getItem(k);
-                    const obj = JSON.parse(raw);
-                    const after = k.replace(/^teacher:class:[^:]+:/, '');
-                    const name = obj?.name || decodeURIComponent(after);
-                    const arr = Array.isArray(obj?.students) ? obj.students : [];
-                    if (name && arr.length > 0) {
-                        const ids = new Set(arr.map(s => (s.facultyNumber || s.fullName || '').trim()).filter(Boolean));
-                        const existing = classStudentAssignments.get(name) || new Set();
-                        ids.forEach(id => existing.add(id));
-                        classStudentAssignments.set(name, existing);
-                    }
-                } catch(_) {}
-            }
-            // No IndexedDB fallback: rely solely on localStorage
-        } catch (e) { console.warn('Hydrate from per-class failed', e); }
-    }
+
+
 
     // Per-class storage: each class has its own item with an array of student objects
     function classItemKey(className) {
@@ -1600,6 +1551,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const normEmail = normalizeEmail(teacherEmail);
         return `teacher:class:${normEmail}:${encodeURIComponent(className)}`;
     }
+
+
+
+
+
     async function loadClassStudents(className, classId) {
 
         console.log("loadClassStudents", { className, classId });
@@ -1624,24 +1580,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return null;
     }
 
-    // --- Attendance persistence helpers ---
-    function attendanceQueueKey() {
-        if (!teacherEmail) return null;
-        const norm = (window.Utils?.normalizeEmail || ((e)=> (e||'').trim().toLowerCase()))(teacherEmail);
-        return `teacher:attendance:${norm}:pending`;
-    }
-    function enqueueAttendanceIncrement(className, studentId, timestamp) {
-        return;
-    }
-    async function trySyncAttendanceIncrements() {
-        return;
-    }
-    window.addEventListener('online', () => { trySyncAttendanceIncrements(); });
-
     function isStudentInClass(className, studentId) {
         if (!className || !studentId) return false;
-        // Check per-class stored students first
-        const stored = loadClassStudents(className) || [];
+
+        const classId = getClassIdByName(className);
+        const stored = loadClassStudents(className, classId);
+
         if (stored.length > 0) {
             const found = stored.some(s => {
                 const id = (s.facultyNumber || s.fullName || '').trim();
@@ -1867,7 +1811,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
         if (!readyClasses.has(className)) {
             readyClasses.add(className);
-            persistReadyClasses();
             // Update button UI instantly.
             const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
             if (btn) updateClassStatusUI(btn);
@@ -1926,8 +1869,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-
-    let lastStudentsData = [];
     // Persistent selection state across filtering
     const studentSelection = new Set();
     // Cache of all rendered student items for filtering without DOM rebuild
@@ -2327,9 +2268,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const selected = window.getSelectedStudents?.() || [];
             console.log('Selected students to add:', selected);
-            const className = (currentClassName).trim();
-            
 
+            const className = currentClassName.trim();
+            const classId = getClassIdByName(className);
 
             if (!className) {
                 addStudentsOverlayBtn.classList.add('pulse-warn');
@@ -2344,27 +2285,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Merge with existing students stored for the class
-            const existing = loadClassStudents(className, classId) || [];
+            const existing = loadClassStudents(className, classId);
 
             console.log('Existing students in class:', existing);
 
             const byFac = new Map();
-            existing.forEach(s => {
-                const key = (s.facultyNumber || s.fullName || '').trim();
-                if (key) byFac.set(key, { fullName: s.fullName || '', facultyNumber: s.facultyNumber || '' });
+
+            existing.forEach(student => {
+                const key = student.facultyNumber.trim();
+                if (key) byFac.set(key, { 
+                    fullName: student.fullName, 
+                    facultyNumber: student.facultyNumber
+                });
             });
-            selected.forEach(s => {
-                const key = (s.facultyNumber || s.fullName || '').trim();
+
+            selected.forEach(student => {
+                const key = (student.facultyNumber || student.fullName || '').trim();
                 if (!key) return;
-                const fullName = s.fullName || '';
-                const facultyNumber = s.facultyNumber || '';
+                const fullName = student.fullName || '';
+                const facultyNumber = student.facultyNumber || '';
                 if (!byFac.has(key)) byFac.set(key, { fullName, facultyNumber });
             });
             const merged = Array.from(byFac.values());
             persistClassStudents(className, merged);
             // Mark ready and persist
             readyClasses.add(className);
-            persistReadyClasses();
             // Update UI state for the button of this class
             const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
             if (btn) updateClassStatusUI(btn);
