@@ -2209,11 +2209,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         var storedClassesEntries = JSON.parse(storedClassesRaw);
         var restoredClassesMap = new Map(storedClassesEntries);
-        
+
         console.log("Restored classesMap size:", restoredClassesMap.size);
 
         // Example access (ensure the key type matches what was stored: number vs string)
-        console.log("Example class id=1 ->", restoredClassesMap.get(1));
+        console.log("Example class id=1 ->", restoredClassesMap.get("1"));
 
         // Ensure container visible
         ensureClassesContainerVisible();
