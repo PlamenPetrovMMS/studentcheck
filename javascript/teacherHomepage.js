@@ -2201,7 +2201,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Maps are not JSON-serializable by default; store as array of [key, value]
         
-        localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap)));
+        localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
+
+        var storedClasses = localStorage.getItem('classesMap');
+        console.log("Stored classesMap:", storedClasses);
+
+        var storedClassesMap = JSON.parse(storedClasses);
+        console.log("Parsed stored classesMap:", storedClasses);
+
+        console.log(storedClassesMap.get(1)); // Example of accessing class name by ID
 
         // Ensure container visible
         ensureClassesContainerVisible();
@@ -2210,7 +2218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    
+
 
     function ensureClassesContainerVisible() {
         const sec = document.getElementById('classesSection');
