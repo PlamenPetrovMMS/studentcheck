@@ -2193,7 +2193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Wire Add Students overlay button to add selected students and mark ready
     const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
     if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
-        addStudentsOverlayBtn.addEventListener('click', () => {
+        addStudentsOverlayBtn.addEventListener('click', async () => {
 
             console.log("\n");
 
@@ -2261,8 +2261,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Merged Students Array:", merged);
 
 
+            
+            merged.forEach(student => {
+                console.log(`- ${student.fullName} (${student.facultyNumber})`);
+            });
 
-            persistClassStudents(className, merged);
+            localStorage.setItem(`${className}:students`, JSON.stringify(merged));
+
+            var response = await fetch(`${serverBaseUrl + ENDPOINTS.class_students}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    classId: classId,
+                    students: merged
+                })
+            });
+
+            if(response.ok){
+                console.log("Successfully synced students to server for class:", className);
+            } else {
+                console.error("Failed to sync students to server for class:", className);
+            }
+
             // Mark ready and persist
             readyClasses.add(className);
             // Update UI state for the button of this class
