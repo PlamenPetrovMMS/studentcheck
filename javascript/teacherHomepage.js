@@ -705,19 +705,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     function closeClassOptionsOverlay(){ if (classOptionsOverlay) classOptionsOverlay.style.visibility = 'hidden'; if (!readyPopupOverlay || readyPopupOverlay.style.visibility !== 'visible') document.body.style.overflow = ''; }
 
-    function classExists(name){
-        const norm = (name||'').trim();
-        if (!norm) return false;
-        const key = classItemKey(norm);
-        try { if (key && localStorage.getItem(key)) return true; } catch(_) {}
-        const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').replace(/✓\s*Ready/g,'').trim() === norm);
-        return !!btn;
-    }
     function renameClass(oldName, newName){
         const from = (oldName||'').trim();
         const to = (newName||'').trim();
         if (!from || !to || from === to) return false;
-        if (classExists(to)) { alert('A class with this name already exists.'); return false; }
         // Migrate per-class storage
         try {
             const oldKey = classItemKey(from);
