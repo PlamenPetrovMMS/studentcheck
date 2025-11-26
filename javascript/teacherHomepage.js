@@ -1612,16 +1612,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        console.log("result", result);
-
         if (result.ok) {
             let data = await result.json();
             let students = data.students;
+            console.log("Fetched students:", students);
             return students;
         }else{
             console.error("Failed to fetch class students", result.status);
         }
-        
+
         return null;
     }
 
