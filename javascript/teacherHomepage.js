@@ -1602,7 +1602,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     async function loadClassStudents(className, classId) {
 
-        console.log(className, classId);
+        console.log("loadClassStudents", { className, classId });
+        console.log("Waiting for a result...");
 
         let result = await fetch(`${serverBaseUrl + ENDPOINTS.class_students}?class_id=${encodeURIComponent(classId)}`, {
             method: 'GET',
@@ -1610,12 +1611,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'Content-Type': 'application/json'
             }
         });
+
+        console.log("result", result);
+
         if (result.ok) {
             let data = await result.json();
             console.log("data.students", data.students);
         }else{
             console.error("Failed to fetch class students", result.status);
         }
+
         return [];
     }
 
@@ -2198,8 +2203,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
-
-        console.log("Getting 'class' id:", getClassIdByName("class"));
 
         ensureClassesContainerVisible();
     };
