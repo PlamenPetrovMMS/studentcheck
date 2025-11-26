@@ -2203,14 +2203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
 
-        // Retrieve and safely restore the classesMap from localStorage
-        var storedClassesRaw = localStorage.getItem('classesMap');
-        console.log("Stored classesMap raw:", storedClassesRaw);
-
-        var storedClassesEntries = JSON.parse(storedClassesRaw);
-        var restoredClassesMap = new Map(storedClassesEntries);
-
-        console.log("Restored classesMap size:", restoredClassesMap.size);
+        var restoredClassesMap = getStoredClassesMap();
 
         // Example access (ensure the key type matches what was stored: number vs string)
         console.log("Example class id=1 ->", restoredClassesMap.get("1"));
@@ -2221,7 +2214,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+    const getStoredClassesMap = () => {
 
+        var storedClassesMap;
+
+        try{
+            storedClassesMap = new Map(JSON.parse(localStorage.getItem('classesMap')));
+        }catch(e){
+            console.error("Error retrieving stored classesMap:", e);
+            return;
+        }
+        
+        return storedClassesMap;
+    }
 
 
     function ensureClassesContainerVisible() {
