@@ -1935,15 +1935,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const renderStudents = (students) => {
         const main_section_body = document.getElementById('overlayMainSectionBody');
+
         if (!main_section_body) return;
+
         main_section_body.innerHTML = '';
         allStudentItems = [];
+
         if (!Array.isArray(students) || students.length === 0) {
             main_section_body.innerHTML = '<p>No students found.</p>';
-            lastStudentsData = [];
             return;
         }
-        lastStudentsData = students;
 
         const list = document.createElement('ul');
         list.style.listStyle = 'none';
@@ -1956,6 +1957,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const splitNames = (window.Students?.splitNames || (()=>({ fullName: '' })))(s);
             const facultyNumber = s.faculty_number;
             const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(s, 'student', idx) : (facultyNumber || splitNames.fullName || `student_${idx}`));
+            
             li.dataset.studentId = studentId;
             li.dataset.name = splitNames.fullName;
             if (facultyNumber) li.dataset.facultyNumber = facultyNumber;
@@ -2020,6 +2022,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Expose selected students helper (adjacent improvement)
     window.getSelectedStudents = function() {
+
+        var selectedStudentsArray = Array.from(studentSelection);
+
+        console.log("Selected Students Array:", selectedStudentsArray);
+
+        var selectedStudentsMap = selectedStudentsArray.map(id => {
+            
+        });
+
         return Array.from(studentSelection).map(id => {
             const item = allStudentItems.find(i => i.id === id);
             return {
@@ -2306,7 +2317,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const facultyNumber = student.facultyNumber || '';
                 if (!byFac.has(key)) byFac.set(key, { fullName, facultyNumber });
             });
+
+            
+
             const merged = Array.from(byFac.values());
+            console.log("Merged Students Array:", merged);
+
+
+
             persistClassStudents(className, merged);
             // Mark ready and persist
             readyClasses.add(className);
@@ -2319,6 +2337,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         addStudentsOverlayBtn.dataset.bound = 'true';
     }
+
+
+
+
+
 
     // Cleanup legacy storage so only per-class items remain
     (function cleanupLegacyClassStorage(){
