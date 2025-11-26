@@ -2218,7 +2218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Merge with existing students stored for the class
             var classStudents;
             var storedClassStudents = localStorage.getItem(`${className}:students`);
-            console.log('Existing class students from localStorage:', storedExistingClassStudents);
+            console.log('Existing class students from localStorage:', storedClassStudents);
 
             if(!storedClassStudents){
                 console.error("No existing class students found in localStorage for class:", className);
