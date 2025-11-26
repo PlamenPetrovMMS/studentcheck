@@ -2199,11 +2199,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("Storing classesMap in localStorage:", classesMap);
 
-        localStorage.setItem('classesMap', JSON.stringify(classesMap));
+        // Maps are not JSON-serializable by default; store as array of [key, value]
+        
+        localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap)));
 
         // Ensure container visible
         ensureClassesContainerVisible();
     };
+
+
+
+
+    
 
     function ensureClassesContainerVisible() {
         const sec = document.getElementById('classesSection');
