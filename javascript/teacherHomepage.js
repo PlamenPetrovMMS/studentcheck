@@ -2277,6 +2277,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
         addStudentsOverlayBtn.addEventListener('click', () => {
 
+            console.log("\n");
+
             const selected = window.getSelectedStudents?.() || [];
             console.log('Selected students to add:', selected);
 
@@ -2318,7 +2320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!byFac.has(key)) byFac.set(key, { fullName, facultyNumber });
             });
 
-            
+
 
             const merged = Array.from(byFac.values());
             console.log("Merged Students Array:", merged);
