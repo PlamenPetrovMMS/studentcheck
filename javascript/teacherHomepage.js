@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Update readiness set
         if (readyClasses.has(from)) { readyClasses.delete(from); readyClasses.add(to); }
         // Update assignments map
-        if (classStudentAssignments.has(from)) { const set = classStudentAssignments.get(from); classStudentAssignments.delete(from); classStudentAssignments.set(to, set); persistAssignments(); }
+        if (classStudentAssignments.has(from)) { const set = classStudentAssignments.get(from); classStudentAssignments.delete(from); classStudentAssignments.set(to, set); }
         // Migrate attendance logs keys
         try {
             if (teacherEmail) {
@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Remove readiness
         if (readyClasses.has(n)) { readyClasses.delete(n); }
         // Remove assignments
-        if (classStudentAssignments.has(n)) { classStudentAssignments.delete(n); persistAssignments(); }
+        if (classStudentAssignments.has(n)) { classStudentAssignments.delete(n); }
         // Remove attendance logs
         try {
             if (teacherEmail) {
@@ -1471,76 +1471,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (scannerOverlay) closeScannerOverlay();
         document.body.style.overflow = '';
     }
-    function loadReadyClasses() {
-        // Prefer teacher-specific readiness, but tolerate mobile reloads without session
-        try {
-            const normEmail = normalizeEmail(teacherEmail);
-            // Merge any ready lists where the stored email matches by normalized value
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (!k) continue;
-                const m = k.match(/^teacher:classes:([^:]+):ready$/);
-                if (m && normalizeEmail(m[1]) === normEmail) {
-                    try {
-                        const raw = localStorage.getItem(k);
-                        const arr = JSON.parse(raw);
-                        if (Array.isArray(arr)) arr.forEach(n => readyClasses.add(n));
-                    } catch(_) {}
-                }
-            }
-            // Infer readiness from per-class items for this teacher (case-insensitive email match)
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (!k || !k.startsWith('teacher:class:')) continue;
-                const emailPart = parseEmailFromPerClassKey(k);
-                if (!emailPart || normalizeEmail(emailPart) !== normEmail) continue;
-                try {
-                    const rawItem = localStorage.getItem(k);
-                    const obj = JSON.parse(rawItem);
-                    const afterPrefix = k.replace(/^teacher:class:[^:]+:/, '');
-                    const name = obj?.name || decodeURIComponent(afterPrefix);
-                    const studentsArr = Array.isArray(obj?.students) ? obj.students : [];
-                    if (name && studentsArr.length > 0) readyClasses.add(name);
-                } catch(_) {}
-            }
-            // Persist back to a single normalized key for consistency
-            const normalizedReadyKey = `teacher:classes:${normEmail}:ready`;
-            try { localStorage.setItem(normalizedReadyKey, JSON.stringify(Array.from(readyClasses))); } catch(_){ }
-        } catch (e) { console.warn('Load readyClasses failed', e); }
-    }
-
-    // Persisting class-to-students assignments for robustness across reloads
-    function persistAssignments() {
-        if (!teacherEmail) return; const key = storageKey(teacherEmail) + ':assignments';
-        try {
-            const obj = {};
-            classStudentAssignments.forEach((set, name) => { obj[name] = Array.from(set); });
-            localStorage.setItem(key, JSON.stringify(obj));
-        } catch (e) { console.warn('Persist assignments failed', e); }
-    }
-    function loadAssignments() {
-        if (!teacherEmail) return;
-        const normEmail = normalizeEmail(teacherEmail);
-        try {
-            // Load any assignment keys for normalized-matching email
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (!k) continue;
-                const m = k.match(/^teacher:classes:([^:]+):assignments$/);
-                if (!m) continue;
-                if (normalizeEmail(m[1]) !== normEmail) continue;
-                const raw = localStorage.getItem(k);
-                if (!raw) continue;
-                const obj = JSON.parse(raw);
-                if (obj && typeof obj === 'object') {
-                    Object.keys(obj).forEach(name => {
-                        const arr = Array.isArray(obj[name]) ? obj[name] : [];
-                        classStudentAssignments.set(name, new Set(arr));
-                    });
-                }
-            }
-        } catch (e) { console.warn('Load assignments failed', e); }
-    }
 
 
 
@@ -1791,7 +1721,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newlyAdded = [];
         addStudentsSelections.forEach(id => { if (!assignSet.has(id)) { assignSet.add(id); newlyAdded.push(id); } });
         // Persist assignments
-        persistAssignments();
         // Update per-class student objects list
         const existingStudentsObjects = loadClassStudents(className) || [];
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
@@ -2239,8 +2168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             ensureClassesContainerVisible();
             // Recompute readiness from storage each time pageshow fires (bfcache restores stale DOM)
-            readyClasses.clear();
-            loadReadyClasses();
+            
             // Update styling on any existing class buttons
             const buttons = Array.from(classList?.querySelectorAll('.newClassBtn') || []);
             buttons.forEach(b => updateClassStatusUI(b));
@@ -2259,9 +2187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const hasAdd = !!li.querySelector('#addClassBtn');
                     if (!hasAdd) li.remove();
                 });
-                // Reload from storage and reapply styles
-                loadAssignments();
-                loadReadyClasses();
+                
                 loadClasses();
                 classList?.querySelectorAll('.newClassBtn')?.forEach(b => updateClassStatusUI(b));
             }
