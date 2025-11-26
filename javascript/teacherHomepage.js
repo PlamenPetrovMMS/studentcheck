@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const classStudentAssignments = new Map(); // className -> Set(studentIds)
     let currentClassButton = null;
     let currentClassName = '';
+    let currentClassId = '';
     let wizardSelections = new Set();
     let wizardClassName = '';
     let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
@@ -2190,9 +2191,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Response received:", result);
         
         console.log("Rendering class items...");
+        const classesMap = new Map();
         result.classes.forEach(_class => {
+            classesMap.set(_class.id, _class.name);
             renderClassItem(_class.name, _class.id);
         });
+
+        localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
 
         // Ensure container visible
         ensureClassesContainerVisible();
@@ -2290,7 +2295,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Merge with existing students stored for the class
-            const existing = loadClassStudents(className) || [];
+            const existing = loadClassStudents(className, classId) || [];
+
+            console.log('Existing students in class:', existing);
+
             const byFac = new Map();
             existing.forEach(s => {
                 const key = (s.facultyNumber || s.fullName || '').trim();
