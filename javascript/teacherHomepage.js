@@ -2086,23 +2086,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const loadReadyClasses = () => {
 
-        console.log("Checking ready classes from storage...");
+        console.log("[loadReadyClasses] Checking ready classes from storage...");
 
         const storedClassesMap = getStoredClassesMap();
 
-        console.log("Stored Classes Map:", storedClassesMap);
+        console.log("[loadReadyClasses] Stored Classes Map:", storedClassesMap);
 
         if(!storedClassesMap){
-            console.error("No stored classes map found.");
+            console.error("[loadReadyClasses] No stored classes map found.");
             return;
         }
 
         for(const [id, name] of storedClassesMap.entries()){
             const storedClass = localStorage.getItem(`${name}:students`);
-            console.log("Stored class students for", name, ":", storedClass);
+            console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
 
             if(storedClass && storedClass.isEmpty == false){
-                console.log("Class", name, "is marked as ready.");
+                console.log("[loadReadyClasses] Class", name, "is marked as ready.");
                 readyClasses.add(name);
             }
         } 
