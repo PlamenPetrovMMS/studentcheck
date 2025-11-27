@@ -1189,6 +1189,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             manageStudentsListEl.appendChild(ul);
             return;
         }
+
+        console.log('[renderManageStudentsForClass] No students found in storage for class:', className);
+        console.log('[renderManageStudentsForClass] Falling back to in-memory assignments for class:', className);
+
         // Fallback to in-memory id set + cache index
         const set = classStudentAssignments.get(className);
         if (!set || set.size === 0) {
@@ -1198,10 +1202,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             manageStudentsListEl.appendChild(p);
             return;
         }
+
         const ul = document.createElement('ul');
         ul.style.listStyle = 'none';
         ul.style.padding = '0';
         ul.style.margin = '0';
+
         Array.from(set).forEach((id) => {
             const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
             const li = document.createElement('li');
@@ -1335,11 +1341,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function openStudentInfoOverlay(studentId, className) {
+
+        console.log('[Student Info] Opening overlay for student ID:', studentId, 'in class:', className);
+
         ensureStudentInfoOverlay();
+
+        console.log('[Student Info] Ensured overlay exists');
+
         // Preserve scroll of manage overlay
         if (manageStudentsListEl) manageStudentsScrollPos = manageStudentsListEl.scrollTop;
+  
         // Hide manage overlay without destroying it
         if (manageStudentsOverlay) manageStudentsOverlay.style.visibility = 'hidden';
+
         const info = studentIndex.get(studentId) || { fullName: studentId };
         // Clear and insert new content
         studentInfoOverlay.innerHTML = '';
@@ -1622,9 +1636,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return addStudentsClassOverlay;
     }
     async function openAddStudentsToClass(className) {
+
+        console.log("[Manage Students Add Overlay] Opening for class:", className);
+
         if (!className) return;
         ensureAddStudentsClassOverlay();
+
+        console.log("[Manage Students Add Overlay] Ensured overlay exists");
         addStudentsSelections.clear();
+
         const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
         if (confirmBtn) confirmBtn.textContent = 'Add (0)';
         // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
@@ -1635,6 +1655,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
         searchInput?.focus();
     }
+
     function closeAddStudentsToClass() {
         if (addStudentsClassOverlay) addStudentsClassOverlay.style.visibility = 'hidden';
         // Keep body overflow hidden if manage overlay still open
@@ -1643,21 +1664,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     function renderAddStudentsList(className) {
+
+        let classId = getClassIdByName(className);
+        if (!classId) {
+            console.error("[Render Add Students] No class ID found for class:", className);
+            return;
+        }
+
+        console.log("[Render Add Students] for class:", className);
+
         if (!addStudentsListEl) return;
         // Build existing set from assignments map and as a fallback from per-class stored students
         const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
+
+        console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
+
         try {
-            const stored = loadClassStudents(className) || [];
+            console.log("[Render Add Students] Loading stored students for class:", className, "...");
+            const stored = loadClassStudents(className, classId);
             stored.forEach(s => {
                 const id = (s.facultyNumber || s.fullName || '').trim();
                 if (id) existingSet.add(id);
             });
-        } catch(_) {}
+        } catch(_) {
+
+        }
+
         const studentsArray = studentCache || [];
         if (!Array.isArray(studentsArray) || studentsArray.length === 0) {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
             return;
         }
+        
         const ul = document.createElement('ul');
         ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
         studentsArray.forEach((s, idx) => {
