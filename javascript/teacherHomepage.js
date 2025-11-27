@@ -1682,20 +1682,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             console.log("[Render Add Students] Loading stored students for class:", className, "...");
             const stored = loadClassStudents(className, classId);
-            stored.forEach(s => {
-                const id = (s.facultyNumber || s.fullName || '').trim();
-                if (id) existingSet.add(id);
+            console.log("[Render Add Students] Loaded stored students:", stored);
+
+            stored.forEach(student => {
+                const id = student.facultyNumber.trim();
+                if (id) {
+                    existingSet.add(id);
+                }
             });
         } catch(_) {
-
+            console.error("[Render Add Students] Failed to load stored students for class:", className);
         }
 
-        const studentsArray = studentCache || [];
+        const studentsArray = studentCache;
         if (!Array.isArray(studentsArray) || studentsArray.length === 0) {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
             return;
         }
-        
+
         const ul = document.createElement('ul');
         ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
         studentsArray.forEach((s, idx) => {
