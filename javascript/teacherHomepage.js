@@ -2086,11 +2086,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const classButtons = Array.from(document.querySelectorAll('.newClassBtn'));
 
-        console.log("[loadReadyClasses] Checking ready classes from storage...");
+        // console.log("[loadReadyClasses] Checking ready classes from storage...");
 
         const storedClassesMap = getStoredClassesMap();
 
-        console.log("[loadReadyClasses] Stored Classes Map:", storedClassesMap);
+        // console.log("[loadReadyClasses] Stored Classes Map:", storedClassesMap);
 
         if(!storedClassesMap){
             console.error("[loadReadyClasses] No stored classes map found.");
@@ -2103,13 +2103,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if(storedClass){
                 storedClassArray = JSON.parse(storedClass);
-                console.log("[loadReadyClasses] Parsed stored class students for", name, ":", storedClassArray);
+                // console.log("[loadReadyClasses] Parsed stored class students for", name, ":", storedClassArray);
             }
             
-            console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
+            // console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
 
             if(storedClassArray && storedClassArray.length > 0){
-                console.log("[loadReadyClasses] Class", name, "is marked as ready. Lenghth:", storedClassArray.length);
+                // console.log("[loadReadyClasses] Class", name, "is marked as ready. Lenghth:", storedClassArray.length);
                 readyClasses.add(name);
             }
         } 
