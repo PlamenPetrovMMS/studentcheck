@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         createClass: `/classes`,
         markAttendance: `/attendance`,
         class_students: '/class_students',
+        students: '/students',
     };
 
     async function apiCreateClass(name, studentIds, teacherEmail) {
@@ -1678,7 +1679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             console.log("[Render Add Students] Loading stored students for class:", className, "...");
             // preload students from database
-            stored = await loadClassStudents(className, classId);
+            // stored = await loadClassStudents(className, classId);
+            stored = await loadStudentsFromDatabase();
             console.log("[Render Add Students] Loaded stored students:", stored);
 
             stored.forEach(student => {
@@ -2164,6 +2166,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         ensureClassesContainerVisible();
     };
+
+
+    async function loadStudentsFromDatabase() {
+        
+        console.log("[loadStudentsFromDatabase] Fetching all students from server...");
+        let result = await fetch(`${serverBaseUrl + ENDPOINTS.students}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if(result.ok){
+            const data = await result.json();
+            const students = data.students;
+            console.log("[loadStudentsFromDatabase] Students fetched from server:", students);
+            return students;
+        }
+
+    }
 
 
 
