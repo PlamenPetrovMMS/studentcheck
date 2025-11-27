@@ -1696,13 +1696,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("[Render Add Students] Failed to load stored students for class:", className);
         }
 
-        if(!stored){
+        if(!classStudents){
             console.log("[Render Add Students] No stored students loaded, using empty array.");
             console.error("[Render Add Students] No stored students found for class:", className);
             return;
         }
 
-        if (!stored.length === 0) {
+        if (!classStudents.length === 0) {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
             return;
         }
