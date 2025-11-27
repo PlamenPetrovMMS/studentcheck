@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Replace the current ready overlay with Manage Students overlay
             const className = currentClassName || (currentClassButton ? (currentClassButton.dataset.className || currentClassButton.dataset.originalLabel || currentClassButton.textContent || '') : '');
             closeReadyClassPopup();
-            openManageStudentsOverlay((className || '').trim());
+            openManageStudentsOverlay((className).trim());
         });
     scannerBtn?.addEventListener('click', () => { startScanner(); });
         downloadBtn?.addEventListener('click', () => {
@@ -1139,18 +1139,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return manageStudentsOverlay;
     }
 
-    async function fetchStudentsCache() {
-        try {
-            await (window.Students?.fetchAll?.() || Promise.resolve([]));
-            studentCache = window.Students?.getCache?.() || [];
-            studentIndex = window.Students?.getIndex?.() || new Map();
-            return studentCache;
-        } catch (e) {
-            console.warn('Failed to load student cache', e);
-            return [];
-        }
-    }
-
     function renderManageStudentsForClass(className) {
         if (!manageStudentsListEl) return;
         manageStudentsListEl.innerHTML = '';
@@ -1232,8 +1220,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log('[Manage Students] Hidden ready class overlay');
 
-        // Ensure we have students cache
-        await fetchStudentsCache();
+        const classStudents = loadClassStudents(className);
+        console.log('[Manage Students] Loaded class students, count:', classStudents.length);
 
         console.log('[Manage Students] Fetched student cache, count:', studentCache.length);
 
@@ -1610,7 +1598,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
         if (confirmBtn) confirmBtn.textContent = 'Add (0)';
         // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
-        await fetchStudentsCache();
         renderAddStudentsList(className);
         updateAddStudentsCounter();
         addStudentsClassOverlay.style.visibility = 'visible';
