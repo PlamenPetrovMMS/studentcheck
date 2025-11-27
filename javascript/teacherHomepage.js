@@ -2077,11 +2077,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
 
-        console.log("Ready classes: ", Array.from(readyClasses));
+        loadReadyClasses();
 
         ensureClassesContainerVisible();
     };
 
+
+
+    const loadReadyClasses = () => {
+
+        console.log("Checking ready classes from storage...");
+
+        const storedClassesMap = getStoredClassesMap();
+
+        if(!storedClassesMap){
+            console.error("No stored classes map found.");
+            return;
+        }
+
+        for(const [id, name] of storedClassesMap.entries()){
+            const storedClass = localStorage.getItem(`${name}:students`);
+            if(storedClass && storedClass.isEmpty == false){
+                readyClasses.add(name);
+            }
+        } 
+
+    }
 
 
     const getStoredClassesMap = () => {
