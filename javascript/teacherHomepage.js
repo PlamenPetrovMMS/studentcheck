@@ -1673,10 +1673,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
 
+        let stored;
+        
         try {
             console.log("[Render Add Students] Loading stored students for class:", className, "...");
             // preload students from database
-            const stored = await loadClassStudents(className, classId);
+            stored = await loadClassStudents(className, classId);
             console.log("[Render Add Students] Loaded stored students:", stored);
 
             stored.forEach(student => {
@@ -1690,20 +1692,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("[Render Add Students] Failed to load stored students for class:", className);
         }
 
-        const studentsArray = studentCache;
-        if (!Array.isArray(studentsArray) || studentsArray.length === 0) {
+        if(!stored){
+            console.log("[Render Add Students] No stored students loaded, using empty array.");
+            console.error("[Render Add Students] No stored students found for class:", className);
+            return;
+        }
+
+        if (!stored.length === 0) {
             addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
             return;
         }
 
         const ul = document.createElement('ul');
-        ul.style.listStyle='none'; ul.style.margin='0'; ul.style.padding='0';
-        studentsArray.forEach((s, idx) => {
+        ul.style.listStyle='none'; 
+        ul.style.margin='0'; 
+        ul.style.padding='0';
+
+        console.log("[Render Add Students] Rendering list of students...");
+
+        stored.forEach((student, idx) => {
             const li = document.createElement('li');
             li.className='list-item';
-            const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(s);
-            const facultyNumber = s.faculty_number;
-            const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(s, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
+            const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(student);
+            const facultyNumber = student.faculty_number;
+            const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(student, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
 
             if (existingSet.has(studentId)) {
                 // Render without checkbox, with two-line text and 'Already in' badge
