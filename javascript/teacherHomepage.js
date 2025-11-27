@@ -2086,6 +2086,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const loadReadyClasses = () => {
 
+        const classButtons = Array.from(document.querySelectorAll('.newClassBtn'));
+
         console.log("[loadReadyClasses] Checking ready classes from storage...");
 
         const storedClassesMap = getStoredClassesMap();
@@ -2106,6 +2108,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 readyClasses.add(name);
             }
         } 
+
+        for(const btn of classButtons){
+            if(readyClasses.has(btn.dataset.className)){
+                updateClassStatusUI(btn);
+            }
+        }
 
     }
 
