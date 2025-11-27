@@ -1140,35 +1140,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderManageStudentsForClass(className) {
+
+        console.log('[renderManageStudentsForClass] Rendering students for class:', className);
+
         if (!manageStudentsListEl) return;
         manageStudentsListEl.innerHTML = '';
+
         // Prefer per-class stored student objects
-        const students = loadClassStudents(className) || [];
+        const students = loadClassStudentsFromStorage(className);
+        
         if (students.length > 0) {
             const ul = document.createElement('ul');
             ul.style.listStyle = 'none';
             ul.style.padding = '0';
             ul.style.margin = '0';
+
             students.forEach(s => {
+
+                console.log('[renderManageStudentsForClass] Rendering student from storage:', s);
+
                 const li = document.createElement('li');
                 li.className = 'list-item';
-                const studentId = s.facultyNumber || s.fullName || '';
+                const studentId = s.facultyNumber;
                 li.dataset.studentId = studentId;
+
                 // Two-line fixed layout: name on top, faculty number below
                 const wrap = document.createElement('div');
                 wrap.className = 'student-card-text';
+
                 const nameEl = document.createElement('span');
                 nameEl.className = 'student-name';
-                nameEl.textContent = s.fullName || '';
+                nameEl.textContent = s.fullName;
+
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
-                facEl.textContent = s.facultyNumber || '';
+                facEl.textContent = s.facultyNumber;
+
                 wrap.appendChild(nameEl);
                 wrap.appendChild(facEl);
+
                 li.appendChild(wrap);
                 li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
+
                 ul.appendChild(li);
             });
+
+            console.log('[renderManageStudentsForClass] Rendered', students.length, 'students from storage for class:', className);
+
             manageStudentsListEl.appendChild(ul);
             return;
         }
