@@ -2102,6 +2102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Stored class students for", name, ":", storedClass);
 
             if(storedClass && storedClass.isEmpty == false){
+                console.log("Class", name, "is marked as ready.");
                 readyClasses.add(name);
             }
         } 
