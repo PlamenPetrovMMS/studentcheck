@@ -2103,6 +2103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if(storedClass){
                 storedClassArray = JSON.parse(storedClass);
+                console.log("[loadReadyClasses] Parsed stored class students for", name, ":", storedClassArray);
             }
             
             console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
