@@ -1220,10 +1220,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log('[Manage Students] Hidden ready class overlay');
 
-        const classStudents = loadClassStudents(className);
+        const classStudents = loadClassStudentsFromStorage(className);
         console.log('[Manage Students] Loaded class students, count:', classStudents.length);
-
-        console.log('[Manage Students] Fetched student cache, count:', studentCache.length);
 
         // Title reflect class name
         const titleEl = manageStudentsOverlay.querySelector('#manageStudentsTitle');
@@ -1507,6 +1505,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return null;
     }
+
+
+    function loadClassStudentsFromStorage(className) {
+        try{
+            const key = `${className}:students`;
+            const stored = localStorage.getItem(key);
+            const students = JSON.parse(stored);
+            return students;
+        }catch(e){
+            console.error("Error loading class students from storage", e);
+            return null;
+        }
+    }
+
+
 
     function isStudentInClass(className, studentId) {
         if (!className || !studentId) return false;
