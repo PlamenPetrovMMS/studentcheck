@@ -1680,7 +1680,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("[Render Add Students] Loaded stored students:", stored);
 
             stored.forEach(student => {
-                const id = student.facultyNumber.trim();
+                console.log(student);
+                const id = student.faculty_number.trim();
                 if (id) {
                     existingSet.add(id);
                 }
