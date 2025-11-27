@@ -2090,6 +2090,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const storedClassesMap = getStoredClassesMap();
 
+        console.log("Stored Classes Map:", storedClassesMap);
+
         if(!storedClassesMap){
             console.error("No stored classes map found.");
             return;
@@ -2098,7 +2100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         for(const [id, name] of storedClassesMap.entries()){
             const storedClass = localStorage.getItem(`${name}:students`);
             console.log("Stored class students for", name, ":", storedClass);
-            
+
             if(storedClass && storedClass.isEmpty == false){
                 readyClasses.add(name);
             }
