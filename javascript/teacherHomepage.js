@@ -1155,13 +1155,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             ul.style.padding = '0';
             ul.style.margin = '0';
 
-            students.forEach(s => {
+            students.forEach(student => {
 
                 console.log('[renderManageStudentsForClass] Rendering student from storage:', s);
 
                 const li = document.createElement('li');
                 li.className = 'list-item';
-                const studentId = s.facultyNumber;
+                const studentId = student.faculty_number;
                 li.dataset.studentId = studentId;
 
                 // Two-line fixed layout: name on top, faculty number below
@@ -1170,12 +1170,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const nameEl = document.createElement('span');
                 nameEl.className = 'student-name';
-                nameEl.textContent = s.fullName;
+                nameEl.textContent = student.full_name;
 
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
-                facEl.textContent = s.facultyNumber;
-
+                facEl.textContent = student.faculty_number;
                 wrap.appendChild(nameEl);
                 wrap.appendChild(facEl);
 
