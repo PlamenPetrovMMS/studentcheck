@@ -2077,8 +2077,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         localStorage.setItem('classesMap', JSON.stringify(Array.from(classesMap.entries())));
 
-        loadReadyClasses();
-
         ensureClassesContainerVisible();
     };
 
@@ -2188,8 +2186,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    console.log("Loading classes...")
+    console.log("Loading classes...");
     loadClasses();
+    console.log("Loading ready classes...");
+    loadReadyClasses();
+
     // Handle bfcache/pageshow and ensure styles reflect current storage state
     window.addEventListener('pageshow', (ev) => {
         try {
