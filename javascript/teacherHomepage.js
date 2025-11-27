@@ -2099,6 +2099,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         for(const [id, name] of storedClassesMap.entries()){
             const storedClass = localStorage.getItem(`${name}:students`);
+            let storedClassArray = null;
+            
+            if(storedClass){
+                storedClassArray = JSON.parse(storedClass);
+            }
+            
             console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
 
             if(storedClass && storedClass.length > 0){
