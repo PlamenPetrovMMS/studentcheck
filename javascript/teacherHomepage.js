@@ -12,12 +12,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const normalizeEmail = (e) => (e || '').trim().toLowerCase();
 
-    const parseEmailFromPerClassKey = (key) => {
-        // key pattern: teacher:class:<email>:<className>
-        const m = key.match(/^teacher:class:([^:]+):/);
-        return m ? m[1] : null;
-    };
-
     const ENDPOINTS = {
         createClass: `/classes`,
         markAttendance: `/attendance`,
@@ -1663,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.style.overflow = '';
         }
     }
-    function renderAddStudentsList(className) {
+    async function renderAddStudentsList(className) {
 
         let classId = getClassIdByName(className);
         if (!classId) {
@@ -1672,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         console.log("[Render Add Students] for class:", className);
-
+        
         if (!addStudentsListEl) return;
         // Build existing set from assignments map and as a fallback from per-class stored students
         const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
@@ -1681,7 +1675,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             console.log("[Render Add Students] Loading stored students for class:", className, "...");
-            const stored = loadClassStudents(className, classId);
+            // preload students from database
+            const stored = await loadClassStudents(className, classId);
             console.log("[Render Add Students] Loaded stored students:", stored);
 
             stored.forEach(student => {
