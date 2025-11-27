@@ -1674,16 +1674,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
 
-        let stored;
+        let classStudents, allStudents;
         
         try {
             console.log("[Render Add Students] Loading stored students for class:", className, "...");
             // preload students from database
-            // stored = await loadClassStudents(className, classId);
-            stored = await loadStudentsFromDatabase();
-            console.log("[Render Add Students] Loaded stored students:", stored);
+            classStudents = await loadClassStudents(className, classId);
+            allStudents = await loadStudentsFromDatabase();
+            
+            console.log("[Render Add Students] Loaded stored students:", classStudents);
+            console.log("[Render Add Students] Loaded all students from database:", allStudents);
 
-            stored.forEach(student => {
+            classStudents.forEach(student => {
                 console.log(student);
                 const id = student.faculty_number.trim();
                 if (id) {
@@ -1712,7 +1714,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[Render Add Students] Rendering list of students...");
 
-        stored.forEach((student, idx) => {
+        allStudents.forEach((student, idx) => {
             const li = document.createElement('li');
             li.className='list-item';
             const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(student);
