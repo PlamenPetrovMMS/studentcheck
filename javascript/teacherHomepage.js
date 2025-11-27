@@ -2108,8 +2108,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
 
-            if(storedClass && storedClass.length > 0){
-                console.log("[loadReadyClasses] Class", name, "is marked as ready. Lenghth:", storedClass.length);
+            if(storedClassArray && storedClassArray.length > 0){
+                console.log("[loadReadyClasses] Class", name, "is marked as ready. Lenghth:", storedClassArray.length);
                 readyClasses.add(name);
             }
         } 
