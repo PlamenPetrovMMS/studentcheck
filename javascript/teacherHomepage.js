@@ -1157,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             students.forEach(student => {
 
-                console.log('[renderManageStudentsForClass] Rendering student from storage:', s);
+                console.log('[renderManageStudentsForClass] Rendering student from storage:', student);
 
                 const li = document.createElement('li');
                 li.className = 'list-item';
