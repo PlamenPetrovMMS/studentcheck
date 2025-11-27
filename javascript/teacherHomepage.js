@@ -2101,7 +2101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const storedClass = localStorage.getItem(`${name}:students`);
             console.log("[loadReadyClasses] Stored class students for", name, ":", storedClass);
 
-            if(storedClass && storedClass.isEmpty == false){
+            if(storedClass && storedClass.length > 0){
                 console.log("[loadReadyClasses] Class", name, "is marked as ready.");
                 readyClasses.add(name);
             }
