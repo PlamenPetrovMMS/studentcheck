@@ -2185,6 +2185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         studentsList.forEach(student => {
             console.log("Checking student:", student);
+            console.log("Faculty Number:", facultyNumber, " vs ", student.faculty_number);
             if(student.faculty_number.trim() === facultyNumber.trim()){
                 return student;
             }
