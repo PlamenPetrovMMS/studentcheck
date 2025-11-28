@@ -1794,29 +1794,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     function finalizeAddStudentsToClass() {
+
+        console.log("[finalizeAddStudentsToClass] Finalizing additions...");
+
         const className = currentClassName;
-        if (!className || addStudentsSelections.size === 0) { closeAddStudentsToClass(); return; }
-        if (!classStudentAssignments.has(className)) classStudentAssignments.set(className, new Set());
+        if (!className || addStudentsSelections.size === 0) { 
+            closeAddStudentsToClass(); return; 
+        }
+
+        console.log("[finalizeAddStudentsToClass] classStudentsAssignments:", classStudentAssignments);
+
+        if (!classStudentAssignments.has(className)){
+            classStudentAssignments.set(className, new Set());
+        } 
+
         const assignSet = classStudentAssignments.get(className);
+
+        console.log("[finalizeAddStudentsToClass] Current assignments for class:", className, Array.from(assignSet));
+
         const newlyAdded = [];
-        addStudentsSelections.forEach(id => { if (!assignSet.has(id)) { assignSet.add(id); newlyAdded.push(id); } });
+        addStudentsSelections.forEach(id => { 
+            console.log("[finalizeAddStudentsToClass] Processing student ID:", id);
+            if (!assignSet.has(id)) {
+                 assignSet.add(id); 
+                 newlyAdded.push(id); 
+            } 
+        });
+
         // Persist assignments
         // Update per-class student objects list
-        const existingStudentsObjects = loadClassStudents(className) || [];
+        const existingStudentsObjects = loadClassStudents(className);
+
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
         newlyAdded.forEach(id => {
             const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
+
             // Prefer faculty_number (server field) then fallback to facultyNumber (client), else empty.
             const facultyNum = info.faculty_number || info.facultyNumber || '';
             const fullName = info.fullName || info.full_name || id;
             const obj = { fullName, facultyNumber: facultyNum };
+
             // Prevent duplicates by either facultyNumber (if present) or fullName.
             const duplicate = existingStudentsObjects.some(s => {
                 const existingFac = s.facultyNumber || '';
                 if (facultyNum && existingFac && existingFac === facultyNum) return true;
                 return s.fullName === fullName;
             });
-            if (!duplicate) existingStudentsObjects.push(obj);
+
+            if (!duplicate) {
+                existingStudentsObjects.push(obj);
+            }
+
         });
         // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
         if (!readyClasses.has(className)) {
