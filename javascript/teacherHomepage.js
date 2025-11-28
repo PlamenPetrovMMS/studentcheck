@@ -1793,7 +1793,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             li.style.display = matches ? '' : 'none';
         });
     }
-    function finalizeAddStudentsToClass() {
+    async function finalizeAddStudentsToClass() {
 
         console.log("[finalizeAddStudentsToClass] Finalizing additions...");
 
@@ -1822,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } 
         });
 
-        const studentsFromDatabase = loadStudentsFromDatabase();
+        const studentsFromDatabase = await loadStudentsFromDatabase();
         console.log("[finalizeAddStudentsToClass] Loaded students from database:", studentsFromDatabase);
 
         // Persist assignments
