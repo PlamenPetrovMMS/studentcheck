@@ -2203,7 +2203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                class_id: classId,
+                classId: classId,
                 students: newlyAddedStudents
             })
         });
