@@ -1861,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("[finalizeAddStudentsToClass] existingStudentsInClass:", existingStudentsInClass);
         console.log("[finalizeAddStudentsToClass] newlyAddedStudents objects to add:", newlyAddedStudents);
 
-        addNewStudentsToStorage(className, newlyAddedStudents);
+        addNewStudentsToStorage(className, [...existingStudentsInClass, ...newlyAddedStudents]);
         await addNewStudentsToDatabase(className, newlyAddedStudents);
 
         // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
@@ -2213,7 +2213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             console.error(`[addNewStudentsToDatabase] Failed to add new students to class "${className}" in the database. Status:`, response.status);
         }
-        
+
     }
 
 
