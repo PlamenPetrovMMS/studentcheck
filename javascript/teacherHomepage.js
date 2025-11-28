@@ -1156,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const li = document.createElement('li');
                 li.className = 'list-item';
-                const studentId = student.faculty_number;
+                const studentId = student.faculty_number || student.facultyNumber;
                 li.dataset.studentId = studentId;
 
                 // Two-line fixed layout: name on top, faculty number below
@@ -1165,11 +1165,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const nameEl = document.createElement('span');
                 nameEl.className = 'student-name';
-                nameEl.textContent = student.full_name;
+                nameEl.textContent = student.full_name || student.fullName;
 
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
-                facEl.textContent = student.faculty_number;
+                facEl.textContent = student.faculty_number || student.facultyNumber;
                 wrap.appendChild(nameEl);
                 wrap.appendChild(facEl);
 
