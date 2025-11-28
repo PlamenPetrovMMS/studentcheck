@@ -1799,7 +1799,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const className = currentClassName;
         if (!className || addStudentsSelections.size === 0) { 
-            closeAddStudentsToClass(); return; 
+            closeAddStudentsToClass(); 
+            return; 
         }
 
         console.log("[finalizeAddStudentsToClass] classStudentsAssignments:", classStudentAssignments);
@@ -1816,47 +1817,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         addStudentsSelections.forEach(id => { 
             console.log("[finalizeAddStudentsToClass] Processing student ID:", id);
             if (!assignSet.has(id)) {
-                 assignSet.add(id); 
-                 newlyAdded.push(id); 
+                assignSet.add(id); 
+                newlyAdded.push(id); 
             } 
         });
 
         // Persist assignments
         // Update per-class student objects list
-        const existingStudentsObjects = loadClassStudents(className);
+        const existingStudentsObjects = loadClassStudentsFromStorage(className);
 
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
         newlyAdded.forEach(id => {
-            const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
+            const info = studentIndex.get(id);
+            console.log()
 
             // Prefer faculty_number (server field) then fallback to facultyNumber (client), else empty.
-            const facultyNum = info.faculty_number || info.facultyNumber || '';
-            const fullName = info.fullName || info.full_name || id;
-            const obj = { fullName, facultyNumber: facultyNum };
+            const facultyNum = info.faculty_number;
+            const fullName = info.full_name;
+            const obj = { full_name: fullName, faculty_number: facultyNum };
+
+            console.log("[finalizeAddStudentsToClass] Merging student object:", obj);
 
             // Prevent duplicates by either facultyNumber (if present) or fullName.
-            const duplicate = existingStudentsObjects.some(s => {
-                const existingFac = s.facultyNumber || '';
-                if (facultyNum && existingFac && existingFac === facultyNum) return true;
-                return s.fullName === fullName;
+            const duplicate = existingStudentsObjects.some(student => {
+                const existingFac = student.faculty_number;
+                if (facultyNum && existingFac && existingFac === facultyNum){
+                    return true;
+                }
+                return student.full_name === fullName;
             });
 
             if (!duplicate) {
+                console.log("[finalizeAddStudentsToClass] Adding new student object to storage:", obj);
                 existingStudentsObjects.push(obj);
             }
 
         });
+
         // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
         if (!readyClasses.has(className)) {
+            console.log("[finalizeAddStudentsToClass] Marking class as ready:", className);
+
             readyClasses.add(className);
             // Update button UI instantly.
             const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
             if (btn) updateClassStatusUI(btn);
         }
+
         // Re-render manage list to reflect additions
         if (manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') {
             renderManageStudentsForClass(className);
         }
+
         // If attendance overlay is open for this class, refresh its list so newly added students appear immediately.
         if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') {
             renderAttendanceForClass(className);
