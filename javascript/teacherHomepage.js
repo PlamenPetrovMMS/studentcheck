@@ -1829,7 +1829,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
         newlyAdded.forEach(id => {
             const info = studentIndex.get(id);
-            console.log()
+            console.log("[finalizeAddStudentsToClass] Merging student ID:", id, "with info:", info);
 
             // Prefer faculty_number (server field) then fallback to facultyNumber (client), else empty.
             const facultyNum = info.faculty_number;
