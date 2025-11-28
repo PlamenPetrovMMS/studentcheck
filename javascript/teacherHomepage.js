@@ -2184,6 +2184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function getStudentInfoForFacultyNumber(facultyNumber, studentsList) {
 
         studentsList.forEach(student => {
+            console.log("Checking student:", student);
             if(student.faculty_number.trim() === facultyNumber.trim()){
                 return student;
             }
