@@ -1831,31 +1831,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
         newlyAdded.forEach(facultyNumber => {
-            const info = studentsFromDatabase.get(facultyNumber);
-            console.log("[finalizeAddStudentsToClass] Merging student facultyNumber:", facultyNumber, "with info:", info);
 
-            // Prefer faculty_number (server field) then fallback to facultyNumber (client), else empty.
-            const facultyNum = info.faculty_number;
-            const fullName = info.full_name;
-            const obj = { full_name: fullName, faculty_number: facultyNum };
+            let studentInfo = getStudentInfoForFacultyNumber(facultyNumber, studentsFromDatabase);
 
-            console.log("[finalizeAddStudentsToClass] Merging student object:", obj);
+            console.log("[finalizeAddStudentsToClass] Merging student object:", studentInfo);
 
             // Prevent duplicates by either facultyNumber (if present) or fullName.
             const duplicate = existingStudentsObjects.some(student => {
-                const existingFac = student.faculty_number;
-                if (facultyNum && existingFac && existingFac === facultyNum){
+                const existingStudentFacultyNum = student.faculty_number;
+
+                if (studentInfo && existingStudentFacultyNum && existingStudentFacultyNum === studentInfo.faculty_number){
                     return true;
                 }
-                return student.full_name === fullName;
+                
+                return student.full_name === studentInfo.full_name;
             });
 
+            console.log("[finalizeAddStudentsToClass] Duplicate check result for", studentInfo, "is", duplicate);
+
             if (!duplicate) {
-                console.log("[finalizeAddStudentsToClass] Adding new student object to storage:", obj);
-                existingStudentsObjects.push(obj);
+                console.log("[finalizeAddStudentsToClass] Adding new student object to storage:", studentInfo);
+                existingStudentsObjects.push(studentInfo);
             }
 
         });
+
+        console.log("[finalizeAddStudentsToClass] newlyAdded student IDs:", newlyAdded);
 
         // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
         if (!readyClasses.has(className)) {
@@ -1869,6 +1870,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Re-render manage list to reflect additions
         if (manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') {
+            console.log("[finalizeAddStudentsToClass] Re-rendering manage students overlay for class:", className);
             renderManageStudentsForClass(className);
         }
 
@@ -1876,6 +1878,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') {
             renderAttendanceForClass(className);
         }
+        console.log("[finalizeAddStudentsToClass] Closing add students overlay");
         closeAddStudentsToClass();
     }
 
@@ -2178,6 +2181,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+    function getStudentInfoForFacultyNumber(facultyNumber, studentsList) {
+
+        studentsList.forEach(student => {
+            if(student.faculty_number.trim() === facultyNumber.trim()){
+                return student;
+            }
+        });
+
+        console.error("[getStudentInfoForFacultyNumber] No student found with faculty number:", facultyNumber);
+        return null;
+    }
 
 
     const loadClasses = async () => {
