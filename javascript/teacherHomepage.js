@@ -1822,14 +1822,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             } 
         });
 
+        const studentsFromDatabase = loadStudentsFromDatabase();
+        console.log("[finalizeAddStudentsToClass] Loaded students from database:", studentsFromDatabase);
+
         // Persist assignments
         // Update per-class student objects list
         const existingStudentsObjects = loadClassStudentsFromStorage(className);
 
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
-        newlyAdded.forEach(id => {
-            const info = studentIndex.get(id);
-            console.log("[finalizeAddStudentsToClass] Merging student ID:", id, "with info:", info);
+        newlyAdded.forEach(facultyNumber => {
+            const info = studentIndex.get(facultyNumber);
+            console.log("[finalizeAddStudentsToClass] Merging student facultyNumber:", facultyNumber, "with info:", info);
 
             // Prefer faculty_number (server field) then fallback to facultyNumber (client), else empty.
             const facultyNum = info.faculty_number;
@@ -2149,14 +2152,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             handleClassButtonClick(buttonEl);
         });
     };
-
-
-
-
-
-
-    // Removed unused legacy persistClasses function (replaced by per-class item storage)
-
 
 
 
