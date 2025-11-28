@@ -1227,30 +1227,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function openManageStudentsOverlay(className) {
 
-        console.log('[Manage Students] Opening overlay for class:', className);
+        //console.log('[Manage Students] Opening overlay for class:', className);
 
         ensureManageStudentsOverlay();
 
-        console.log('[Manage Students] Ensured overlay exists');
+        //console.log('[Manage Students] Ensured overlay exists');
 
         // Hide ready overlay to avoid stacking
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
 
-        console.log('[Manage Students] Hidden ready class overlay');
+        //console.log('[Manage Students] Hidden ready class overlay');
 
         const classStudents = loadClassStudentsFromStorage(className);
-        console.log('[Manage Students] Loaded class students, count:', classStudents.length);
+        //console.log('[Manage Students] Loaded class students, count:', classStudents.length);
 
         // Title reflect class name
         const titleEl = manageStudentsOverlay.querySelector('#manageStudentsTitle');
         if (titleEl) titleEl.textContent = `Manage Students — ${className}`;
 
-        console.log('[Manage Students] Rendering students for class:', className);
+        //console.log('[Manage Students] Rendering students for class:', className);
 
         renderManageStudentsForClass(className);
 
-        console.log('[Manage Students] Rendered students, showing overlay');
-
+        //console.log('[Manage Students] Rendered students, showing overlay');
         manageStudentsOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
     }
