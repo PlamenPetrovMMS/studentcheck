@@ -2182,18 +2182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function getStudentInfoForFacultyNumber(facultyNumber, studentsList) {
-
-        studentsList.forEach(student => {
-            console.log("Checking student:", student);
-            console.log("Faculty Number:", facultyNumber, " vs ", student.faculty_number);
-            console.log("Faculty Number type:", typeof facultyNumber, " vs ", typeof student.faculty_number);
-            if(student.faculty_number == facultyNumber){
-                return student;
-            }
-        });
-
-        console.error("[getStudentInfoForFacultyNumber] No student found with faculty number:", facultyNumber);
-        return null;
+        return studentsList.find(student => student.faculty_number === facultyNumber) || null;
     }
 
 
