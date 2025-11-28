@@ -1827,7 +1827,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Persist assignments
         // Update per-class student objects list
-        const existingStudentsObjects = loadClassStudentsFromStorage(className);
+        const existingStudentsInClass = loadClassStudentsFromStorage(className);
+        const newlyAddedStudents = [];
 
         // Normalize and merge new student records, preserving faculty numbers for scanner matching.
         newlyAdded.forEach(facultyNumber => {
@@ -1837,7 +1838,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("[finalizeAddStudentsToClass] Merging student object:", studentInfo);
 
             // Prevent duplicates by either facultyNumber (if present) or fullName.
-            const duplicate = existingStudentsObjects.some(student => {
+            const duplicate = existingStudentsInClass.some(student => {
                 const existingStudentFacultyNum = student.faculty_number;
 
                 if (studentInfo && existingStudentFacultyNum && existingStudentFacultyNum === studentInfo.faculty_number){
@@ -1851,12 +1852,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!duplicate) {
                 console.log("[finalizeAddStudentsToClass] Adding new student object to storage:", studentInfo);
-                existingStudentsObjects.push(studentInfo);
+                newlyAddedStudents.push(studentInfo);
             }
 
         });
 
         console.log("[finalizeAddStudentsToClass] newlyAdded student IDs:", newlyAdded);
+        console.log("[finalizeAddStudentsToClass] existingStudentsInClass:", existingStudentsInClass);
+        console.log("[finalizeAddStudentsToClass] newlyAddedStudents objects to add:", newlyAddedStudents);
+
+        addNewStudentsToStorage(className, newlyAddedStudents);
+        await addNewStudentsToDatabase(className, newlyAddedStudents);
 
         // Ensure class marked ready if it wasn't (adding students post-creation should not leave it unready).
         if (!readyClasses.has(className)) {
@@ -2179,6 +2185,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadClassStudents(name, id); // Preload students for this class
     };
 
+
+
+    function addNewStudentsToStorage(className, newlyAddedStudents) {
+        const storedClassKey = `${className}:students`;
+        localStorage.setItem(storedClassKey, JSON.stringify(newlyAddedStudents));
+        console.log(`[addNewStudentsToStorage] Stored new students list for class "${className}" in localStorage.`);
+    }
+
+
+    async function addNewStudentsToDatabase(className, newlyAddedStudents) {
+        const classId = getClassIdByName(className);
+        
+        const response = await fetch(`${serverBaseUrl + ENDPOINTS.class_students}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                class_id: classId,
+                students: newlyAddedStudents
+            })
+        });
+
+        if (response.ok) {
+            console.log(`[addNewStudentsToDatabase] Successfully added new students to class "${className}" in the database.`);
+        } else {
+            console.error(`[addNewStudentsToDatabase] Failed to add new students to class "${className}" in the database. Status:`, response.status);
+        }
+        
+    }
 
 
     function getStudentInfoForFacultyNumber(facultyNumber, studentsList) {
