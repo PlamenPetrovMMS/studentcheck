@@ -293,6 +293,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else if (!isStudentInClass(activeClass, studentId)) {
                 console.log('[Attendance] Ignoring scan for unassigned student:', studentId, 'class:', activeClass);
             } else {
+                console.log('[Attendance] Processing scan for student:', studentId, 'in class:', activeClass, 'mode:', mode);
                 updateAttendanceState(activeClass, studentId, mode);
             }
         }
@@ -548,7 +549,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (dot) applyDotStateClass(dot, 'joined');
                     });
                 }
-                
+
             }
         }
     }
