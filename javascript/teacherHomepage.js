@@ -237,9 +237,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (cam) cam.setAttribute('data-mode', currentScanMode);
     }
     function initializeScanner(mode) {
+
+        console.log("[initializeScanner] Initializing scanner with mode:", mode);
+
         return ensureHtml5QrcodeLoaded().then(() => {
             const container = document.getElementById('qr-reader');
-            if (!container) { throw new Error('QR container not found'); }
+            if (!container) { 
+                throw new Error('QR container not found'); 
+            }
             html5QrCode = new Html5Qrcode('qr-reader');
             const onScanSuccess = (decodedText, decodedResult) => {
                 const now = Date.now();
@@ -270,15 +275,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function handleScannedCode(data, mode, classId) {
+
+        console.log("[handleScannedCode] Scanned data:", data, "mode:", mode, "classId:", classId);
         // Parse JSON payload from student QR (expects facultyNumber, name, email)
         let payload = null;
         try {
             payload = JSON.parse(data);
-        } catch(_) {}
+        } catch(_) {
+            console.error("[handleScannedCode] Failed to parse JSON from scanned data");
+        }
         const studentId = deriveStudentIdFromPayload(payload);
         if (studentId) {
             // Resolve active class (fallback if classId missing)
-            const activeClass = (classId || getActiveClassName() || '').trim();
+            const activeClass = (classId || getActiveClassName()).trim();
             if (!activeClass) {
                 console.log('[Attendance] Ignoring scan – no active class context.');
             } else if (!isStudentInClass(activeClass, studentId)) {
@@ -425,11 +434,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const name = document.createElement('span');
             name.className = 'attendance-name';
-            name.textContent = student.full_name + student.faculty_number;
+            name.textContent = `${student.full_name} ${student.faculty_number}`;
 
             const dot = document.createElement('span');
             dot.className = 'status-dot';
-            
+
             applyDotStateClass(dot, stateMap.get(student.id));
 
             li.appendChild(name);
@@ -444,9 +453,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function applyDotStateClass(dotEl, state) {
         dotEl.classList.remove('status-none', 'status-joined', 'status-completed');
-        if (state === 'completed') dotEl.classList.add('status-completed');
-        else if (state === 'joined') dotEl.classList.add('status-joined');
-        else dotEl.classList.add('status-none');
+        if (state === 'completed') {
+            dotEl.classList.add('status-completed');
+        } else if (state === 'joined') {
+            dotEl.classList.add('status-joined');
+        } else {
+            dotEl.classList.add('status-none');
+        }
     }
 
     // --- Attendance session logs (per class, per student) ---
@@ -471,33 +484,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateAttendanceState(className, studentId, mode) {
+
+        console.log("[updateAttendanceState] Updating attendance for class:", className, "student:", studentId, "mode:", mode);
+
         if (!className || !studentId) return;
+
         // Guard: ignore scans for students not assigned to the class
         if (!isStudentInClass(className, studentId)) {
             console.log('[Attendance] Ignoring scan for unassigned student:', studentId, 'in class:', className);
             return;
         }
-        if (!attendanceState.has(className)) attendanceState.set(className, new Map());
+
+        if (!attendanceState.has(className)) {
+            attendanceState.set(className, new Map());
+        }
+
         const map = attendanceState.get(className);
-        const current = map.get(studentId) || 'none';
+
+        console.log("[updateAttendanceState] Current state map for class:", className, map);
+
+        const current = map.get(studentId);
         let next = current;
+
         if (mode === 'joining') {
             if (current === 'none') {
                 next = 'joined';
                 markJoinTime(className, studentId, Date.now());
             }
         } else if (mode === 'leaving') {
-            if (current === 'joined') next = 'completed';
+            if (current === 'joined'){
+                next = 'completed';
+            } 
         }
+
+        console.log("[updateAttendanceState] Transitioning student:", studentId, "from", current, "to", next, "in class:", className);
+
         if (next !== current) {
             map.set(studentId, next);
             // Update UI dot if visible
             const dot = attendanceDotIndex.get(studentId);
             if (dot) applyDotStateClass(dot, next);
+
             // Increment attendance when completing a session (joined -> completed)
             if (current === 'joined' && next === 'completed') {
                 const joinAt = takeJoinTime(className, studentId);
                 const classId = classIdByName.get(className);
+
                 if (!classId) {
                     console.warn('Missing class id for', className);
                 } else {
@@ -516,6 +548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (dot) applyDotStateClass(dot, 'joined');
                     });
                 }
+                
             }
         }
     }
@@ -603,14 +636,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function openScannerOverlay(classId) {
+
+        console.log("[openScannerOverlay] Opening scanner overlay for class:", classId);
+
         ensureScannerOverlay();
         // Hide ready overlay to avoid stacking
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
         // Title
         const titleEl = scannerOverlay.querySelector('#scannerTitle');
         if (titleEl) {
-            const displayName = (classId || currentClassName || '').trim();
-            titleEl.textContent = displayName || 'Class';
+            const displayName = (classId || currentClassName).trim();
+            titleEl.textContent = displayName;
         }
         // Default mode
         currentScanMode = 'joining';
@@ -619,8 +655,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Show overlay
         scannerOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-    // Start camera
-    initializeScanner(currentScanMode);
+        // Start camera
+        initializeScanner(currentScanMode);
     }
 
     function startScanner() {
