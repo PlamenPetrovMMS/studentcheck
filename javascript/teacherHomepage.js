@@ -367,9 +367,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function initAttendanceStateForClass(className, students) {
-        if (!attendanceState.has(className)) attendanceState.set(className, new Map());
+
+        console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
+
+        if (!attendanceState.has(className)){
+            console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
+            attendanceState.set(className, new Map());
+        } 
+
+
         const map = attendanceState.get(className);
-        students.forEach(s => { if (!map.has(s.id)) map.set(s.id, 'none'); });
+
+        console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
+
+        students.forEach(student => {
+            console.log("[initAttendanceStateForClass] Ensuring student in state map:", student);
+            if (!map.has(student.id)) map.set(student.id, 'none'); 
+        });
+
         return map;
     }
 
@@ -399,22 +414,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const ul = document.createElement('ul');
         ul.className = 'attendance-ul';
 
-        students.forEach(s => {
+        students.forEach(student => {
             const li = document.createElement('li');
             li.className = 'attendance-item';
+
             const name = document.createElement('span');
             name.className = 'attendance-name';
-            name.textContent = s.name + (s.facultyNumber ? ` (${s.facultyNumber})` : '');
+            name.textContent = student.name + student.facultyNumber;
+
             const dot = document.createElement('span');
             dot.className = 'status-dot';
-            applyDotStateClass(dot, stateMap.get(s.id));
+            applyDotStateClass(dot, stateMap.get(student.id));
+
             li.appendChild(name);
             li.appendChild(dot);
             ul.appendChild(li);
-            attendanceDotIndex.set(s.id, dot);
+
+            attendanceDotIndex.set(student.id, dot);
         });
         listEl.appendChild(ul);
-        
+
     }
 
     function applyDotStateClass(dotEl, state) {
