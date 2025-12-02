@@ -277,6 +277,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     function handleScannedCode(data, mode, classId) {
 
         console.log("[handleScannedCode] Scanned data:", data, "mode:", mode, "classId:", classId);
+        console.log("[handleScannedCode] Attendance state map before scan:", attendanceState);
+
         // Parse JSON payload from student QR (expects facultyNumber, name, email)
         let payload = null;
         try {
