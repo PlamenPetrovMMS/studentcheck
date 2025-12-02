@@ -425,10 +425,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const name = document.createElement('span');
             name.className = 'attendance-name';
-            name.textContent = student.name + student.facultyNumber;
+            name.textContent = student.full_name + student.faculty_number;
 
             const dot = document.createElement('span');
             dot.className = 'status-dot';
+            
             applyDotStateClass(dot, stateMap.get(student.id));
 
             li.appendChild(name);
