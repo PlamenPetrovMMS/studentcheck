@@ -335,13 +335,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openAttendanceOverlay(className) {
 
-        console.log("[Attendance Overlay] Opening for class:", className);
+        //console.log("[Attendance Overlay] Opening for class:", className);
 
         ensureAttendanceOverlay();
         const titleEl = attendanceOverlay.querySelector('#attendanceTitle');
         if (titleEl) titleEl.textContent = `Attendance — ${className || currentClassName}`;
 
-        console.log("[Attendance Overlay] Rendering attendance for class:", className || currentClassName);
+        //console.log("[Attendance Overlay] Rendering attendance for class:", className || currentClassName);
 
         renderAttendanceForClass(className || currentClassName);
 
@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderAttendanceForClass(className) {
 
-        console.log("[Attendance Overlay] Rendering attendance for class:", className);
+        //console.log("[Attendance Overlay] Rendering attendance for class:", className);
 
         const listEl = document.getElementById('attendanceList');
         if (!listEl) return;
@@ -414,12 +414,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const students = loadClassStudentsFromStorage(className);
 
-        console.log("[Attendance Overlay] Loaded students for class:", className, students);
+        //console.log("[Attendance Overlay] Loaded students for class:", className, students);
 
         const stateMap = initAttendanceStateForClass(className, students);
 
-        console.log("[Attendance Overlay] Initialized attendance state for class:", className, stateMap);
-
+        //console.log("[Attendance Overlay] Initialized attendance state for class:", className, stateMap);
         listEl.innerHTML = '';
         if (students.length === 0) {
             listEl.innerHTML = '<p class="muted" style="text-align:center;">No students in this class.</p>';
