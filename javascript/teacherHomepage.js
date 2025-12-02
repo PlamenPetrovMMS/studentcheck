@@ -477,15 +477,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return [];
     }
 
-    function updateAttendanceState(className, studentId, mode) {
+    function updateAttendanceState(className, studentFacultyNumber, mode) {
 
         console.log("[updateAttendanceState] Updating attendance for class:", className, "student:", studentId, "mode:", mode);
 
         if (!className || !studentId) return;
 
         // Guard: ignore scans for students not assigned to the class
-        if (!isStudentInClass(className, studentId)) {
-            console.log('[Attendance] Ignoring scan for unassigned student:', studentId, 'in class:', className);
+        if (!isStudentInClass(className, studentFacultyNumber)) {
+            console.log('[Attendance] Ignoring scan for unassigned student:', studentFacultyNumber, 'in class:', className);
             return;
         }
 
@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[updateAttendanceState] Current state map for class:", className, map);
 
-        const current = map.get(studentId);
+        const current = map.get(studentFacultyNumber);
         let next = current;
 
         if (mode === 'joining') {
@@ -1622,26 +1622,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    function isStudentInClass(className, studentId) {
-        if (!className || !studentId) return false;
+    function isStudentInClass(className, studentFacultyNumber) {
+        if (!className || !studentFacultyNumber) return false;
 
         const classId = getClassIdByName(className);
-        const stored = loadClassStudents(className, classId);
+        const stored = loadClassStudentsFromStorage(className, classId);
 
         if (stored.length > 0) {
-            const found = stored.some(s => {
-                const id = (s.facultyNumber || s.fullName || '').trim();
-                return id && id === String(studentId).trim();
+            const found = stored.some(student => {
+                console.log("[isStudentInClass] Checking student:", student);
+                const facultyNumber = student.facultyNumber.trim();
+                return facultyNumber && facultyNumber === String(studentFacultyNumber).trim();
             });
+
             if (found) return true;
         }
+
         // Fallback: check assignments set
         const set = classStudentAssignments.get(className);
         if (set && set.size > 0) {
-            if (set.has(String(studentId).trim())) return true;
+            if (set.has(String(studentFacultyNumber).trim())) return true;
         }
         return false;
     }
+
     function getStudentAttendanceCountForClass(className, studentId) {
         const classId = classIdByName.get(className);
         if (!classId) return 0;
@@ -1656,6 +1660,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).catch(() => {});
         return 0;
     }
+    
     function updateStudentInfoOverlayCount(studentId, className, forcedValue) {
         if (!studentInfoOverlay || studentInfoOverlay.style.visibility !== 'visible') return;
         const overlayStudentId = studentInfoOverlay?.dataset?.studentId || '';
