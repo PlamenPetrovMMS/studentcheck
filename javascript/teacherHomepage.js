@@ -324,10 +324,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function openAttendanceOverlay(className) {
+
+        console.log("[Attendance Overlay] Opening for class:", className);
+
         ensureAttendanceOverlay();
         const titleEl = attendanceOverlay.querySelector('#attendanceTitle');
-        if (titleEl) titleEl.textContent = `Attendance — ${className || currentClassName || 'Class'}`;
+        if (titleEl) titleEl.textContent = `Attendance — ${className || currentClassName}`;
+
+        console.log("[Attendance Overlay] Rendering attendance for class:", className || currentClassName);
+
         renderAttendanceForClass(className || currentClassName);
+
         attendanceOverlay.style.visibility = 'visible';
         // Keep body overflow hidden because scanner overlay is also open
         document.body.style.overflow = 'hidden';
@@ -367,18 +374,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderAttendanceForClass(className) {
+
+        console.log("[Attendance Overlay] Rendering attendance for class:", className);
+
         const listEl = document.getElementById('attendanceList');
         if (!listEl) return;
+
         attendanceDotIndex = new Map();
-        const students = getStudentsForClassDisplay(className);
+
+        const students = loadClassStudentsFromStorage(className);
+
+        console.log("[Attendance Overlay] Loaded students for class:", className, students);
+
         const stateMap = initAttendanceStateForClass(className, students);
+
+        console.log("[Attendance Overlay] Initialized attendance state for class:", className, stateMap);
+
         listEl.innerHTML = '';
         if (students.length === 0) {
             listEl.innerHTML = '<p class="muted" style="text-align:center;">No students in this class.</p>';
             return;
         }
+
         const ul = document.createElement('ul');
         ul.className = 'attendance-ul';
+
         students.forEach(s => {
             const li = document.createElement('li');
             li.className = 'attendance-item';
@@ -394,6 +414,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             attendanceDotIndex.set(s.id, dot);
         });
         listEl.appendChild(ul);
+        
     }
 
     function applyDotStateClass(dotEl, state) {
