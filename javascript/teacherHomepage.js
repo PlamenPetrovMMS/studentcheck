@@ -279,6 +279,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("[handleScannedCode] Scanned data:", data, "mode:", mode, "classId:", classId);
         console.log("[handleScannedCode] Attendance state map before scan:", attendanceState);
 
+        if (!attendanceState.has(className)){
+            console.log("[handleScannedCode] No existing state for class, creating new map.");
+            attendanceState.set(className, new Map());
+        } 
+
         // Parse JSON payload from student QR (expects facultyNumber, name, email)
         let payload = null;
         try {
@@ -286,10 +291,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch(_) {
             console.error("[handleScannedCode] Failed to parse JSON from scanned data");
         }
+
+        console.log("[handleScannedCode] Parsed payload:", payload);
+
         const studentId = deriveStudentIdFromPayload(payload);
+
+        console.log("[handleScannedCode] Derived student ID:", studentId);
+
         if (studentId) {
             // Resolve active class (fallback if classId missing)
             const activeClass = (classId || getActiveClassName()).trim();
+            
             if (!activeClass) {
                 console.log('[Attendance] Ignoring scan – no active class context.');
             } else if (!isStudentInClass(activeClass, studentId)) {
@@ -355,27 +367,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!attendanceOverlay) return;
         attendanceOverlay.style.visibility = 'hidden';
         // Don't alter body overflow here because scanner overlay might be active
-    }
-
-    function getStudentsForClassDisplay(className) {
-        // Prefer per-class stored student objects
-        const stored = loadClassStudents(className) || [];
-        if (stored.length > 0) {
-            return stored.map(s => ({
-                id: s.facultyNumber || s.fullName || '',
-                name: s.fullName || '',
-                facultyNumber: s.facultyNumber || ''
-            })).filter(s => s.id);
-        }
-        // Fallback to the selection set
-        const set = classStudentAssignments.get(className);
-        if (set && set.size > 0) {
-            return Array.from(set).map(id => {
-                const rec = studentIndex.get(id) || { fullName: id, faculty_number: '' };
-                return { id, name: rec.fullName || id, facultyNumber: rec.faculty_number || '' };
-            });
-        }
-        return [];
     }
 
     function initAttendanceStateForClass(className, students) {
