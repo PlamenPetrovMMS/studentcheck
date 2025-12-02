@@ -1631,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (stored.length > 0) {
             const found = stored.some(student => {
                 console.log("[isStudentInClass] Checking student:", student);
-                const facultyNumber = student.facultyNumber.trim();
+                const facultyNumber = student.faculty_number.trim();
                 return facultyNumber && facultyNumber === String(studentFacultyNumber).trim();
             });
 
@@ -1660,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).catch(() => {});
         return 0;
     }
-    
+
     function updateStudentInfoOverlayCount(studentId, className, forcedValue) {
         if (!studentInfoOverlay || studentInfoOverlay.style.visibility !== 'visible') return;
         const overlayStudentId = studentInfoOverlay?.dataset?.studentId || '';
