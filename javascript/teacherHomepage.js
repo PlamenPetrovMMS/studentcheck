@@ -479,9 +479,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function updateAttendanceState(className, studentFacultyNumber, mode) {
 
-        console.log("[updateAttendanceState] Updating attendance for class:", className, "student:", studentId, "mode:", mode);
+        console.log("[updateAttendanceState] Updating attendance for class:", className, "student:", studentFacultyNumber, "mode:", mode);
 
-        if (!className || !studentId) return;
+        if (!className || !studentFacultyNumber) return;
 
         // Guard: ignore scans for students not assigned to the class
         if (!isStudentInClass(className, studentFacultyNumber)) {
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (mode === 'joining') {
             if (current === 'none') {
                 next = 'joined';
-                markJoinTime(className, studentId, Date.now());
+                markJoinTime(className, studentFacultyNumber, Date.now());
             }
         } else if (mode === 'leaving') {
             if (current === 'joined'){
@@ -511,34 +511,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             } 
         }
 
-        console.log("[updateAttendanceState] Transitioning student:", studentId, "from", current, "to", next, "in class:", className);
+        console.log("[updateAttendanceState] Transitioning student:", studentFacultyNumber, "from", current, "to", next, "in class:", className);
 
         if (next !== current) {
-            map.set(studentId, next);
+            map.set(studentFacultyNumber, next);
             // Update UI dot if visible
-            const dot = attendanceDotIndex.get(studentId);
+            const dot = attendanceDotIndex.get(studentFacultyNumber);
             if (dot) applyDotStateClass(dot, next);
 
             // Increment attendance when completing a session (joined -> completed)
             if (current === 'joined' && next === 'completed') {
-                const joinAt = takeJoinTime(className, studentId);
+                const joinAt = takeJoinTime(className, studentFacultyNumber);
                 const classId = classIdByName.get(className);
 
                 if (!classId) {
                     console.warn('Missing class id for', className);
                 } else {
                     if (dot) dot.classList.add('status-loading');
-                    apiMarkAttendance(classId, studentId).then(() => {
+                    apiMarkAttendance(classId, studentFacultyNumber).then(() => {
                         if (dot) dot.classList.remove('status-loading');
                         const counts = attendanceCountCache.get(classId) || new Map();
-                        const existing = counts.get(studentId) || 0;
-                        counts.set(studentId, existing + 1);
+                        const existing = counts.get(studentFacultyNumber) || 0;
+                        counts.set(studentFacultyNumber, existing + 1);
                         attendanceCountCache.set(classId, counts);
-                        updateStudentInfoOverlayCount(studentId, className);
+                        updateStudentInfoOverlayCount(studentFacultyNumber, className);
                     }).catch(e => {
                         if (dot) dot.classList.remove('status-loading');
                         alert('Failed to record attendance: ' + e.message);
-                        map.set(studentId, 'joined');
+                        map.set(studentFacultyNumber, 'joined');
                         if (dot) applyDotStateClass(dot, 'joined');
                     });
                 }
