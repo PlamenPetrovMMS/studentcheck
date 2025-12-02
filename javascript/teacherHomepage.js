@@ -284,6 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             attendanceState.set(className, new Map());
         } 
 
+        
         // Parse JSON payload from student QR (expects facultyNumber, name, email)
         let payload = null;
         try {
