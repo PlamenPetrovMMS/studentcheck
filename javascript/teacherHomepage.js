@@ -372,27 +372,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function initAttendanceStateForClass(className, students) {
 
-        console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
+        //console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
 
         if (!attendanceState.has(className)){
-            console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
+            //console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
             attendanceState.set(className, new Map());
         } 
 
 
         const map = attendanceState.get(className);
 
-        console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
+        //console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
 
         students.forEach(student => {
-            console.log("[initAttendanceStateForClass] Ensuring student in state map:", student);
+            //console.log("[initAttendanceStateForClass] Ensuring student in state map:", student);
             if (!map.has(student.faculty_number)){
-                console.log("[initAttendanceStateForClass] Student not found in state map, initializing to 'none':", student.id);
+                //console.log("[initAttendanceStateForClass] Student not found in state map, initializing to 'none':", student.id);
                 map.set(student.faculty_number, 'none');
             }  
         });
 
-        console.log("[initAttendanceStateForClass] Final state map for class:", className, map);
+        //console.log("[initAttendanceStateForClass] Final state map for class:", className, map);
 
         return map;
     }
