@@ -240,6 +240,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[initializeScanner] Initializing scanner with mode:", mode);
 
+        initAttendanceStateForClass(currentClassName, loadClassStudentsFromStorage(currentClassName));
+
         return ensureHtml5QrcodeLoaded().then(() => {
             const container = document.getElementById('qr-reader');
             if (!container) { 
