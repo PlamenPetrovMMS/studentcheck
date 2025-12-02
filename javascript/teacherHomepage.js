@@ -386,9 +386,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         students.forEach(student => {
             console.log("[initAttendanceStateForClass] Ensuring student in state map:", student);
-            if (!map.has(student.id)){
+            if (!map.has(student.faculty_number)){
                 console.log("[initAttendanceStateForClass] Student not found in state map, initializing to 'none':", student.id);
-                map.set(student.id, 'none');
+                map.set(student.faculty_number, 'none');
             }  
         });
 
