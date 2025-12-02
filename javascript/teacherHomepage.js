@@ -279,12 +279,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("[handleScannedCode] Scanned data:", data, "mode:", mode, "classId:", classId);
         console.log("[handleScannedCode] Attendance state map before scan:", attendanceState);
 
+        console.log("Progressing...");
+        
         if (!attendanceState.has(className)){
             console.log("[handleScannedCode] No existing state for class, creating new map.");
             attendanceState.set(className, new Map());
         } 
 
-        
+
         // Parse JSON payload from student QR (expects facultyNumber, name, email)
         let payload = null;
         try {
