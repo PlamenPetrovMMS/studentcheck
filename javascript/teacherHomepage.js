@@ -1635,6 +1635,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return facultyNumber && facultyNumber === String(studentFacultyNumber).trim();
             });
 
+            console.log("[isStudentInClass] Student found in stored class students:", found);
+
             if (found) return true;
         }
 
