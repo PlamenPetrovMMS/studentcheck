@@ -647,15 +647,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Error: Unable to save attendance data - missing class ID for class:", className);
         }
 
-        const classStudents = JSON.parse(localStorage.getItem(`${className}:students`)); 
-        console.log("[saveAttendanceDataToDatabase] Class students from storage for class:", className, classStudents);
+        let classStudents = [];
+
+        try{
+            classStudents = JSON.parse(localStorage.getItem(`${className}:students`)); 
+            console.log("[saveAttendanceDataToDatabase] Class students from storage for class:", className, classStudents);
+        }catch(e){
+            console.error("Error: Unable to parse class students from storage for class:", className);
+            console.error(e);
+        }
+
+        if(classStudents.length === 0){
+            console.log("[saveAttendanceDataToDatabase] No students found for class:", className, "Skipping attendance save.");
+            return;
+        }
+
         let studentIds = [];
 
         for (const [studentFacultyNumber, state] of (attendanceState.get(className))) {
             console.log("[saveAttendanceDataToDatabase] Processing student:", studentFacultyNumber, "state:", state);
             studentIds = classStudents.find(student => {
                 if (student.faculty_number === studentFacultyNumber && state === 'completed') {
-                    studentsAttendanceFacultyNumbers.push(student.id);
+                    studentIds.push(student.id);
                 }
             });
         }
