@@ -446,6 +446,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function applyDotStateClass(dotEl, state) {
+
+        console.log("[applyDotStateClass] Applying state:", state, "to dot element:", dotEl);
+
         dotEl.classList.remove('status-none', 'status-joined', 'status-completed');
         if (state === 'completed') {
             dotEl.classList.add('status-completed');
