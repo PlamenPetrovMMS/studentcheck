@@ -1,6 +1,7 @@
 const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
         getStudentClasses: '/get_student_classes',
+		getStudentClassesNamesbyIds: '/get_classes_names_by_ids',
 	};
 
 
@@ -202,9 +203,9 @@ async function loadClassesForStudent(studentData) {
 	const classesList = document.getElementById('classesList');
 
 	let class_students = [];
-	let classIds = [];
+	let classNames = [];
 
-	const response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
+	var response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
@@ -225,20 +226,31 @@ async function loadClassesForStudent(studentData) {
 		}else{
 			class_students.forEach(class_student => {
 				console.log("[loadClassesForStudent] Class student entry:", class_student);
-				classIds.push(class_student.class_id);
+				classNames.push(class_student.class_id);
 			});
 		}
 
-		console.log("[loadClassesForStudent] Classes ids:", classIds ,"for student:", studentData.full_name);
+		console.log("[loadClassesForStudent] Classes names:", classNames ,"for student:", studentData.full_name);
 		
 	}else{
 		console.error("Error fetching classes:", response.status, response.statusText);
 	}
 
-
 	
 
+	if(classNames.length > 0){
 
+		classNames.forEach((className) => {
+			const classItem = document.createElement('li');
+			classItem.textContent = className;
+			classesList.appendChild(classItem);
+		});
+
+		console.log("[loadClassesForStudent] Classes loaded into overlay.");
+
+	}else{
+		classesList.innerHTML = '<p>No classes found.</p>';
+	}
 }
 
 // End of View Classes Overlay function ==========================
