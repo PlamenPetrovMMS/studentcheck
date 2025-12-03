@@ -208,12 +208,31 @@ async function loadClassesForStudent(studentData) {
 		}
 	});
 
+
 	if (response.ok) {
 		console.log("[loadClassesForStudent] Response received from server.");
 		const data = await response.json();
+		const class_students = data.class_students;
 
 		console.log("[loadClassesForStudent] Data:", data);
+
+		if(!class_students){
+			console.error("[loadClassesForStudent] No classes data found in response.");
+		}else{
+			class_students.forEach(class_student => {
+				classIds.push(class_student.class_id);
+			});
+		}
+
+		console.log("[loadClassesForStudent] Classes ids:", classIds ,"for student:", studentData.full_name);
+		
+	}else{
+		console.error("Error fetching classes:", response.status, response.statusText);
 	}
+
+
+	
+
 
 }
 
