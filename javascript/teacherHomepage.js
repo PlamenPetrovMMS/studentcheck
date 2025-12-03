@@ -647,7 +647,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Error: Unable to save attendance data - missing class ID for class:", className);
         }
 
-        const classStudents = localStorage.getItem(`${className}:students`); 
+        const classStudents = JSON.parse(localStorage.getItem(`${className}:students`)); 
         console.log("[saveAttendanceDataToDatabase] Class students from storage for class:", className, classStudents);
         let studentIds = [];
 
