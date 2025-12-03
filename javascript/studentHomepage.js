@@ -72,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	// Determine a reasonable display name
-	const displayName = studentData.fullName || "Error: No Name Found";
-	const facultyNumber = studentData.facultyNumber || '---';
+	const displayName = studentData.full_name || "Error: No Name Found";
+	const facultyNumber = studentData.faculty_number || '---';
 
 	if (nameElement) nameElement.textContent = displayName;
 	if (facultyNumberElement) facultyNumberElement.textContent = facultyNumber;
@@ -201,6 +201,9 @@ async function loadClassesForStudent(studentData) {
 
 	const classesList = document.getElementById('classesList');
 
+	let class_students = null;
+	let classIds = null;
+
 	const response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
 		method: 'GET',
 		headers: {
@@ -212,8 +215,13 @@ async function loadClassesForStudent(studentData) {
 	if (response.ok) {
 		console.log("[loadClassesForStudent] Response received from server.");
 		const data = await response.json();
-		const class_students = data.class_students;
 
+		try{
+			class_students = JSON.parse(data.class_students);
+		}catch(e){
+			console.error("Error: Unable to parse class_students JSON:", e);
+		}
+		
 		console.log("[loadClassesForStudent] Data:", data);
 
 		if(!class_students){
