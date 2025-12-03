@@ -70,13 +70,14 @@
 	flex-direction: column;
 	flex-wrap: wrap;
 	justify-content: center;
+	align-items: center;
 	gap: 12px;
 	padding: 20px;
 }
 
 .button {
-    min-width: 80px;
-	max-width: 100px;
+    min-width: 120px;
+	max-width: 200px;
     padding: 12px 18px;
     height: auto;
     font-size: 0.95rem;
