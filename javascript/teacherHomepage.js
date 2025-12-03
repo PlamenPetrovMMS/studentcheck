@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const ENDPOINTS = {
         createClass: `/classes`,
-        markAttendance: `/attendance`,
+        attendance: `/attendance`,
         class_students: '/class_students',
         students: '/students',
     };
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     async function apiMarkAttendance(classId, studentId) {
-        const res = await fetch(serverBaseUrl + ENDPOINTS.markAttendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
+        const res = await fetch(serverBaseUrl + ENDPOINTS.attendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
         if (!res.ok) throw new Error('Attendance mark failed');
         return res.json();
     }
@@ -616,7 +616,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openCloseScannerConfirm() {
         openConfirmOverlay(
             'Are you sure you want to close the scanner? All attendance data will be deleted.',
-            () => {
+            async () => {
+
+                await saveAttendanceDataToDatabase(currentClassName);
+
                 // Confirm: clear temp attendance, close attendance overlay if open, then close scanner
                 clearTemporaryAttendanceData(currentClassName);
                 if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay();
@@ -631,6 +634,52 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         );
     }
+
+
+
+    async function saveAttendanceDataToDatabase(className) {
+
+        console.log("[saveAttendanceDataToDatabase] Saving attendance data for class:", className);
+
+        let classId = getClassIdByName(className);
+
+        if (!classId) {
+            console.error("Error: Unable to save attendance data - missing class ID for class:", className);
+        }
+
+        const classStudents = localStorage.getItem(`${className}:students`); 
+        console.log("[saveAttendanceDataToDatabase] Class students from storage for class:", className, classStudents);
+        let studentIds = [];
+
+        for (const [studentFacultyNumber, state] of (attendanceState.get(className))) {
+            console.log("[saveAttendanceDataToDatabase] Processing student:", studentFacultyNumber, "state:", state);
+            studentIds = classStudents.find(student => {
+                if (student.faculty_number === studentFacultyNumber && state === 'completed') {
+                    studentsAttendanceFacultyNumbers.push(student.id);
+                }
+            });
+        }
+
+        console.log("[saveAttendanceDataToDatabase] Finalizing attendance for class:", className, "Class ID:", classId, "Students Ids:", studentIds);
+
+        const response = await fetch(serverBaseUrl + ENDPOINTS.attendance, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                class_id: classId, 
+                student_ids: studentIds 
+            })
+        });
+
+        if(response.ok){
+            console.log("[saveAttendanceDataToDatabase] Attendance data saved successfully for class:", className);
+        }else{
+            console.error("Error: Failed to save attendance data for class:", className, "Response status:", response.status);
+        }
+
+    }
+
+
 
     function openScannerOverlay(classId) {
 
