@@ -107,15 +107,29 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-	const closeOverlayBtn = document.getElementById('closeViewClassesOverlayBtn');
-	if(closeOverlayBtn){
-		closeOverlayBtn.addEventListener('click', () => {
+	const closeViewClassesOverlayBtn = document.getElementById('closeViewClassesOverlayBtn');
+	if(closeViewClassesOverlayBtn){
+		closeViewClassesOverlayBtn.addEventListener('click', () => {
 
 			closeViewClassesOverlay();
 
 		});
 	}else{
 		console.error("Error: Unable to load close overlay button.");
+	}
+
+
+
+
+	const closeClassDetailsOverlayBtn = document.getElementById('closeClassDetailsOverlayBtn');
+	if(closeClassDetailsOverlayBtn){
+		closeClassDetailsOverlayBtn.addEventListener('click', () => {
+
+			closeClassDetailsOverlay();
+			
+		});
+	}else{
+		console.error("Error: Unable to load close class details overlay button.");
 	}
 
 
@@ -188,6 +202,7 @@ function openViewClassesOverlay() {
 	overlayBackground.style.visibility = 'visible';
 
 }
+
 function closeViewClassesOverlay() {
 	const overlay = document.getElementById('view-classes-overlay');
 	const overlayBackground = document.querySelector('.overlay-background');
@@ -254,15 +269,39 @@ async function loadClassesForStudent(studentData) {
 
 }
 
+// End of View Classes Overlay function ==========================
+
+
+
+
+// Class Details Overlay functions ===============================
+
 function openClassDetailsOverlay(className) {
 
 	console.log("[openClassDetailsOverlay] Opening details for class:", className);
 
 	closeViewClassesOverlay();
 
+	const overlay = document.getElementById('class-details-overlay');
+	const background = document.querySelector('.overlay-background');
+
+	overlay.style.display = 'block';
+	background.style.visibility = 'visible';
+	
+	const classTitle = document.getElementById('classDetailsOverlayTitle');
+	classTitle.textContent = `Class Details: ${className}`;
+
 }
 
-// End of View Classes Overlay function ==========================
+function closeClassDetailsOverlay(){
+	const overlay = document.getElementById('class-details-overlay');
+	const background = document.querySelector('.overlay-background');
+
+	overlay.style.display = 'none';
+	background.style.visibility = 'hidden';
+}
+
+// End of Class Details Overlay functions ========================
 
 
 
