@@ -102,6 +102,7 @@
 
 
 .overlay-background {
+	/* Full-screen overlay container */
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.8);
@@ -128,15 +129,16 @@
 
 #view-classes-overlay{
 	visibility: hidden;
-	position: absolute;
+	position: relative; /* center within flex container and stack above backdrop */
+	z-index: 1001; /* ensure above .overlay-background::before */
 
 	width: 300px;
 	height: 200px;
+	margin: 0;
 
-	background: white;
+	background: #ffffff;
 	border-radius: 20px;
 	padding: 20px;
-	z-index: 1000;
 }
 
 
