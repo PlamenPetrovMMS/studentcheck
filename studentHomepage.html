@@ -15,9 +15,11 @@
         <img src="images/new_main_logo.png" alt="Home">
     </button>
     <main class="card tall-card" role="region" aria-labelledby="studentHomeTitle">
+        
         <div class="card-header">
             <h1 id="studentHomeTitle" class="title">Student Home</h1>
         </div>
+
         <div class="card-section">
             <p class="muted-left">
                 Welcome, <strong id="studentDisplayName">Student</strong>
@@ -27,9 +29,14 @@
             </p>
             <div id="qrContainer"></div>
         </div>
+
+        
+
         <div class="actions single-center">
+            <button id="showDisciplinesButton" class="role-button" type="button">Classes</button>
             <button id="logoutBtn" class="btn btn-primary" type="button">Log out</button>
         </div>
+
     </main>
 
     <!-- QR library: kjua (canvas/SVG QR renderer) -->
