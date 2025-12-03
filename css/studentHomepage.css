@@ -100,12 +100,14 @@
 
 .overlay-top-section{
 	display: flex;
+	position: absolute;
 	width: 100%;
 	left: 20px;
 }
 
 .overlay-middle-section{
 	display: flex;
+	position: absolute;
 	width: 100%;
 	left: 20px;
 }
