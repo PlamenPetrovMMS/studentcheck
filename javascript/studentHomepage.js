@@ -1,3 +1,12 @@
+const serverBaseUrl = 'https://studentcheck-server.onrender.com';
+const ENDPOINTS = {
+        createClass: `/classes`,
+        attendance: `/attendance`,
+        class_students: '/class_students',
+        students: '/students',
+	};
+
+
 function deriveDisplayName(loginData) {
 	if (!loginData) return null;
 	// Try common locations for a name
@@ -76,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	const classesBtn = document.getElementById('viewClassesBtn');
 	if(classesBtn){
-		classesBtn.addEventListener('click', () => {
+		classesBtn.addEventListener('click', async () => {
 
 			openViewClassesOverlay();
 
-			loadClassesForStudent(studentData);
+			await loadClassesForStudent(studentData);
 
 		});
 	}
@@ -189,9 +198,25 @@ function closeViewClassesOverlay() {
 	overlayBackground.style.visibility = 'hidden';
 }
 
-function loadClassesForStudent(studentData) {
+async function loadClassesForStudent(studentData) {
 
 	console.log("[loadClassesForStudent] Loading classes for student:", studentData);
+
+	const classesList = document.getElementById('classesList');
+
+	const response = await fetch(serverBaseUrl + ENDPOINTS.class_students + `?studentId=${studentData.id}`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (response.ok) {
+		console.log("[loadClassesForStudent] Response received from server.");
+		const data = await response.json();
+		
+		console.log("[loadClassesForStudent] Data:", data);
+	}
 
 }
 
