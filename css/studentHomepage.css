@@ -1,33 +1,5 @@
-/* Scoped backdrop blur that does NOT blur overlay content */
-.overlay.blur {
-	position: fixed;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-}
-.overlay.blur::before {
-	content: "";
-	position: fixed;
-	inset: 0;
-	background: rgba(0, 0, 0, 0.5);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
-	z-index: -1; /* sit behind overlay content */
-}
-
-/* Optional: modal container styles inside overlay */
-.overlay.blur .popup {
-	background: #ffffff; /* solid background prevents any perceived blur */
-	color: #111827;
-	border-radius: 12px;
-	width: min(92vw, 560px);
-	box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-	padding: 20px 22px 22px 22px;
-}
-
-.overlay.blur.hidden { display: none; }
+/* Stabilize scrollbar to prevent layout shift when locking body */
+html { scrollbar-gutter: stable; }
 /* Center title in the header for this page */
 .card-header .title { text-align: center; width: 100%; }
 
@@ -117,7 +89,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: 1000;
+	z-index: 2000;
 }
 .overlay-background::before{
 	content: "";
@@ -144,7 +116,7 @@
 	background: white;
 	border-radius: 20px;
 	padding: 20px;
-	z-index: 1000;
+	z-index: 2001; /* ensure above .overlay-background::before */
 }
 
 
