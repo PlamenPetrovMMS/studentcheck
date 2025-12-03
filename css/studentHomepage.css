@@ -132,6 +132,17 @@
 
 
 
+.attended-classes-label{
+	margin-left: 20px;
+	margin-right: 5px;
+	font-size: 22px;
+}
+#attendedClassesCount{
+	font-weight: bold;
+	font-size: 22px;
+}
+
+
 
 
 .class-button{
