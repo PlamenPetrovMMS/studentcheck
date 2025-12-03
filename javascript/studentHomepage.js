@@ -219,18 +219,21 @@ async function loadClassesForStudent(studentData) {
 
 		console.log("[loadClassesForStudent] Response data:", data);
 
-		class_students = data.class_students;
+		classNames = data.class_names;
 
-		if(!class_students){
-			console.error("[loadClassesForStudent] No classes data found in response.");
-		}else{
-			class_students.forEach(class_student => {
-				console.log("[loadClassesForStudent] Class student entry:", class_student);
-				classNames.push(class_student.class_id);
+		if(classNames.length > 0){
+
+			classNames.forEach((className) => {
+				const classItem = document.createElement('li');
+				classItem.textContent = className;
+				classesList.appendChild(classItem);
 			});
-		}
 
-		console.log("[loadClassesForStudent] Classes names:", classNames ,"for student:", studentData.full_name);
+			console.log("[loadClassesForStudent] Classes loaded into overlay.");
+
+		}else{
+			classesList.innerHTML = '<p>No classes found.</p>';
+		}
 		
 	}else{
 		console.error("Error fetching classes:", response.status, response.statusText);
@@ -238,19 +241,7 @@ async function loadClassesForStudent(studentData) {
 
 	
 
-	if(classNames.length > 0){
-
-		classNames.forEach((className) => {
-			const classItem = document.createElement('li');
-			classItem.textContent = className;
-			classesList.appendChild(classItem);
-		});
-
-		console.log("[loadClassesForStudent] Classes loaded into overlay.");
-
-	}else{
-		classesList.innerHTML = '<p>No classes found.</p>';
-	}
+	
 }
 
 // End of View Classes Overlay function ==========================
