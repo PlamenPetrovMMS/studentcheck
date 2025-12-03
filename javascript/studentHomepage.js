@@ -153,6 +153,9 @@ function openClassesOverlay() {
 	console.log("[openClassesOverlay] Opening classes overlay...");
 
 	const overlay = document.getElementById('view-classes-overlay');
-	overlay.style.visibility = 'visible';
+	const overlayBackground = document.querySelector('.overlay-background');
+
+	overlay.style.display = 'block';
+	overlayBackground.style.visibility = 'visible';
 
 }
