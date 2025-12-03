@@ -102,7 +102,7 @@
 	display: flex;
 	position: relative;
 	width: 100%;
-	left: 20px;
+	padding-left: 20px;
 }
 
 .overlay-middle-section{
