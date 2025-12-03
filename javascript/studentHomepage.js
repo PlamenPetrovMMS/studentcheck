@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		parsedData = JSON.parse(rawData);
 		studentData = parsedData.data.student;
 
+		console.log("Extracted student data from sessionStorage:", studentData);
+
 	}catch(e){
 		console.error("Error during extracting data.", e);
 		return;
