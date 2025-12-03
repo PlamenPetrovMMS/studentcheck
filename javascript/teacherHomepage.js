@@ -372,17 +372,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function initAttendanceStateForClass(className, students) {
 
-        //console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
+        console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
 
         if (!attendanceState.has(className)){
-            //console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
+            console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
             attendanceState.set(className, new Map());
         } 
 
 
         const map = attendanceState.get(className);
 
-        //console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
+        console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
 
         students.forEach(student => {
             //console.log("[initAttendanceStateForClass] Ensuring student in state map:", student);
