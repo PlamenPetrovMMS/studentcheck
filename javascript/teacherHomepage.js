@@ -667,6 +667,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const [studentFacultyNumber, state] of (attendanceState.get(className))) {
             console.log("[saveAttendanceDataToDatabase] Processing student:", studentFacultyNumber, "state:", state);
             studentIds = classStudents.find(student => {
+                console.log("[saveAttendanceDataToDatabase] Checking student:", student);
                 if (student.faculty_number === studentFacultyNumber && state === 'completed') {
                     studentIds.push(student.id);
                 }
