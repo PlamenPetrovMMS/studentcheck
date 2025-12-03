@@ -2,6 +2,8 @@ const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
         getStudentClasses: '/get_student_classes',
 		getStudentClassesNamesbyIds: '/get_classes_names_by_ids',
+		attendance: '/attendance',
+		classes: '/classes',
 	};
 
 
@@ -306,15 +308,46 @@ function closeClassDetailsOverlay(){
 
 }
 
-function loadAttendedClassesCount(className){
+async function loadAttendedClassesCount(className){
 
 	console.log("[loadAttendedClassesCount] Loading attended classes count for class:", className);
+
+	const classId = await getClassIdByName(className);
+
+	const response = await fetch(serverBaseUrl + ENDPOINTS.attendance + `?class_id=${encodeURIComponent(classId)}`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if(response.ok){
+		console.log("[loadAttendedClassesCount] Response received from server for attendance data.");
+		const data = await response.json();
+
+		console.log(data);
+	}
 
 }
 
 // End of Class Details Overlay functions ========================
 
+async function getClassIdByName(className){
+	const response = await fetch(serverBaseUrl + ENDPOINTS.classes + `?class_name=${encodeURIComponent(className)}`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
 
+	if(response.ok){
+		const data = await response.json();
+		
+		console.log("[getClassIdByName] Class ID for", className, "is", data.class_id, " type of: ", typeof data.class_id);
+
+		return data.class_id;
+	}
+}
 
 
 
