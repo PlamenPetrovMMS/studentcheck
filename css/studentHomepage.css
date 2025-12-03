@@ -71,8 +71,7 @@
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: 12px;
-	padding-left: 20px;
-	padding-right: 20px; 
+	padding: 20px;
 }
 
 .button {
