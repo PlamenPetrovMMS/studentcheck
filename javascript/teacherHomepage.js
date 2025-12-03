@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const dot = document.createElement('span');
             dot.className = 'status-dot';
 
-            applyDotStateClass(dot, stateMap.get(student.id));
+            applyDotStateClass(dot, stateMap.get(student.faculty_number));
 
             li.appendChild(name);
             li.appendChild(dot);
