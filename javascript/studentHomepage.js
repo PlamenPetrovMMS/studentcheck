@@ -201,8 +201,8 @@ async function loadClassesForStudent(studentData) {
 	console.log("[loadClassesForStudent] Loading classes for student:", studentData);
 
 	const classesList = document.getElementById('classesList');
+	classesList.innerHTML = ''; // Clear previous list
 
-	let class_students = [];
 	let classNames = [];
 
 	var response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
@@ -230,7 +230,7 @@ async function loadClassesForStudent(studentData) {
 				classItem.style.fontSize = '18px';
 				classItem.style.listStyleType = 'none';
 				classItem.style.left = '0px';
-				
+
 				classesList.appendChild(classItem);
 			});
 
