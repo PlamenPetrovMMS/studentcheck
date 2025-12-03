@@ -216,13 +216,9 @@ async function loadClassesForStudent(studentData) {
 		console.log("[loadClassesForStudent] Response received from server.");
 		const data = await response.json();
 
-		try{
-			class_students = JSON.parse(data.class_students);
-		}catch(e){
-			console.error("Error: Unable to parse class_students JSON:", e);
-		}
-		
-		console.log("[loadClassesForStudent] Data:", data);
+		console.log("[loadClassesForStudent] Response data:", data);
+
+		class_students = data.class_students;
 
 		if(!class_students){
 			console.error("[loadClassesForStudent] No classes data found in response.");
