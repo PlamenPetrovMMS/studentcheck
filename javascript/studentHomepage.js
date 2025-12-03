@@ -228,6 +228,8 @@ async function loadClassesForStudent(studentData) {
 				classItem.style.listStyleType = 'none';
 				classItem.style.width = '100%';
 				classItem.style.left = '0px';
+				classItem.style.marginTop = '5px';
+				classItem.style.marginBottom = '5px';
 
 				const btn = document.createElement('button');
     			btn.textContent = className;
