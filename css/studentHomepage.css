@@ -1,14 +1,6 @@
-/* Stabilize scrollbar to prevent layout shift when locking body */
-html { scrollbar-gutter: stable; }
 /* Center title in the header for this page */
 .card-header .title { text-align: center; width: 100%; }
 /* Keep the main container centered in the viewport */
-#mainContainer {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 100vh;
-}
 
 /* QR container and scalable sizing */
 #qrContainer {
@@ -78,10 +70,6 @@ html { scrollbar-gutter: stable; }
 
 
 .mainSection{
-	display: flex;
-	position: static; /* prevent absolute positioning from shifting layout */
-	align-items: center;
-	justify-content: center;
 }
 
 
@@ -92,6 +80,7 @@ html { scrollbar-gutter: stable; }
 
 
 .overlay-background {
+	visibility: hidden;
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.8);
@@ -100,16 +89,6 @@ html { scrollbar-gutter: stable; }
 	justify-content: center;
 	z-index: 2000;
 }
-.overlay-background.hidden { display: none; }
-.overlay-background::before{
-	content: "";
-	position: fixed;
-	inset: 0;
-	background: rgba(0,0,0,0.8);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
-	z-index: -1;
-}
 
 
 
@@ -117,11 +96,11 @@ html { scrollbar-gutter: stable; }
 
 
 #view-classes-overlay{
+	display: none;
 	position: relative;
 
 	width: 300px;
 	height: 200px;
-	margin: 0;
 
 	background: white;
 	border-radius: 20px;
