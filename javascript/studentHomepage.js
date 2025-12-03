@@ -225,7 +225,12 @@ async function loadClassesForStudent(studentData) {
 
 			classNames.forEach((className) => {
 				const classItem = document.createElement('li');
+
 				classItem.textContent = className;
+				classItem.style.fontSize = '18px';
+				classItem.style.listStyleType = 'none';
+				classItem.style.left = '0px';
+				
 				classesList.appendChild(classItem);
 			});
 
