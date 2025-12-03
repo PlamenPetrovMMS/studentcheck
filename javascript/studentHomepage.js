@@ -77,24 +77,37 @@ document.addEventListener('DOMContentLoaded', () => {
 	const classesBtn = document.getElementById('viewClassesBtn');
 	if(classesBtn){
 		classesBtn.addEventListener('click', () => {
-			openClassesOverlay();
+
+			openViewClassesOverlay();
+
 		});
 	}
 
 
-
-
-
-	// Wire up logout button
 	const logoutBtn = document.getElementById('logoutBtn');
 	if (logoutBtn) {
 		logoutBtn.addEventListener('click', () => {
+
 			sessionStorage.removeItem('studentData');
 			// Redirect to the landing page after logout
 			window.location.replace('index.html');
+
 		});
+	}else{
+		console.error("Error: Unable to load logout button.");
 	}
 
+
+	const closeOverlayBtn = document.getElementById('closeViewClassesOverlayBtn');
+	if(closeOverlayBtn){
+		closeOverlayBtn.addEventListener('click', () => {
+
+			closeViewClassesOverlay();
+
+		});
+	}else{
+		console.error("Error: Unable to load close overlay button.");
+	}
 
 
 
@@ -148,7 +161,14 @@ function displayErrorInQRContainer(qrContainer, message) {
 	qrContainer.appendChild(errorParagraph);
 }
 
-function openClassesOverlay() {
+
+
+
+
+
+// View Classes Overlay function =================================
+
+function openViewClassesOverlay() {
 
 	console.log("[openClassesOverlay] Opening classes overlay...");
 
@@ -159,3 +179,18 @@ function openClassesOverlay() {
 	overlayBackground.style.visibility = 'visible';
 
 }
+function closeViewClassesOverlay() {
+	const overlay = document.getElementById('view-classes-overlay');
+	const overlayBackground = document.querySelector('.overlay-background');
+
+	overlay.style.display = 'none';
+	overlayBackground.style.visibility = 'hidden';
+}
+
+// End of View Classes Overlay function ==========================
+
+
+
+
+
+
