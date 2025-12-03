@@ -201,8 +201,8 @@ async function loadClassesForStudent(studentData) {
 
 	const classesList = document.getElementById('classesList');
 
-	let class_students = null;
-	let classIds = null;
+	let class_students = [];
+	let classIds = [];
 
 	const response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
 		method: 'GET',
