@@ -232,6 +232,7 @@ async function loadClassesForStudent(studentData) {
 				const btn = document.createElement('button');
     			btn.textContent = className;
 				btn.style.width = '100%';
+				btn.style.height = '30px';
 				btn.style.fontSize = '18px';
 				
 				btn.addEventListener('click', () => {
