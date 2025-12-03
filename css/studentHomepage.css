@@ -111,6 +111,7 @@
 	justify-content: center;
 	z-index: 1000;
 }
+.overlay-background.hidden { display: none; }
 .overlay-background::before{
 	content: "";
 	position: fixed;
@@ -128,7 +129,6 @@
 
 
 #view-classes-overlay{
-	visibility: hidden;
 	position: relative; /* center within flex container and stack above backdrop */
 	z-index: 1001; /* ensure above .overlay-background::before */
 
