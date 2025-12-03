@@ -224,6 +224,7 @@ async function loadClassesForStudent(studentData) {
 			console.error("[loadClassesForStudent] No classes data found in response.");
 		}else{
 			class_students.forEach(class_student => {
+				console.log("[loadClassesForStudent] Class student entry:", class_student);
 				classIds.push(class_student.class_id);
 			});
 		}
