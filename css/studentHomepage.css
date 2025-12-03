@@ -78,6 +78,7 @@
 .button {
     min-width: 120px;
 	max-width: 200px;
+	width: 100%;
     padding: 12px 18px;
     height: auto;
     font-size: 0.95rem;
