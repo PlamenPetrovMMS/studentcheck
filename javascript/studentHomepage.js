@@ -193,7 +193,7 @@ function displayErrorInQRContainer(qrContainer, message) {
 
 function openViewClassesOverlay() {
 
-	console.log("[openClassesOverlay] Opening classes overlay...");
+	//console.log("[openClassesOverlay] Opening classes overlay...");
 
 	const overlay = document.getElementById('view-classes-overlay');
 	const overlayBackground = document.querySelector('.overlay-background');
@@ -213,7 +213,7 @@ function closeViewClassesOverlay() {
 
 async function loadClassesForStudent(studentData) {
 
-	console.log("[loadClassesForStudent] Loading classes for student:", studentData);
+	//console.log("[loadClassesForStudent] Loading classes for student:", studentData);
 
 	const classesList = document.getElementById('classesList');
 	classesList.innerHTML = ''; // Clear previous list
@@ -229,10 +229,10 @@ async function loadClassesForStudent(studentData) {
 
 
 	if (response.ok) {
-		console.log("[loadClassesForStudent] Response received from server.");
+		//console.log("[loadClassesForStudent] Response received from server.");
 		const data = await response.json();
 
-		console.log("[loadClassesForStudent] Response data:", data);
+		//console.log("[loadClassesForStudent] Response data:", data);
 
 		classNames = data.class_names;
 
@@ -257,7 +257,7 @@ async function loadClassesForStudent(studentData) {
 				classesList.appendChild(classItem);
 			});
 
-			console.log("[loadClassesForStudent] Classes loaded into overlay.");
+			//console.log("[loadClassesForStudent] Classes loaded into overlay.");
 
 		}else{
 			classesList.innerHTML = '<p>No classes found.</p>';
@@ -278,7 +278,7 @@ async function loadClassesForStudent(studentData) {
 
 function openClassDetailsOverlay(className) {
 
-	console.log("[openClassDetailsOverlay] Opening details for class:", className);
+	//console.log("[openClassDetailsOverlay] Opening details for class:", className);
 
 	closeViewClassesOverlay();
 
@@ -291,6 +291,8 @@ function openClassDetailsOverlay(className) {
 	const classTitle = document.getElementById('classDetailsOverlayTitle');
 	classTitle.textContent = `Class Details: ${className}`;
 
+	loadAttendedClassesCount(className);
+
 }
 
 function closeClassDetailsOverlay(){
@@ -301,7 +303,13 @@ function closeClassDetailsOverlay(){
 	background.style.visibility = 'hidden';
 
 	openViewClassesOverlay();
-	
+
+}
+
+function loadAttendedClassesCount(className){
+
+	console.log("[loadAttendedClassesCount] Loading attended classes count for class:", className);
+
 }
 
 // End of Class Details Overlay functions ========================
