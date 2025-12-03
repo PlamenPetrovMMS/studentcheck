@@ -386,6 +386,7 @@ body {
     cursor: pointer;
     transition: background 0.15s ease, transform 120ms ease;
 }
+
 .role-button:hover { background: #d1d5db; }
 .role-button:active { transform: translateY(2px); }
 #addStudentsOverlayBtn { background: #2563eb; color: #ffffff; border-color: #2563eb; }
