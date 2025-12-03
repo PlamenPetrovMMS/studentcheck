@@ -120,9 +120,15 @@
 	z-index: -1;
 }
 
+
+
+
+
+
+
 #view-classes-overlay{
 	visibility: hidden;
-	position: relative;
+	position: absolute;
 
 	width: 300px;
 	height: 200px;
