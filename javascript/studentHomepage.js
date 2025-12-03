@@ -150,7 +150,9 @@ function displayErrorInQRContainer(qrContainer, message) {
 
 function openClassesOverlay() {
 
+	console.log("[openClassesOverlay] Opening classes overlay...");
+
 	const overlay = document.getElementById('view-classes-overlay');
-	overlay.style.visability = 'visible';
+	overlay.style.visibility = 'visible';
 
 }
