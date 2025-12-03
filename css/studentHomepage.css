@@ -102,7 +102,6 @@
 
 
 .overlay-background {
-	/* Full-screen overlay container */
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.8);
@@ -111,7 +110,6 @@
 	justify-content: center;
 	z-index: 1000;
 }
-.overlay-background.hidden { display: none; }
 .overlay-background::before{
 	content: "";
 	position: fixed;
@@ -127,18 +125,17 @@
 
 
 
-
 #view-classes-overlay{
-	position: relative; /* center within flex container and stack above backdrop */
-	z-index: 1001; /* ensure above .overlay-background::before */
+	visibility: hidden;
+	position: relative;
 
 	width: 300px;
 	height: 200px;
-	margin: 0;
 
-	background: #ffffff;
+	background: white;
 	border-radius: 20px;
 	padding: 20px;
+	z-index: 1000;
 }
 
 
