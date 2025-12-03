@@ -65,6 +65,17 @@
 
 
 
+#view-classes-overlay{
+	visibility: hidden;
+}
+
+
+
+
+
+
+
+
 .button-group{
 	display: flex;
 	flex-direction: column;

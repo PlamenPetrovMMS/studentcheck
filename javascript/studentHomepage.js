@@ -72,6 +72,19 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (nameElement) nameElement.textContent = displayName;
 	if (facultyNumberElement) facultyNumberElement.textContent = facultyNumber;
 
+
+
+	const classesBtn = document.getElementById('viewClassesBtn');
+	if(classesBtn){
+		classesBtn.addEventListener('click', () => {
+			openClassesOverlay();
+		});
+	}
+
+
+
+
+
 	// Wire up logout button
 	const logoutBtn = document.getElementById('logoutBtn');
 	if (logoutBtn) {
@@ -81,6 +94,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			window.location.replace('index.html');
 		});
 	}
+
+
+
+
+
+
+
 
 	const qrContainer = document.getElementById('qrContainer');
 	if (qrContainer && typeof kjua === 'function') {
@@ -116,6 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	} else if (qrContainer) {
 		displayErrorInQRContainer(qrContainer, 'QR library not loaded');
 	}
+
+
 });
 
 function displayErrorInQRContainer(qrContainer, message) {
@@ -124,4 +146,11 @@ function displayErrorInQRContainer(qrContainer, message) {
 	errorParagraph.style.color = 'red';
 	errorParagraph.textContent = message;
 	qrContainer.appendChild(errorParagraph);
+}
+
+function openClassesOverlay() {
+
+	const overlay = document.getElementById('view-classes-overlay');
+	overlay.style.visability = 'visible';
+
 }
