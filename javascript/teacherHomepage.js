@@ -666,12 +666,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         for (const [studentFacultyNumber, state] of (attendanceState.get(className))) {
             console.log("[saveAttendanceDataToDatabase] Processing student:", studentFacultyNumber, "state:", state);
-            studentIds = classStudents.find(student => {
+            
+            const found = classStudents.find(student => {
                 console.log("[saveAttendanceDataToDatabase] Checking student:", student);
                 if (student.faculty_number === studentFacultyNumber && state === 'completed') {
-                    studentIds.push(student.id);
+                    return true;
                 }
             });
+
+            if (found) {
+                console.log("[saveAttendanceDataToDatabase] Adding student ID to attendance list:", found.id);
+                studentIds.push(found.id);
+            }
         }
 
         console.log("[saveAttendanceDataToDatabase] Finalizing attendance for class:", className, "Class ID:", classId, "Students Ids:", studentIds);
