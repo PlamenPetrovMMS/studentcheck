@@ -98,6 +98,14 @@
 	z-index: 1;
 }
 
+.overlay-top-section{
+	width: 100%;
+}
+
+.overlay-middle-section{
+	width: 100%;
+}
+
 .overlay-bottom-section{
 	display: flex;
 	justify-content: center;
@@ -127,7 +135,6 @@
 
 	background: white;
 	border-radius: 20px;
-	padding: 20px;
 	z-index: 1000;
 }
 
