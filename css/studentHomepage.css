@@ -136,6 +136,14 @@
 	border-radius: 10px;
 	cursor: pointer;
 	font-size: 22px;
+	transition: 
+        background 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.2s ease;
+}
+.class-button:hover{
+	background: #bdbec0; /* gray-300 */
+	box-shadow: 0 12px 26px rgba(55,65,81,0.42);
 }
 
 
