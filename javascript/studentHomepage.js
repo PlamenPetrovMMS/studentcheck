@@ -299,6 +299,9 @@ function closeClassDetailsOverlay(){
 
 	overlay.style.display = 'none';
 	background.style.visibility = 'hidden';
+
+	openViewClassesOverlay();
+	
 }
 
 // End of Class Details Overlay functions ========================
