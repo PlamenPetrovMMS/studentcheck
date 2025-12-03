@@ -225,19 +225,11 @@ async function loadClassesForStudent(studentData) {
 
 			classNames.forEach((className) => {
 				const classItem = document.createElement('li');
-				classItem.style.listStyleType = 'none';
-				classItem.style.width = '100%';
-				classItem.style.left = '0px';
-				classItem.style.marginTop = '5px';
-				classItem.style.marginBottom = '5px';
+				classItem.className = 'class-list-item';
 
 				const btn = document.createElement('button');
+				btn.className = 'class-button';
     			btn.textContent = className;
-				btn.style.width = '100%';
-				btn.style.height = '60px';
-				btn.style.borderRadius = '10px';
-				btn.style.cursor = 'pointer';
-				btn.style.fontSize = '22px';
 				
 				btn.addEventListener('click', () => {
 					console.log(`[loadClassesForStudent] Class button clicked: ${btn.textContent}`);
