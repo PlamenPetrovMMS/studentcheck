@@ -98,7 +98,7 @@
 	z-index: 1;
 }
 
-.overlay-background .overlay-bottom-section{
+.overlay-bottom-section{
 	display: flex;
 	justify-content: center;
 	align-items: center;
