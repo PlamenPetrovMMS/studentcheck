@@ -1,9 +1,6 @@
 const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
-        createClass: `/classes`,
-        attendance: `/attendance`,
-        class_students: '/class_students',
-        students: '/students',
+        getStudentClasses: '/get_student_classes',
 	};
 
 
@@ -204,7 +201,7 @@ async function loadClassesForStudent(studentData) {
 
 	const classesList = document.getElementById('classesList');
 
-	const response = await fetch(serverBaseUrl + ENDPOINTS.class_students + `?studentId=${studentData.id}`, {
+	const response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
@@ -214,7 +211,7 @@ async function loadClassesForStudent(studentData) {
 	if (response.ok) {
 		console.log("[loadClassesForStudent] Response received from server.");
 		const data = await response.json();
-		
+
 		console.log("[loadClassesForStudent] Data:", data);
 	}
 
