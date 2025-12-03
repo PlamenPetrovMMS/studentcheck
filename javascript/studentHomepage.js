@@ -130,8 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		// Build compact payload with short keys to reduce size
 		const payload = {
-			name: studentData.fullName,
-			facultyNumber: studentData.facultyNumber,
+			name: studentData.full_name,
+			facultyNumber: studentData.faculty_number,
 			email: studentData.email
 		};
 
