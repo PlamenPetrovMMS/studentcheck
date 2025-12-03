@@ -238,6 +238,8 @@ async function loadClassesForStudent(studentData) {
 					console.log(`[loadClassesForStudent] Class button clicked: ${btn.textContent}`);
 				});
 
+				classItem.appendChild(btn);
+
 				classesList.appendChild(classItem);
 			});
 
