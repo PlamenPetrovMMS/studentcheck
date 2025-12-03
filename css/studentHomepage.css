@@ -184,7 +184,7 @@
 
 
 
-#view-classes-overlay{
+#view-classes-overlay, #class-details-overlay {
 	display: none;
 
 	flex-direction: column;

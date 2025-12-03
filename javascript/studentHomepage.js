@@ -232,7 +232,9 @@ async function loadClassesForStudent(studentData) {
     			btn.textContent = className;
 				
 				btn.addEventListener('click', () => {
-					console.log(`[loadClassesForStudent] Class button clicked: ${btn.textContent}`);
+
+					openClassDetailsOverlay(className);
+
 				});
 
 				classItem.appendChild(btn);
@@ -250,9 +252,14 @@ async function loadClassesForStudent(studentData) {
 		console.error("Error fetching classes:", response.status, response.statusText);
 	}
 
-	
+}
 
-	
+function openClassDetailsOverlay(className) {
+
+	console.log("[openClassDetailsOverlay] Opening details for class:", className);
+
+	closeViewClassesOverlay();
+
 }
 
 // End of View Classes Overlay function ==========================
