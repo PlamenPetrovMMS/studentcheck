@@ -80,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			openViewClassesOverlay();
 
+			loadClassesForStudent(studentData);
+
 		});
 	}
 
@@ -185,6 +187,12 @@ function closeViewClassesOverlay() {
 
 	overlay.style.display = 'none';
 	overlayBackground.style.visibility = 'hidden';
+}
+
+function loadClassesForStudent(studentData) {
+
+	console.log("[loadClassesForStudent] Loading classes for student:", studentData);
+
 }
 
 // End of View Classes Overlay function ==========================
