@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         //console.log("[handleScannedCode] Derived student ID:", studentFacultyNumber)
 
-        console.log("[handleScannedCode] Updated studentTimestamps map:", studentTimestamps);
+        //console.log("[handleScannedCode] Updated studentTimestamps map:", studentTimestamps);
 
 
 
@@ -539,22 +539,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (current === 'none') {
                 next = 'joined';
 
-                console.log("[updateAttendanceState] Student is joining, recording join time.");
+                //console.log("[updateAttendanceState] Student is joining, recording join time.");
                 studentTimestamps.set(studentFacultyNumber, { joined_at: Date.now(), left_at: null });
-                console.log(studentTimestamps.get(studentFacultyNumber));
+                //console.log(studentTimestamps.get(studentFacultyNumber));
             }
         } else if (mode === 'leaving') {
             if (current === 'joined'){
                 next = 'completed';
 
-                console.log("[updateAttendanceState] Student is leaving, recording leave time.");
+                //console.log("[updateAttendanceState] Student is leaving, recording leave time.");
                 const joined_at = studentTimestamps.get(studentFacultyNumber).joined_at;
                 studentTimestamps.set(studentFacultyNumber, { joined_at: joined_at, left_at: Date.now() });
-                console.log(studentTimestamps.get(studentFacultyNumber));
+                //console.log(studentTimestamps.get(studentFacultyNumber));
             } 
         }
 
         //console.log("[updateAttendanceState] Transitioning student:", studentFacultyNumber, "from", current, "to", next, "in class:", className);
+
+
+        // THIS BELOW SHOULD BE REWORKED TO HANDLE ASYNC ATTENDANCE MARKING =============================================== 
 
         if (next !== current) {
             map.set(studentFacultyNumber, next);
