@@ -112,10 +112,6 @@
 	align-items: center; /* vertically centered items */
 }
 
-.overlay-middle-section p {
-    margin-left: auto; /* this pushes the <p> fully to the right */
-}
-
 .overlay-bottom-section{
 	display: flex;
 	justify-content: center;
@@ -139,13 +135,14 @@
 
 .attended-classes-label{
 	margin-left: 20px;
-	margin-right: 5px;
 	font-size: 22px;
 }
 #attendedClassesCount{
 	font-weight: bold;
 	font-size: 22px;
+	margin-left: 20px;
 }
+
 
 
 
