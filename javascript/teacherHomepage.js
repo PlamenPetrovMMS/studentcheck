@@ -1785,12 +1785,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (stored.length > 0) {
             const found = stored.some(student => {
-                console.log("[isStudentInClass] Checking student:", student);
+                //console.log("[isStudentInClass] Checking student:", student);
                 const facultyNumber = student.faculty_number.trim();
                 return facultyNumber && facultyNumber === String(studentFacultyNumber).trim();
             });
 
-            console.log("[isStudentInClass] Student found in stored class students:", found);
+            //console.log("[isStudentInClass] Student found in stored class students:", found);
 
             if (found) return true;
         }
