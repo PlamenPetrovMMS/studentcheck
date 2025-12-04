@@ -651,7 +651,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const response = await fetch(serverBaseUrl + ENDPOINTS.updateCompletedClassesCount, {
             method: 'POST',
-            headers: { 'Contenct-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 class_id: classId
             })
