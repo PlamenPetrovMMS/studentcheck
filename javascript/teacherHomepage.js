@@ -525,14 +525,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 next = 'joined';
 
                 console.log("[updateAttendanceState] Student is joining, recording join time.");
-            studentTimestamps.set(studentFacultyNumber, { joined_at: Date.now(), left_at: null });
+                studentTimestamps.set(studentFacultyNumber, { joined_at: Date.now(), left_at: null });
+                console.log(studentTimestamps);
             }
         } else if (mode === 'leaving') {
             if (current === 'joined'){
                 next = 'completed';
 
+                console.log("[updateAttendanceState] Student is leaving, recording leave time.");
                 const joined_at = studentTimestamps.get(studentFacultyNumber).joined_at;
                 studentTimestamps.set(studentFacultyNumber, { joined_at: joined_at, left_at: Date.now() });
+                console.log(studentTimestamps);
             } 
         }
 
