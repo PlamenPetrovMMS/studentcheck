@@ -132,20 +132,28 @@
 }
 
 
-
+.attended-classes-container{
+	width: 100%;
+	display: flex;
+}
 .attended-classes-label{
 	margin-left: 20px;
 	font-size: 22px;
 }
-.total-classes-label{
-	margin-left: 20px;
-	font-size: 22px;
-}
-
 #attendedClassesCount{
 	font-weight: bold;
 	font-size: 22px;
 	margin-left: 20px;
+}
+
+
+.total-classes-container{
+	width: 100%;
+	display: flex;
+}
+.total-classes-label{
+	margin-left: 20px;
+	font-size: 22px;
 }
 #totalClassesCount{
 	font-weight: bold;
