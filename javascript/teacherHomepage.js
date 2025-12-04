@@ -773,7 +773,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("[openScannerOverlay] Clearing studentTimestamps before starting scanner.", studentTimestamps);
         studentTimestamps.clear();
 
-        studentTimestamps.set(studentFacultyNumber, { joined_at: null, left_at: null });
 
         ensureScannerOverlay();
         // Hide ready overlay to avoid stacking
