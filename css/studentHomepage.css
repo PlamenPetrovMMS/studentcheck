@@ -137,7 +137,17 @@
 	margin-left: 20px;
 	font-size: 22px;
 }
+.total-classes-label{
+	margin-left: 20px;
+	font-size: 22px;
+}
+
 #attendedClassesCount{
+	font-weight: bold;
+	font-size: 22px;
+	margin-left: 20px;
+}
+#totalClassesCount{
 	font-weight: bold;
 	font-size: 22px;
 	margin-left: 20px;
