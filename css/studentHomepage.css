@@ -109,6 +109,11 @@
 	display: flex;
 	position: relative;
 	width: 100%;
+	align-items: center; /* vertically centered items */
+}
+
+.overlay-middle-section p {
+    margin-left: auto; /* this pushes the <p> fully to the right */
 }
 
 .overlay-bottom-section{
