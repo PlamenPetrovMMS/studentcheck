@@ -322,14 +322,19 @@ async function loadAttendedClassesCount(className, studentId){
 	});
 
 	if(response.ok){
+		
 		console.log("[loadAttendedClassesCount] Response received from server for attendance data.");
 		const data = await response.json();
 
 		console.log(data);
 		const attendance_count = data.attendance_count;
+		const total_completed_classes_count = data.total_completed_classes_count;
 
 		const attendanceCountElement = document.getElementById('attendedClassesCount');
+		const totalClassesCountElement = document.getElementById('totalClassesCount'); 
+
 		attendanceCountElement.textContent = attendance_count;
+		totalClassesCountElement.textContent = total_completed_classes_count;
 
 	}else{
 		console.error("Error fetching attendance count:", response.status, response.statusText);
