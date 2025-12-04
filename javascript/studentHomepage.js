@@ -2,8 +2,8 @@ const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
         getStudentClasses: '/get_student_classes',
 		getStudentClassesNamesbyIds: '/get_classes_names_by_ids',
-		attendance: '/attendance',
-		classes: '/classes',
+		getStudentAttendanceCount: '/get_student_attendance_count',
+		getClassIdByName: '/get_class_id_by_name',
 	};
 
 
@@ -250,7 +250,7 @@ async function loadClassesForStudent(studentData) {
 				
 				btn.addEventListener('click', () => {
 
-					openClassDetailsOverlay(className);
+					openClassDetailsOverlay(className, studentData.id);
 
 				});
 
@@ -278,7 +278,7 @@ async function loadClassesForStudent(studentData) {
 
 // Class Details Overlay functions ===============================
 
-function openClassDetailsOverlay(className) {
+function openClassDetailsOverlay(className, studentId) {
 
 	//console.log("[openClassDetailsOverlay] Opening details for class:", className);
 
@@ -293,7 +293,7 @@ function openClassDetailsOverlay(className) {
 	const classTitle = document.getElementById('classDetailsOverlayTitle');
 	classTitle.textContent = `Class Details: ${className}`;
 
-	loadAttendedClassesCount(className);
+	loadAttendedClassesCount(className, studentId);
 
 }
 
@@ -308,13 +308,13 @@ function closeClassDetailsOverlay(){
 
 }
 
-async function loadAttendedClassesCount(className){
+async function loadAttendedClassesCount(className, studentId){
 
 	console.log("[loadAttendedClassesCount] Loading attended classes count for class:", className);
 
 	const classId = await getClassIdByName(className);
 
-	const response = await fetch(serverBaseUrl + ENDPOINTS.attendance + `?class_id=${encodeURIComponent(classId)}`, {
+	const response = await fetch(serverBaseUrl + ENDPOINTS.getStudentAttendanceCount + `?class_id=${encodeURIComponent(classId)}&student_id=${encodeURIComponent(studentId)}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
@@ -333,7 +333,7 @@ async function loadAttendedClassesCount(className){
 // End of Class Details Overlay functions ========================
 
 async function getClassIdByName(className){
-	const response = await fetch(serverBaseUrl + ENDPOINTS.classes + `?class_name=${encodeURIComponent(className)}`, {
+	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassIdByName + `?class_name=${encodeURIComponent(className)}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
