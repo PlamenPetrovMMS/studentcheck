@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         attendance: `/attendance`,
         class_students: '/class_students',
         students: '/students',
+        updateCompletedClassesCount: '/update_completed_classes_count',
     };
 
     async function apiCreateClass(name, studentIds, teacherEmail) {
@@ -618,6 +619,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'Are you sure you want to close the scanner? All attendance data will be deleted.',
             async () => {
 
+                await updateCompletedClassesCount(currentClassName);
                 await saveAttendanceDataToDatabase(currentClassName);
 
                 // Confirm: clear temp attendance, close attendance overlay if open, then close scanner
@@ -636,6 +638,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
+    async function updateCompletedClassesCount(className) {
+
+        console.log("[updateCompletedClassesCount] Updating completed classes count for class:", className);
+
+        let classId = getClassIdByName(className);
+
+        if (!classId) {
+            console.error("Error: Unable to update completed classes count - missing class ID for class:", className);
+            return;
+        }
+
+        const response = await fetch(serverBaseUrl + ENDPOINTS.updateCompletedClassesCount, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: JSON.stringify({ 
+                class_id: classId
+            })
+        });
+
+        if(response.ok){
+            console.log("[updateCompletedClassesCount] Completed classes count updated successfully for class:", className);
+        }else{
+            console.error("Error: Failed to update completed classes count for class:", className, "Response status:", response.status);
+        }
+
+    }
 
     async function saveAttendanceDataToDatabase(className) {
 
