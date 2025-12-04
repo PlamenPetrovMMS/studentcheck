@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     function initializeScanner(mode) {
 
-        console.log("[initializeScanner] Initializing scanner with mode:", mode);
+        //console.log("[initializeScanner] Initializing scanner with mode:", mode);
 
         initAttendanceStateForClass(currentClassName, loadClassStudentsFromStorage(currentClassName));
 
@@ -259,7 +259,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!container) { 
                 throw new Error('QR container not found'); 
             }
+
             html5QrCode = new Html5Qrcode('qr-reader');
+
             const onScanSuccess = (decodedText, decodedResult) => {
                 const now = Date.now();
                 if (now - lastScanAt > 300) {
@@ -267,10 +269,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     handleScannedCode(decodedText, currentScanMode, currentClassName);
                 }
             };
+
             const onScanError = (errorMessage, error) => {
                 // Ignore frequent decode errors; log only severe ones silently
                 return;
             };
+
             return html5QrCode.start(
                 { facingMode: 'environment' },
                 {
@@ -290,12 +294,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function handleScannedCode(data, mode, classId) {
 
-        console.log("[handleScannedCode] Scanned data:", data, "mode:", mode, "classId:", classId);
-        console.log("[handleScannedCode] Attendance state map before scan:", attendanceState);
+        //console.log("[handleScannedCode] Scanned data:", data, "mode:", mode, "classId:", classId);
+        //console.log("[handleScannedCode] Attendance state map before scan:", attendanceState);
 
-        console.log("Progressing...");
+        //console.log("Progressing...");
 
-        console.log("Progressing...");
+        //console.log("Progressing...");
 
         // Parse JSON payload from student QR (expects facultyNumber, name, email)
         let payload = null;
@@ -305,13 +309,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("[handleScannedCode] Failed to parse JSON from scanned data");
         }
 
-        console.log("[handleScannedCode] Parsed payload:", payload);
+       // console.log("[handleScannedCode] Parsed payload:", payload);
 
         const studentFacultyNumber = deriveStudentIdFromPayload(payload);
 
-        console.log("[handleScannedCode] Derived student ID:", studentFacultyNumber);
-
+        //console.log("[handleScannedCode] Derived student ID:", studentFacultyNumber);
+        
         studentTimestamps.set(studentFacultyNumber, { joined_at: null, left_at: null });
+
         console.log("[handleScannedCode] Updated studentTimestamps map:", studentTimestamps);
 
 
@@ -321,11 +326,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const activeClass = (classId || getActiveClassName()).trim();
             
             if (!activeClass) {
-                console.log('[Attendance] Ignoring scan – no active class context.');
+                //console.log('[Attendance] Ignoring scan – no active class context.');
             } else if (!isStudentInClass(activeClass, studentFacultyNumber)) {
-                console.log('[Attendance] Ignoring scan for unassigned student:', studentFacultyNumber, 'class:', activeClass);
+                //console.log('[Attendance] Ignoring scan for unassigned student:', studentFacultyNumber, 'class:', activeClass);
             } else {
-                console.log('[Attendance] Processing scan for student:', studentFacultyNumber, 'in class:', activeClass, 'mode:', mode);
+                //console.log('[Attendance] Processing scan for student:', studentFacultyNumber, 'in class:', activeClass, 'mode:', mode);
                 updateAttendanceState(activeClass, studentFacultyNumber, mode);
             }
         }
@@ -392,17 +397,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function initAttendanceStateForClass(className, students) {
 
-        console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
+        //console.log("[initAttendanceStateForClass] Initializing for class:", className, "with students:", students);
 
         if (!attendanceState.has(className)){
-            console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
+            //console.log("[initAttendanceStateForClass] No existing state for class, creating new map.");
             attendanceState.set(className, new Map());
         } 
 
 
         const map = attendanceState.get(className);
 
-        console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
+        //console.log("[initAttendanceStateForClass] Existing state map:", map, "for class:", className);
 
         students.forEach(student => {
             //console.log("[initAttendanceStateForClass] Ensuring student in state map:", student);
@@ -467,7 +472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function applyDotStateClass(dotEl, state) {
 
-        console.log("[applyDotStateClass] Applying state:", state, "to dot element:", dotEl);
+        //console.log("[applyDotStateClass] Applying state:", state, "to dot element:", dotEl);
 
         dotEl.classList.remove('status-none', 'status-joined', 'status-completed');
         if (state === 'completed') {
@@ -499,13 +504,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function updateAttendanceState(className, studentFacultyNumber, mode) {
 
-        console.log("[updateAttendanceState] Updating attendance for class:", className, "student:", studentFacultyNumber, "mode:", mode);
+        //console.log("[updateAttendanceState] Updating attendance for class:", className, "student:", studentFacultyNumber, "mode:", mode);
 
         if (!className || !studentFacultyNumber) return;
 
         // Guard: ignore scans for students not assigned to the class
         if (!isStudentInClass(className, studentFacultyNumber)) {
-            console.log('[Attendance] Ignoring scan for unassigned student:', studentFacultyNumber, 'in class:', className);
+            //console.log('[Attendance] Ignoring scan for unassigned student:', studentFacultyNumber, 'in class:', className);
             return;
         }
 
@@ -515,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const map = attendanceState.get(className);
 
-        console.log("[updateAttendanceState] Current state map for class:", className, map);
+        //console.log("[updateAttendanceState] Current state map for class:", className, map);
 
         const current = map.get(studentFacultyNumber);
         let next = current;
@@ -539,7 +544,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } 
         }
 
-        console.log("[updateAttendanceState] Transitioning student:", studentFacultyNumber, "from", current, "to", next, "in class:", className);
+        //console.log("[updateAttendanceState] Transitioning student:", studentFacultyNumber, "from", current, "to", next, "in class:", className);
 
         if (next !== current) {
             map.set(studentFacultyNumber, next);
@@ -763,10 +768,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openScannerOverlay(classId) {
 
-        console.log("[openScannerOverlay] Opening scanner overlay for class:", classId);
+        //console.log("[openScannerOverlay] Opening scanner overlay for class:", classId);
 
         console.log("[openScannerOverlay] Clearing studentTimestamps before starting scanner.", studentTimestamps);
         studentTimestamps.clear();
+
+        studentTimestamps.set(studentFacultyNumber, { joined_at: null, left_at: null });
 
         ensureScannerOverlay();
         // Hide ready overlay to avoid stacking
