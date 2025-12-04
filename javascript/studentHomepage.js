@@ -326,6 +326,12 @@ async function loadAttendedClassesCount(className, studentId){
 		const data = await response.json();
 
 		console.log(data);
+
+		const attendanceCountElement = document.getElementById('attendedClassesCount');
+		attendanceCountElement.textContent = data.attendance_count;
+		
+	}else{
+		console.error("Error fetching attendance count:", response.status, response.statusText);
 	}
 
 }
