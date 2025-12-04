@@ -57,6 +57,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     let wizardClassName = '';
     let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
 
+    // =============================================================
+
+    let studentTimestamps = new Map(); // faculty_number -> { joined_at, left_at }
+
+    // let timestamps = {
+    //     joined_at: null,
+    //     left_at: null,
+    // }
+
+    // =============================================================
+
     // Helper: Get normalized class name text from a class button
     // Purpose: Centralizes extraction from dataset/text and removes the "✓ Ready" suffix.
     function getRawClassNameFromButton(button) {
@@ -296,23 +307,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[handleScannedCode] Parsed payload:", payload);
 
-        const studentId = deriveStudentIdFromPayload(payload);
+        const studentFacultyNumber = deriveStudentIdFromPayload(payload);
 
-        console.log("[handleScannedCode] Derived student ID:", studentId);
+        console.log("[handleScannedCode] Derived student ID:", studentFacultyNumber);
 
-        if (studentId) {
+        studentTimestamps.set(studentFacultyNumber, { joined_at: null, left_at: null });
+        console.log("[handleScannedCode] Updated studentTimestamps map:", studentTimestamps);
+
+
+
+        if (studentFacultyNumber) {
             // Resolve active class (fallback if classId missing)
             const activeClass = (classId || getActiveClassName()).trim();
             
             if (!activeClass) {
                 console.log('[Attendance] Ignoring scan – no active class context.');
-            } else if (!isStudentInClass(activeClass, studentId)) {
-                console.log('[Attendance] Ignoring scan for unassigned student:', studentId, 'class:', activeClass);
+            } else if (!isStudentInClass(activeClass, studentFacultyNumber)) {
+                console.log('[Attendance] Ignoring scan for unassigned student:', studentFacultyNumber, 'class:', activeClass);
             } else {
-                console.log('[Attendance] Processing scan for student:', studentId, 'in class:', activeClass, 'mode:', mode);
-                updateAttendanceState(activeClass, studentId, mode);
+                console.log('[Attendance] Processing scan for student:', studentFacultyNumber, 'in class:', activeClass, 'mode:', mode);
+                updateAttendanceState(activeClass, studentFacultyNumber, mode);
             }
         }
+
+
+
         // For UX feedback, briefly flash camera border
         const cam = document.getElementById('cameraContainer');
         if (cam) {
@@ -467,10 +486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!pendingJoinTimes.has(className)) pendingJoinTimes.set(className, new Map());
         return pendingJoinTimes.get(className);
     }
-    function markJoinTime(className, studentId, when) {
-        const m = ensurePendingMap(className);
-        m.set(studentId, when || Date.now());
-    }
+    
     function takeJoinTime(className, studentId) {
         const m = ensurePendingMap(className);
         const t = m.get(studentId);
@@ -507,11 +523,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (mode === 'joining') {
             if (current === 'none') {
                 next = 'joined';
-                markJoinTime(className, studentFacultyNumber, Date.now());
+
+                console.log("[updateAttendanceState] Student is joining, recording join time.");
+            studentTimestamps.set(studentFacultyNumber, { joined_at: Date.now(), left_at: null });
             }
         } else if (mode === 'leaving') {
             if (current === 'joined'){
                 next = 'completed';
+
+                const joined_at = studentTimestamps.get(studentFacultyNumber).joined_at;
+                studentTimestamps.set(studentFacultyNumber, { joined_at: joined_at, left_at: Date.now() });
             } 
         }
 
@@ -525,7 +546,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Increment attendance when completing a session (joined -> completed)
             if (current === 'joined' && next === 'completed') {
-                const joinAt = takeJoinTime(className, studentFacultyNumber);
                 const classId = classIdByName.get(className);
 
                 if (!classId) {
@@ -615,6 +635,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (_) { }
     }
     function openCloseScannerConfirm() {
+
+        console.log("[openCloseScannerConfirm] Prompting confirmation to close scanner for class:", currentClassName);
+        console.log("[openCloseScannerConfirm] Student Timestamps", studentTimestamps);
+
         openConfirmOverlay(
             'Are you sure you want to close the scanner? All attendance data will be deleted.',
             async () => {
@@ -627,6 +651,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay();
                 const className = currentClassName;
                 closeScannerOverlay(() => {
+
+                    console.log("[openCloseScannerConfirm] Scanner closed for class:", className);
+                    console.log("[openCloseScannerConfirm] Clearing studentTimestamps:", studentTimestamps);
+                    studentTimestamps.clear();
+
                     // After scanner fully closed, return to ready class popup
                     openReadyClassPopup(className);
                 });
@@ -732,6 +761,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openScannerOverlay(classId) {
 
         console.log("[openScannerOverlay] Opening scanner overlay for class:", classId);
+
+        console.log("[openScannerOverlay] Clearing studentTimestamps before starting scanner.", studentTimestamps);
+        studentTimestamps.clear();
 
         ensureScannerOverlay();
         // Hide ready overlay to avoid stacking
@@ -1574,9 +1606,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return attendanceHistoryOverlay;
     }
     function renderAttendanceHistoryList(className, studentId) {
+
+        console.log("[renderAttendanceHistoryList] Rendering attendance history for student ID:", studentId, "in class:", className);
+
         const container = document.getElementById('attendanceHistoryList');
         if (!container) return;
+
         const sessions = loadAttendanceLog(className, studentId);
+        console.log("[renderAttendanceHistoryList] Loaded attendance sessions:", sessions);
+
         container.innerHTML = '';
         if (!Array.isArray(sessions) || sessions.length === 0) {
             const p = document.createElement('p');
@@ -1585,6 +1623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.appendChild(p);
             return;
         }
+
         const ul = document.createElement('ul');
         ul.className = 'attendance-history-ul';
         sessions.slice().reverse().forEach((sess) => {
@@ -1628,13 +1667,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         container.appendChild(ul);
     }
     function openAttendanceHistoryOverlay(className, studentId) {
+
+        console.log("[openAttendanceHistoryOverlay] Opening attendance history for student ID:", studentId, "in class:", className);
+
         ensureAttendanceHistoryOverlay();
         // Hide student info overlay while viewing history
+
         if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
         // Title detail
+
         const titleEl = attendanceHistoryOverlay.querySelector('#attendanceHistoryTitle');
         if (titleEl) titleEl.textContent = 'Attendance History';
+
         renderAttendanceHistoryList(className, studentId);
+
         attendanceHistoryOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
         attendanceHistoryOverlay.dataset.studentId = String(studentId);
