@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         class_students: '/class_students',
         students: '/students',
         updateCompletedClassesCount: '/update_completed_classes_count',
+        saveStudentTimestamps: '/save_student_timestamps',
     };
 
     async function apiCreateClass(name, studentIds, teacherEmail) {
@@ -660,8 +661,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             'Are you sure you want to close the scanner? All attendance data will be deleted.',
             async () => {
 
+
                 await updateCompletedClassesCount(currentClassName);
                 await saveAttendanceDataToDatabase(currentClassName);
+                await saveStudentTimestampsToDatabase(currentClassName, studentTimestamps);
 
                 // Confirm: clear temp attendance, close attendance overlay if open, then close scanner
                 clearTemporaryAttendanceData(currentClassName);
@@ -682,6 +685,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         );
     }
+
+
+    async function saveStudentTimestampsToDatabase(className, timestampsMap) {
+
+        console.log("[saveStudentTimestampsToDatabase] Saving student timestamps for class:", className, timestampsMap);
+
+        timestampsMap.forEach((timestamp, facultyNumber) => {
+
+            console.log("[saveStudentTimestampsToDatabase] Processing student:", facultyNumber, "timestamps:", timestamp);
+            
+            let classId = getClassIdByName(className);
+
+            if (!classId) {
+                console.error("Error: Unable to save student timestamps - missing class ID for class:", className);
+                return;
+            }
+            
+            const response = fetch(serverBaseUrl + ENDPOINTS.saveStudentTimestamps, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    class_id: classId,
+                    faculty_number: facultyNumber,
+                    joined_at: timestamp.joined_at,
+                    left_at: timestamp.left_at
+                })
+            });
+
+            if(!response.ok){
+                console.error("Error: Failed to save timestamps for student:", facultyNumber);
+            }
+
+        });
+
+    }
+
 
 
     async function updateCompletedClassesCount(className) {
