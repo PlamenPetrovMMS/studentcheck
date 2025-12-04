@@ -252,7 +252,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         //console.log("[initializeScanner] Initializing scanner with mode:", mode);
 
-        initAttendanceStateForClass(currentClassName, loadClassStudentsFromStorage(currentClassName));
+        const classStudents = loadClassStudentsFromStorage(currentClassName);
+
+        initAttendanceStateForClass(currentClassName, classStudents);
+
+        classStudents.forEach(student => {
+
+            console.log("[initializeScanner] Initializing student timestamps for:", student);
+            studentTimestamps.set(student.faculty_number, { joined_at: null, left_at: null });
+
+        });
+
+        console.log("[initializeScanner] Student timestamps after initialization:", studentTimestamps);
 
         return ensureHtml5QrcodeLoaded().then(() => {
             const container = document.getElementById('qr-reader');
@@ -313,9 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const studentFacultyNumber = deriveStudentIdFromPayload(payload);
 
-        //console.log("[handleScannedCode] Derived student ID:", studentFacultyNumber);
-        
-        studentTimestamps.set(studentFacultyNumber, { joined_at: null, left_at: null });
+        //console.log("[handleScannedCode] Derived student ID:", studentFacultyNumber)
 
         console.log("[handleScannedCode] Updated studentTimestamps map:", studentTimestamps);
 
@@ -531,7 +540,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 console.log("[updateAttendanceState] Student is joining, recording join time.");
                 studentTimestamps.set(studentFacultyNumber, { joined_at: Date.now(), left_at: null });
-                console.log(studentTimestamps);
+                console.log(studentTimestamps.get(studentFacultyNumber));
             }
         } else if (mode === 'leaving') {
             if (current === 'joined'){
@@ -540,7 +549,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log("[updateAttendanceState] Student is leaving, recording leave time.");
                 const joined_at = studentTimestamps.get(studentFacultyNumber).joined_at;
                 studentTimestamps.set(studentFacultyNumber, { joined_at: joined_at, left_at: Date.now() });
-                console.log(studentTimestamps);
+                console.log(studentTimestamps.get(studentFacultyNumber));
             } 
         }
 
