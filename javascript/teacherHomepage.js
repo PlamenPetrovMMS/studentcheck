@@ -259,12 +259,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         classStudents.forEach(student => {
 
-            console.log("[initializeScanner] Initializing student timestamps for:", student);
+            //console.log("[initializeScanner] Initializing student timestamps for:", student);
             studentTimestamps.set(student.faculty_number, { joined_at: null, left_at: null });
 
         });
 
-        console.log("[initializeScanner] Student timestamps after initialization:", studentTimestamps);
+        //console.log("[initializeScanner] Student timestamps after initialization:", studentTimestamps);
 
         return ensureHtml5QrcodeLoaded().then(() => {
             const container = document.getElementById('qr-reader');
@@ -654,8 +654,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     function openCloseScannerConfirm() {
 
-        console.log("[openCloseScannerConfirm] Prompting confirmation to close scanner for class:", currentClassName);
-        console.log("[openCloseScannerConfirm] Student Timestamps", studentTimestamps);
+        // console.log("[openCloseScannerConfirm] Prompting confirmation to close scanner for class:", currentClassName);
+        // console.log("[openCloseScannerConfirm] Student Timestamps", studentTimestamps);
 
         openConfirmOverlay(
             'Are you sure you want to close the scanner? All attendance data will be deleted.',
@@ -713,10 +713,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 })
             });
 
-            if(!response.ok){
-                console.error("Error: Failed to save timestamps for student:", facultyNumber);
-            }
-
         });
 
     }
@@ -725,7 +721,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function updateCompletedClassesCount(className) {
 
-        console.log("[updateCompletedClassesCount] Updating completed classes count for class:", className);
+        //console.log("[updateCompletedClassesCount] Updating completed classes count for class:", className);
 
         let classId = getClassIdByName(className);
 
@@ -742,17 +738,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             })
         });
 
-        if(response.ok){
-            console.log("[updateCompletedClassesCount] Completed classes count updated successfully for class:", className);
-        }else{
-            console.error("Error: Failed to update completed classes count for class:", className, "Response status:", response.status);
-        }
+        // if(response.ok){
+        //     console.log("[updateCompletedClassesCount] Completed classes count updated successfully for class:", className);
+        // }else{
+        //     console.error("Error: Failed to update completed classes count for class:", className, "Response status:", response.status);
+        // }
 
     }
 
     async function saveAttendanceDataToDatabase(className) {
 
-        console.log("[saveAttendanceDataToDatabase] Saving attendance data for class:", className);
+        //console.log("[saveAttendanceDataToDatabase] Saving attendance data for class:", className);
 
         let classId = getClassIdByName(className);
 
@@ -764,21 +760,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try{
             classStudents = JSON.parse(localStorage.getItem(`${className}:students`)); 
-            console.log("[saveAttendanceDataToDatabase] Class students from storage for class:", className, classStudents);
+            //console.log("[saveAttendanceDataToDatabase] Class students from storage for class:", className, classStudents);
         }catch(e){
             console.error("Error: Unable to parse class students from storage for class:", className);
             console.error(e);
         }
 
         if(classStudents.length === 0){
-            console.log("[saveAttendanceDataToDatabase] No students found for class:", className, "Skipping attendance save.");
+            //console.log("[saveAttendanceDataToDatabase] No students found for class:", className, "Skipping attendance save.");
             return;
         }
 
         let studentIds = [];
 
         for (const [studentFacultyNumber, state] of (attendanceState.get(className))) {
-            console.log("[saveAttendanceDataToDatabase] Processing student:", studentFacultyNumber, "state:", state);
+            //console.log("[saveAttendanceDataToDatabase] Processing student:", studentFacultyNumber, "state:", state);
             
             const found = classStudents.find(student => {
                 console.log("[saveAttendanceDataToDatabase] Checking student:", student);
@@ -788,12 +784,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (found) {
-                console.log("[saveAttendanceDataToDatabase] Adding student ID to attendance list:", found.id);
+                //console.log("[saveAttendanceDataToDatabase] Adding student ID to attendance list:", found.id);
                 studentIds.push(found.id);
             }
         }
 
-        console.log("[saveAttendanceDataToDatabase] Finalizing attendance for class:", className, "Class ID:", classId, "Students Ids:", studentIds);
+        //console.log("[saveAttendanceDataToDatabase] Finalizing attendance for class:", className, "Class ID:", classId, "Students Ids:", studentIds);
 
         const response = await fetch(serverBaseUrl + ENDPOINTS.attendance, {
             method: 'POST',
@@ -805,7 +801,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if(response.ok){
-            console.log("[saveAttendanceDataToDatabase] Attendance data saved successfully for class:", className);
+            //console.log("[saveAttendanceDataToDatabase] Attendance data saved successfully for class:", className);
         }else{
             console.error("Error: Failed to save attendance data for class:", className, "Response status:", response.status);
         }
@@ -818,7 +814,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         //console.log("[openScannerOverlay] Opening scanner overlay for class:", classId);
 
-        console.log("[openScannerOverlay] Clearing studentTimestamps before starting scanner.", studentTimestamps);
+        //console.log("[openScannerOverlay] Clearing studentTimestamps before starting scanner.", studentTimestamps);
         studentTimestamps.clear();
 
 
@@ -882,7 +878,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         downloadBtn?.addEventListener('click', () => {
             try {
                 const resolved = getActiveClassName();
-                console.log('[Attendance Export] Resolved active class for download button click:', resolved);
+               //console.log('[Attendance Export] Resolved active class for download button click:', resolved);
                 handleDownloadAttendanceTable(resolved);
             } catch (e) {
                 console.error('Download Attendance Table failed unexpectedly:', e);
@@ -2509,17 +2505,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const loadClasses = async () => {
         
-        console.log("Fetching class names from server...");
+        //console.log("Fetching class names from server...");
         let result = await fetch(`${serverBaseUrl + ENDPOINTS.createClass}?teacherEmail=${encodeURIComponent(teacherEmail)}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
         });
 
-        console.log("Parsing response...");
+        //console.log("Parsing response...");
         result = await result.json();
-        console.log("Response received:", result);
+        //console.log("Response received:", result);
         
-        console.log("Rendering class items...");
+        //console.log("Rendering class items...");
         const classesMap = new Map();
         result.classes.forEach(_class => {
             classesMap.set(_class.id, _class.name);
@@ -2662,9 +2658,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    console.log("Loading classes...");
+    //console.log("Loading classes...");
     loadClasses();
-    console.log("Loading ready classes...");
+    //console.log("Loading ready classes...");
     loadReadyClasses();
 
     // Handle bfcache/pageshow and ensure styles reflect current storage state
