@@ -1783,8 +1783,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadClassStudents(className, classId) {
 
-        console.log("loadClassStudents", { className, classId });
-        console.log("Waiting for a result...");
+        // console.log("loadClassStudents", { className, classId });
+        // console.log("Waiting for a result...");
 
         let result = await fetch(`${serverBaseUrl + ENDPOINTS.class_students}?class_id=${encodeURIComponent(classId)}`, {
             method: 'GET',
@@ -1797,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let data = await result.json();
             let students = data.students;
             localStorage.setItem(`${className}:students`, JSON.stringify(students));
-            console.log("Fetched students:", students);
+            //console.log("Fetched students:", students);
             return students;
         }else{
             console.error("Failed to fetch class students", result.status);
