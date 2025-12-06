@@ -20,7 +20,7 @@
 
             <div class="slider">
             <div class="slides-track" id="slidesTrack">
-                    <!-- Slide 1: Names -->
+                    <!-- Slide 1 -->
                     <section class="slide" aria-label="Names">
                         <div class="field">
                             <label for="firstName">First name</label>
@@ -37,16 +37,58 @@
                         <div id="errorSlide1" class="error" role="alert" aria-live="polite"></div>
                     </section>
 
-                    <!-- Slide 2: Security -->
-                     <section class="slide" aria-label="Contact">
+                    <!-- Slide 2 -->
+                    <section class="slide" aria-label="Specialization">
+
                         <div class="field">
-                            <label for="email">Email</label>
-                            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
+                            <label for="faculty">Faculty</label>
+                            <select id="faculty" name="faculty" required aria-required="true">
+
+                                <option value="" selected disabled>Select your faculty</option>
+
+                                <!-- <option value="automation">Automation</option>
+                                <option value="electrical_engineering">Electrical Engineering</option>
+                                <option value="power_engineering">Power Engineering</option>
+                                <option value="industrial_technology">Industrial Technology</option>
+                                <option value="mechanical_engineering">Mechanical Engineering</option>
+                                <option value="electronic_engineering_and_technology">Electronic Engineering and Technology</option>
+                                <option value="telecommunications">Telecommunications</option>
+                                <option value="computer_systems_and_technologies">Computer Systems and Technologies</option>
+                                <option value="transport">Transport</option> -->
+
+                                <option value="economics">Economics</option>
+
+                                <!-- <option value="applied_mathematics_and_informatics">Applied Mathematics and Informatics</option>
+                                <option value="german_engineering_training_and_industrial_management">German Engineering Training and Industrial Management</option>
+                                <option value="french_studies_in_electrical_engineering">French Studies in Electrical Engineering</option>
+                                <option value="english_engineering_studies">English Engineering Studies</option> -->
+                            </select>
+                            <div id="errorSlide2_faculty" class="error" role="alert" aria-live="polite"></div>
                         </div>
+
+
+
                         <div class="field">
-                            <label for="facultyNumber">Faculty number</label>
-                            <input id="facultyNumber" name="facultyNumber" type="text" inputmode="numeric" required />
+                            <label for="level">Level</label>
+                            <select id="level" name="level" required aria-required="true">
+                                <option value="" selected disabled>Select your level</option>
+                                <option value="bachelor">Bachelor</option>
+                                <option value="master">Master</option>
+                                <option value="phd">PhD</option>
+                            </select>
+                            <div id="errorSlide2_level" class="error" role="alert" aria-live="polite"></div>
                         </div>
+
+
+                        <div class="field">
+                            <label for="specialization">Specialization</label>
+                            <select id="specialization" name="specialization" required aria-required="true">
+                                <!-- Dynamically change upon selecting faculty -->
+                            </select>
+                            <div id="errorSlide2_specialization" class="error" role="alert" aria-live="polite"></div>
+                        </div>
+
+
                         <div class="field">
                             <label for="group">Group</label>
                             <select id="group" name="group" required aria-required="true">
@@ -58,11 +100,27 @@
                                 <option value="41">41</option>
                                 <option value="42">42</option>
                             </select>
+                            <div id="errorSlide2_group" class="error" role="alert" aria-live="polite"></div>
                         </div>
-                        <div id="errorSlide2" class="error" role="alert" aria-live="polite"></div>
                     </section>
 
-                    <!-- Slide 3: Contact -->
+
+                    <!-- Slide 3 -->
+                     <section class="slide" aria-label="Email and Faculty Number">
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
+                        </div>
+                        <div class="field">
+                            <label for="facultyNumber">Faculty number</label>
+                            <input id="facultyNumber" name="facultyNumber" type="text" inputmode="numeric" required />
+                        </div>
+                        <div id="errorSlide3" class="error" role="alert" aria-live="polite"></div>
+                    </section>
+
+
+
+                    <!-- Slide 4 -->
                     <section class="slide" aria-label="Security">
                         <div class="field">
                             <label for="password">Password</label>

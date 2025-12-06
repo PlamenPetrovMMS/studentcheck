@@ -1,5 +1,9 @@
 // Sliding 3-step registration controller
 (function(){
+    
+
+
+
     // Debug toggle: set to false to silence internal diagnostic messages.
     const DEBUG = true;
     const dbg = (...args) => { if (DEBUG) console.log('[Registration]', ...args); };
@@ -17,13 +21,142 @@
 
     const email = document.getElementById('email');
     const facultyNumber = document.getElementById('facultyNumber');
-    const groupSelect = document.getElementById('group');
+
+
+
+
+    const selectFaculty = document.getElementById('faculty');
+    selectFaculty.addEventListener('change', () => {
+
+        errorSlide2_faculty.textContent = "";
+
+        const faculty = selectFaculty.value;
+        const level = selectLevel.value;
+
+        if(faculty && level) {
+            try{
+                populateSpecializations(faculty, level);
+            }catch(e){
+                resetFaculty();
+                resetLevel();
+                resetSpecializations();
+                alert("Error: Specializations are not available for the selected faculty and level.");
+                return;
+            }
+        }
+        
+        
+    });
+
+    const selectLevel = document.getElementById('level');
+    selectLevel.addEventListener('change', () => {
+
+        errorSlide2_level.textContent = "";
+
+        const faculty = selectFaculty.value;
+        const level = selectLevel.value;
+
+        if(faculty && level) {
+            try{
+                populateSpecializations(faculty, level);
+            }catch(e){
+                resetFaculty();
+                resetLevel();
+                resetSpecializations();
+                alert("Error: Specializations are not available for the selected faculty and level.");
+                return;
+            }
+        }
+
+    });
+
+
+
+
+    const selectSpecialization = document.getElementById('specialization');
+    selectSpecialization.addEventListener('change', () => {
+
+        errorSlide2_specialization.textContent = "";
+
+    });
+
+    const SPECIALIZATIONS = {
+        automation: {
+            bachelor: [
+                "Automation, information and control technology",
+                "Automation, information and control technology - part-time study",
+                "Intelligent systems in industry, city and home",
+                "Intelligent systems in industry, city and home (in English)"
+            ],
+            master: [
+                "Automation, information and control technology",
+                "Embedded control systems",
+                "Building automation"
+            ],
+            phd: [
+                "Automation of engineering work and automated design systems",
+                "Automation of areas of the intangible sphere",
+                "Automation of production",
+                "Automated systems for information processing and control",
+                "Bioautomation",
+                "Electric drive",
+                "Electrical measuring equipment",
+                "Elements and devices of automation and computing",
+                "Information and measuring systems",
+                "Methods, converters and devices for measuring and controlling physical, mechanical and geometric quantities",
+                "Metrology and metrological assurance",
+                "Application of the principles and methods of cybernetics in various fields of science",
+                "Robots and manipulators",
+                "Artificial Intelligence Systems",
+                "Theoretical Electrical Engineering",
+                "Theory of Automatic Control",
+                "Control Computing Machines and Systems",
+                "Devices and Systems for Analytical Measurements and for Environmental Control (incl. Environmental)"
+            ]
+        },
+
+        // add all faculty specializations later
+
+        economics: {
+            bachelor: [
+                "Business Management 1",
+                "Business Management 2",
+                "Industrial Management",
+                "Industrial Management in English",
+                "Management and Business Information Systems"
+            ],
+            master: [
+                "Business Management",
+                "Business Management in English",
+                "Senior Management",
+                "Industrial Management",
+                "Industrial Management in English",
+                "Intellectual Property and Innovation",
+                "Electricity Management"
+            ]
+        }
+    }
+
+    const selectGroup = document.getElementById('group');
+
+
+
+
+
+
+
 
     const password = document.getElementById('password');
     const repeatPassword = document.getElementById('repeatPassword');
 
     const errorSlide1 = document.getElementById('errorSlide1');
-    const errorSlide2 = document.getElementById('errorSlide2');
+
+    const errorSlide2_faculty = document.getElementById('errorSlide2_faculty');
+    const errorSlide2_level = document.getElementById('errorSlide2_level');
+    const errorSlide2_specialization = document.getElementById('errorSlide2_specialization');
+    const errorSlide2_group = document.getElementById('errorSlide2_group');
+
+    const errorSlide3 = document.getElementById('errorSlide3');
     // Removed dedicated errorSlide3 element; requirements list now provides all feedback.
 
     // Loading overlay handled by shared LoadingOverlay utility
@@ -31,8 +164,62 @@
     const slides = Array.from(track.querySelectorAll('.slide'));
     const TOTAL_STEPS = slides.length; // derive dynamically
     let step = 0;
+
+
+
+
     // Initialize active slide visibility (show only first)
     slides.forEach((sl,i)=> sl.classList.toggle('active', i===0));
+
+
+
+    function resetSpecializations() {
+
+        selectSpecialization.innerHTML = "";
+        selectSpecialization.appendChild(new Option("Select your specialization", "", true, true));
+        selectSpecialization.firstChild.disabled = true;
+        selectSpecialization.disabled = true;
+
+    }
+
+    function resetFaculty() {
+        selectFaculty.selectedIndex = 0;
+        resetSpecializations();
+    }
+
+    function resetLevel() {
+        selectLevel.selectedIndex = 0;
+        resetSpecializations();
+    }
+
+    function populateSpecializations(faculty, level) {
+
+        resetSpecializations();
+
+        if(faculty === "" || level === "") {
+            console.error("Faculty or level is empty:", faculty, level);
+            return;
+        }
+
+
+        let list = SPECIALIZATIONS[faculty][level];
+
+        if (!list) {
+            console.error("No specializations found for faculty:", faculty);
+            return;
+        }
+
+        selectSpecialization.appendChild(new Option('Select your specialization', '', true, true));
+        selectSpecialization.firstChild.disabled = true;
+
+        for(const specialization of list){
+            selectSpecialization.appendChild(new Option(specialization, specialization));
+        }
+
+        selectSpecialization.disabled = list.length === 0;
+
+    }
+
 
     function updateUI() {
     // Activate current slide; hide others
@@ -64,8 +251,12 @@
     // Removed automatic contact live validation so slide 2 errors only appear after user clicks Continue.
     }
 
+
+
+
+
     // Slide 1: Names (middle name now required)
-    function validateNames() {
+    function validateSlide1() {
         const a = firstName.value.trim();
         const b = middleName.value.trim();
         const c = lastName.value.trim();
@@ -77,26 +268,73 @@
         return true;
     }
 
+
+
+
+
     function validateEmailFormat(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+
+
+    function validateSlide2(){
+
+        if(selectFaculty.value === "" || selectFaculty.selectedIndex === 0){
+            errorSlide2_faculty.textContent = "Please, select your faculty.";
+            return false;
+        }
+
+        errorSlide2_faculty.textContent = "";
+
+        if(selectLevel.value === "" || selectLevel.selectedIndex === 0){
+            errorSlide2_level.textContent = "Please, select your level.";
+            return false;
+        }
+
+        errorSlide2_level.textContent = "";
+
+        if(selectSpecialization.value === "" || selectSpecialization.selectedIndex === 0){
+            errorSlide2_specialization.textContent = "Please, select your specialization.";
+            return false;
+        }
+
+        errorSlide2_specialization.textContent = "";
+
+        if(selectGroup.value === "" || selectGroup.selectedIndex === 0){
+            errorSlide2_group.textContent = "Please, select your group.";
+            return false;
+        }
+
+        errorSlide2_group.textContent = "";
+
+        return true;
+        
+    }
+
+
 
     // Slide 2 (index 1): Contact (email + faculty number)
     let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
-    function validateContact() {
+    function validateSlide3() {
         const { valid, message, normalized, debug } = getContactState();
         dbg('validateContact state=', debug);
         if (!valid) {
             contactErrorActivated = true; // user attempted to proceed
-            errorSlide2.textContent = message;
-            errorSlide2.style.display = 'block';
+            errorSlide3.textContent = message;
+            errorSlide3.style.display = 'block';
             return false;
         }
         facultyNumber.value = normalized; // commit normalized value
         if (contactErrorActivated) {
-            errorSlide2.textContent = '';
-            errorSlide2.style.display = 'none';
+            errorSlide3.textContent = '';
+            errorSlide3.style.display = 'none';
         }
         return true;
     }
+
+
+
+
+
 
     // Unified validation state builder for Contact slide (email, faculty number, and group selection).
     function getContactState() {
@@ -104,7 +342,7 @@
         const fRaw = facultyNumber.value.trim();
         // Clean: remove leading/trailing whitespace and collapse internal spaces -> remove entirely
         const f = fRaw.replace(/\s+/g,'');
-        const g = groupSelect ? (groupSelect.value || '') : '';
+        const g = selectGroup ? (selectGroup.value || '') : '';
         const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f, groupValue: g };
         if (!e) return { valid:false, message:'Email is required.', normalized:f, debug };
         if (!validateEmailFormat(e)) return { valid:false, message:'Enter a valid email address.', normalized:f, debug };
@@ -122,6 +360,10 @@
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
     }
 
+
+
+
+
     let lastDuplicateEmail = null; // tracks last server-rejected email to clear red state on change
     function liveContactValidation() {
         // Only perform live updates if user has already triggered error display OR duplicate email state is active.
@@ -129,7 +371,7 @@
         const currentEmail = email.value.trim();
         if (lastDuplicateEmail) {
             if (currentEmail === lastDuplicateEmail) {
-                errorSlide2.style.display = 'block';
+                errorSlide3.style.display = 'block';
                 return;
             } else {
                 email.classList.remove('invalid');
@@ -141,13 +383,17 @@
         const { valid, message, debug } = getContactState();
         dbg('liveContactValidation state=', debug);
         if (valid) {
-            errorSlide2.textContent = '';
-            errorSlide2.style.display = 'none';
+            errorSlide3.textContent = '';
+            errorSlide3.style.display = 'none';
         } else {
-            errorSlide2.textContent = message;
-            errorSlide2.style.display = 'block';
+            errorSlide3.textContent = message;
+            errorSlide3.style.display = 'block';
         }
     }
+
+
+
+
 
     // Slide 3 (index 2): Passwords
     function validatePassword() {
@@ -160,6 +406,9 @@
         const matchOk = p1 === p2;
         return lengthOk && letterOk && numberOk && matchOk;
     }
+
+
+
 
     // Live password validation so mismatch appears immediately without waiting for Finish
     function livePasswordFeedback() {
@@ -180,10 +429,28 @@
         setState(reqMatch, matchOk);
     }
 
+
+
+
+
     function next() {
         dbg('next() invoked at step', step);
-        if (step === 0 && !validateNames()) { dbg('Names validation failed'); return; }
-    if (step === 1 && !validateContact()) { dbg('Contact validation failed'); return; }
+
+        if (step === 0 && !validateSlide1()) { 
+            dbg('Slide 1 validation failed'); 
+            return; 
+        }
+
+        if(step === 1 && !validateSlide2()) {
+            dbg('Slide 2 validation failed'); 
+            return; 
+        }
+
+        if (step === 2 && !validateSlide3()) { 
+            dbg('Slide 3 validation failed'); 
+            return; 
+        }
+
         if (step < TOTAL_STEPS - 1) {
             step++;
             dbg('Advancing to step', step);
@@ -194,6 +461,9 @@
         }
     }
 
+
+
+
     function back() {
         if (step > 0) {
             step--;
@@ -202,6 +472,10 @@
         }
     }
 
+
+
+
+
     function focusFirstInput() {
         requestAnimationFrame(() => {
             if (step === 0) firstName.focus();
@@ -209,6 +483,10 @@
             else if (step === 2) password.focus();
         });
     }
+
+
+
+
 
     let submitting = false;
     async function finish() {
@@ -223,8 +501,11 @@
             lastName: lastName.value.trim(),
             email: email.value.trim(),
             facultyNumber: facultyNumber.value.trim(),
-            group: groupSelect ? groupSelect.value : undefined,
-            password: password.value
+            password: password.value,
+            level: selectLevel.options[selectLevel.selectedIndex].text,
+            faculty: selectFaculty.options[selectFaculty.selectedIndex].text,
+            specialization: selectSpecialization.options[selectSpecialization.selectedIndex].text,
+            group: selectGroup.options[selectGroup.selectedIndex].text,
         };
         dbg('Submitting registration payload', payload);
 
@@ -252,8 +533,8 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
-                    errorSlide2.style.display = 'block';
+                    errorSlide3.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide3.style.display = 'block';
                     step = 1; // ensure contact slide visible
                     updateUI();
                     email.focus();
@@ -279,8 +560,8 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide2.textContent = 'This email is already registered. You were returned to the email step to change it.';
-                    errorSlide2.style.display = 'block';
+                    errorSlide3.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide3.style.display = 'block';
                     step = 1; updateUI();
                     email.focus();
                 } else {
@@ -298,18 +579,37 @@
         }
     }
 
+
+
+
+
     nextBtn.addEventListener('click', next);
     backBtn.addEventListener('click', back);
     finishBtn.addEventListener('click', finish);
+
+
 
     // Attach live validation listeners
     password.addEventListener('input', livePasswordFeedback);
     repeatPassword.addEventListener('input', livePasswordFeedback);
     email.addEventListener('input', () => { liveContactValidation(); });
+
+
+
+
+
     facultyNumber.addEventListener('input', () => { liveContactValidation(); });
-    if (groupSelect) {
-        groupSelect.addEventListener('change', () => { liveContactValidation(); });
+
+
+
+    if (selectGroup) {
+        selectGroup.addEventListener('change', () => { 
+            liveContactValidation(); 
+        });
     }
+
+
+
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -318,10 +618,15 @@
         }
     });
 
+
+
     // Hide contact error initially until user attempts to Continue.
-    if (errorSlide2) errorSlide2.style.display = 'none';
+    if (errorSlide3) errorSlide3.style.display = 'none';
     updateUI();
     focusFirstInput();
+
+
+
     
     // Password reveal/hide: single toggle controls both password fields
     (function(){
@@ -345,4 +650,8 @@
             setState(willShow);
         });
     })();
+
+
+
+
 })();
