@@ -492,7 +492,6 @@
     async function finish() {
         if (submitting) return; // guard against double click
         // Re-validate contact & password on final step
-        if (!validateContact()) { alert('Please correct contact details before finishing.'); return; }
         if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
 
         const payload = {
