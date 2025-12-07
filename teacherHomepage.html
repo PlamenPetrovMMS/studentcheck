@@ -21,7 +21,12 @@
 
                 <div class="overlay-content-top-section" id="overlayContentTopSection">
                     <h2 id="overlayTitle">Students</h2>
-                    <input type="text" id="overlaySearchInput" placeholder="Search..." />
+                    <div class="top-section-search-filters">
+                        <input type="text" id="overlaySearchInput" placeholder="Search..." />
+                        <select id="filter" name="filter" required aria-required="true">
+                            <option value="" selected disabled>Select your faculty</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="overlay-content-main-section" id="overlayContentMainSection">

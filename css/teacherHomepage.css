@@ -264,16 +264,7 @@ body {
     border-radius: 8px;
 }
 
-/* Top section with title + search becomes responsive */
-.overlay-content-top-section {
-    min-height: 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    flex-wrap: wrap; /* Allow wrapping on narrow viewports */
-}
+
 
 /* Search input responsive styles */
 #overlaySearchInput {
@@ -1172,3 +1163,26 @@ body {
     }
 }
 
+
+
+
+
+/* Top section with title + search becomes responsive */
+.overlay-content-top-section {
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    flex-wrap: wrap; /* Allow wrapping on narrow viewports */
+}
+.top-section-search-filters{
+
+
+
+}
+#overlaySearchInput{
+    width: 50%;
+}
