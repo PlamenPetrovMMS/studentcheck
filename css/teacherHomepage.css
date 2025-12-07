@@ -1171,7 +1171,6 @@ body {
 .overlay-content-top-section {
     min-height: 50px;
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
@@ -1186,5 +1185,5 @@ body {
 
 }
 #overlaySearchInput{
-    width: 50%;
+    width: 100%;
 }
