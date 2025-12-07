@@ -1,5 +1,13 @@
 const serverBaseUrl = 'https://studentcheck-server.onrender.com'; // Set to your server base URL if needed
 
+
+
+
+
+
+
+
+
 // Add click logging and behavior for dynamically created "New Class" buttons
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -47,6 +55,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const e = normalizeEmail(email || teacherEmail);
         return e ? `teacher:classes:${e}` : null;
     };
+
+
+
+
+
+
+
+
+
+
 
     // --- Per-class readiness state ---
     const readyClasses = new Set(); // class name strings
@@ -101,6 +119,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 2000);
     }
 
+
+
+
+
+
+
+
+
+
+    
     // ---- Scanner Overlay (Start Scanning) ----
     let scannerOverlay = document.getElementById('scannerOverlay');
     let currentScanMode = 'joining';
@@ -414,20 +442,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+
+
+
+
+
+
+
+
     // --- Attendance session logs (per class, per student) ---
     // In-memory pending joins: Map<className, Map<studentId, number(joinAtMs)>>
-    const pendingJoinTimes = new Map();
-    function ensurePendingMap(className) {
-        if (!pendingJoinTimes.has(className)) pendingJoinTimes.set(className, new Map());
-        return pendingJoinTimes.get(className);
-    }
     
-    function takeJoinTime(className, studentId) {
-        const m = ensurePendingMap(className);
-        const t = m.get(studentId);
-        m.delete(studentId);
-        return t || Date.now();
-    }
     function loadAttendanceLog(className, studentId) {
         return [];
     }
@@ -511,6 +536,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     }
+
+
+
+
+
+
+
+
+
 
     // ---- Reusable confirmation overlay ----
     let confirmOverlay = null;
@@ -639,9 +673,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
     }
-
-
-
     async function updateCompletedClassesCount(className) {
 
         //console.log("[updateCompletedClassesCount] Updating completed classes count for class:", className);
@@ -668,7 +699,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // }
 
     }
-
     async function saveAttendanceDataToDatabase(className) {
 
         //console.log("[saveAttendanceDataToDatabase] Saving attendance data for class:", className);
@@ -730,9 +760,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
     }
-
-
-
     function openScannerOverlay(classId) {
 
         //console.log("[openScannerOverlay] Opening scanner overlay for class:", classId);
@@ -791,7 +818,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Start camera
         initializeScanner(currentScanMode);
     }
-
     function startScanner() {
         openScannerOverlay(currentClassName);
     }
@@ -799,7 +825,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Ready class popup dynamic creation (unchanged semantics)
     
     const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
-
     function openReadyClassPopup(nameOptional) {
         if (nameOptional) {
             currentClassName = nameOptional;
@@ -859,11 +884,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         readyPopupOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
     }
+    function closeReadyClassPopup() { 
+        if (!readyPopupOverlay) return;
+        readyPopupOverlay.style.visibility = 'hidden'; 
+        document.body.style.overflow = ''; 
+    }
 
 
 
 
-    function closeReadyClassPopup() { if (!readyPopupOverlay) return; readyPopupOverlay.style.visibility = 'hidden'; document.body.style.overflow = ''; }
+
+
+
+
+
+
+
+
+
+
+
 
     // ---- Class Options (Rename / Delete) ----
     let classOptionsOverlay = null;
@@ -1012,6 +1052,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, () => { /* canceled */ });
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ---- CLASS CREATION WIZARD ----
     let createClassSlideIndex = 0;
     let createClassOverlay = document.getElementById('createClassOverlay');
@@ -1051,7 +1109,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         goToSlide(0);
         createClassNameInput.focus();
     }
-    function closeWizard() { if (createClassOverlay){ createClassOverlay.style.visibility='hidden'; document.body.style.overflow=''; } }
+    function closeWizard() { 
+        if (createClassOverlay){ 
+            createClassOverlay.style.visibility='hidden'; 
+            document.body.style.overflow=''; 
+        } 
+    }
     function goToSlide(index) {
         createClassSlideIndex = index;
         const slides = Array.from(createClassSlideTrack.querySelectorAll('.slide'));
@@ -1080,7 +1143,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             else if (index === 1) document.getElementById('createClassSearchInput')?.focus();
         });
     }
-
     function handleWizardNext() {
         const name = createClassNameInput.value.trim();
         if (!name) {
@@ -1092,10 +1154,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         wizardClassName = name;
         goToSlide(1);
     }
-
-    function collectClassName() { return wizardClassName.trim(); }
-    function collectSelectedStudents() { return Array.from(wizardSelections); }
-
+    function collectClassName() { 
+        return wizardClassName.trim(); 
+    }
+    function collectSelectedStudents() { 
+        return Array.from(wizardSelections); 
+    }
     async function submitNewClass() {
 
         const className = collectClassName();
@@ -1175,6 +1239,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+
+
+
+
+
+
     // Student loading for wizard
     async function loadStudentsIntoWizard() {
         if (!createClassStudentContainer) return;
@@ -1189,7 +1259,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             createClassStudentContainer.innerHTML = '<p style="color:#b91c1c;">Network error loading students.</p>';
         }
     }
-
     function renderStudentsInWizard(students) {
         if (!Array.isArray(students) || students.length === 0) { createClassStudentContainer.innerHTML='<p class="muted">No students found.</p>'; return; }
         const list = document.createElement('ul');
@@ -1219,7 +1288,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         createClassStudentContainer.innerHTML='';
         createClassStudentContainer.appendChild(list);
     }
-
     function filterStudentsWizard(query) {
         const q = (query||'').trim().toLowerCase();
         if (!createClassStudentContainer) return;
@@ -1244,8 +1312,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const anyVisible = Array.from(items).some(li=> li.style.display !== 'none');
         const msgEl = createClassStudentContainer.querySelector('#wizardNoMatch'); if (msgEl) msgEl.style.display = anyVisible ? 'none':'block';
     }
-
-    function openAddStudentsPopup() { addStudentsFromDatabase(); }
+    function openAddStudentsPopup() { 
+        addStudentsFromDatabase(); 
+    }
     function handleClassButtonClick(buttonEl) {
         currentClassButton = buttonEl;
         const raw = getRawClassNameFromButton(buttonEl);
@@ -1256,6 +1325,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (readyClasses.has(className)) { openReadyClassPopup(); }
         else { openAddStudentsPopup(); }
     }
+
+
+
+
+
+
+
 
     // --- Manage Students overlay (replaces ready-class overlay) ---
     let manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
@@ -1355,14 +1431,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         manageStudentsListEl.appendChild(ul);
     }
-
     async function openManageStudentsOverlay(className) {
 
         //console.log('[Manage Students] Opening overlay for class:', className);
 
-        // ensureManageStudentsOverlay();
-
-        manageStudentsOverlay.addEventListener('click', (e) => { if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); });
+        manageStudentsOverlay.addEventListener('click', (e) => { 
+            if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); 
+        });
 
         const backBtn = manageStudentsOverlay.querySelector('#backToReadyBtn');
         const closeBtn = manageStudentsOverlay.querySelector('#closeManageOverlayBtn');
@@ -1399,17 +1474,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         manageStudentsOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
     }
-
     function closeManageStudentsOverlay() {
         if (!manageStudentsOverlay) return;
         manageStudentsOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     }
-
     function returnToReadyClassPopup(className) {
         closeManageStudentsOverlay();
         openReadyClassPopup(className || currentClassName);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // ---- Single Student Info Overlay ----
     function ensureStudentInfoOverlay() {
@@ -1431,7 +1517,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         return studentInfoOverlay;
     }
-
     function buildStudentInfoContent(studentObj, studentId, className) {
         const wrapper = document.createElement('div');
         wrapper.className = 'ready-class-popup student-info-popup';
@@ -1478,8 +1563,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         wrapper.appendChild(historyBtn);
         return wrapper;
     }
-
-
     function openStudentInfoOverlay(studentId, className) {
 
         console.log('[Student Info] Opening overlay for student ID:', studentId, 'in class:', className);
@@ -1505,7 +1588,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         studentInfoOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
     }
-
     function closeStudentInfoOverlay() {
         if (!studentInfoOverlay) return;
         studentInfoOverlay.style.visibility = 'hidden';
@@ -1517,32 +1599,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = 'hidden'; // keep modal context since manage overlay is still open
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ---- Attendance History Overlay ----
-    let attendanceHistoryOverlay = null;
-    function ensureAttendanceHistoryOverlay() {
-        if (attendanceHistoryOverlay) return attendanceHistoryOverlay;
-        attendanceHistoryOverlay = document.createElement('div');
-        attendanceHistoryOverlay.id = 'attendanceHistoryOverlay';
-        attendanceHistoryOverlay.className = 'overlay';
-        attendanceHistoryOverlay.style.visibility = 'hidden';
-        attendanceHistoryOverlay.innerHTML = `
-            <div class="attendance-history-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceHistoryTitle">
-                <h2 id="attendanceHistoryTitle">Attendance History</h2>
-                <button type="button" id="closeAttendanceHistoryBtn" class="close-small" aria-label="Close">×</button>
-                <div id="attendanceHistoryList" class="attendance-history-list"></div>
-                <div class="manage-footer-actions">
-                    <button type="button" id="attendanceHistoryBackBtn" class="role-button">Back</button>
-                </div>
-            </div>`;
-        document.body.appendChild(attendanceHistoryOverlay);
-        const closeBtn = attendanceHistoryOverlay.querySelector('#closeAttendanceHistoryBtn');
-        const backBtn = attendanceHistoryOverlay.querySelector('#attendanceHistoryBackBtn');
-        closeBtn?.addEventListener('click', () => returnToManageStudentsFromHistory());
-        backBtn?.addEventListener('click', () => returnToStudentInfoOverlay());
-        attendanceHistoryOverlay.addEventListener('click', (e) => { if (e.target === attendanceHistoryOverlay) returnToManageStudentsFromHistory(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceHistoryOverlay.style.visibility === 'visible') returnToManageStudentsFromHistory(); });
-        return attendanceHistoryOverlay;
-    }
+    let attendanceHistoryOverlay = document.getElementById('attendanceHistoryOverlay');
     function renderAttendanceHistoryList(className, studentId) {
 
         console.log("[renderAttendanceHistoryList] Rendering attendance history for student ID:", studentId, "in class:", className);
@@ -1608,7 +1679,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[openAttendanceHistoryOverlay] Opening attendance history for student ID:", studentId, "in class:", className);
 
-        ensureAttendanceHistoryOverlay();
+        const closeBtn = attendanceHistoryOverlay.querySelector('#closeAttendanceHistoryBtn');
+        const backBtn = attendanceHistoryOverlay.querySelector('#attendanceHistoryBackBtn');
+        closeBtn?.addEventListener('click', () => returnToManageStudentsFromHistory());
+        backBtn?.addEventListener('click', () => returnToStudentInfoOverlay());
+        attendanceHistoryOverlay.addEventListener('click', (e) => { if (e.target === attendanceHistoryOverlay) returnToManageStudentsFromHistory(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceHistoryOverlay.style.visibility === 'visible') returnToManageStudentsFromHistory(); });
+        
         // Hide student info overlay while viewing history
 
         if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
@@ -1633,7 +1710,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!attendanceHistoryOverlay) return;
         attendanceHistoryOverlay.style.visibility = 'hidden';
     }
-
     function returnToManageStudentsFromHistory() {
         closeAttendanceHistoryOverlay();
         if (studentInfoOverlay) studentInfoOverlay.style.visibility = 'hidden';
@@ -1643,6 +1719,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         document.body.style.overflow = 'hidden';
     }
+
+
+
+
+
+
     // Close every class-related overlay and return to base Classes view.
     function closeAllClassOverlays() {
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
@@ -1655,12 +1737,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+
+
+
     // Per-class storage: each class has its own item with an array of student objects
     function classItemKey(className) {
         if (!teacherEmail) return null;
         const normEmail = normalizeEmail(teacherEmail);
         return `teacher:class:${normEmail}:${encodeURIComponent(className)}`;
     }
+
+
 
 
 
@@ -1690,8 +1777,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return null;
     }
-
-
     function loadClassStudentsFromStorage(className) {
         try{
             const key = `${className}:students`;
@@ -1703,9 +1788,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     }
-
-
-
     function isStudentInClass(className, studentFacultyNumber) {
         if (!className || !studentFacultyNumber) return false;
 
@@ -1731,7 +1813,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return false;
     }
-
     function getStudentAttendanceCountForClass(className, studentId) {
         const classId = classIdByName.get(className);
         if (!classId) return 0;
@@ -1746,7 +1827,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).catch(() => {});
         return 0;
     }
-
     function updateStudentInfoOverlayCount(studentId, className, forcedValue) {
         if (!studentInfoOverlay || studentInfoOverlay.style.visibility !== 'visible') return;
         const overlayStudentId = studentInfoOverlay?.dataset?.studentId || '';
@@ -1758,8 +1838,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         counterEl.textContent = `Attended Classes: ${val}`;
     }
 
+
+
+
+
+
+
+
     // --- Add Students to Existing Class Overlay ---
-    let addStudentsClassOverlay = document.getElementById('addStudentsClassOverlay');
+    let addStudentsClassOverlay = document.getElementById('searchStudentsOverlay');
     let addStudentsListEl = document.getElementById('addStudentsList');
     let addStudentsSelections = new Set();
     
@@ -1795,7 +1882,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = 'hidden';
         searchInput?.focus();
     }
-
     function closeAddStudentsToClass() {
         if (addStudentsClassOverlay) addStudentsClassOverlay.style.visibility = 'hidden';
         // Keep body overflow hidden if manage overlay still open
@@ -2034,12 +2120,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
+
+
+
+
+
+
+
+
+
     // --- Students overlay (blurred background) and fetch/display logic ---
     let notReadyClassOverlay = document.getElementById('notReadyClassOverlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     
-
     const openStudentsOverlay = () => {
         if (!notReadyClassOverlay) return;
         notReadyClassOverlay.style.visibility = 'visible';
@@ -2047,15 +2141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
     };
 
-
-
-
     // splitStudentNames now provided by Students module
-
-
-
-
-
 
     const closeNotReadyClassOverlay = () => {
         if (!notReadyClassOverlay) return;
@@ -2071,6 +2157,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         // Allow Escape key already handled globally; space/enter auto-trigger button
     }
+
+
 
 
 
@@ -2134,6 +2222,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (msgEl) msgEl.style.display = anyVisible ? 'none' : 'block';
     }
+
+
+
+
+
+
 
     // Expose for potential external use
     window.handleStudentSelect = handleStudentSelect;
@@ -2234,11 +2328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("Selected Students Array:", selectedStudentsArray);
 
-        var selectedStudentsMap = selectedStudentsArray.map(id => {
-            
-        });
-
-        return Array.from(studentSelection).map(id => {
+        return Array.fro,(studentSelection).map(id => {
             const item = allStudentItems.find(i => i.id === id);
             return {
                 id,
@@ -2540,6 +2630,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     //console.log("Loading ready classes...");
     loadReadyClasses();
 
+
+
+
+
+
+
     // Handle bfcache/pageshow and ensure styles reflect current storage state
     window.addEventListener('pageshow', (ev) => {
         try {
@@ -2700,6 +2796,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Apply ready styling to rendered classes
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
 
+
+
+
+
+
+
+
+
+
+
+
     /* =============================
        Attendance Table Export (XLSX)
        ============================= */
@@ -2765,7 +2872,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         return ensureXlsxLoaded._promise;
     }
-
     function formatDateTime(ms) {
         if (!ms && ms !== 0) return '';
         const d = new Date(ms);
@@ -2776,7 +2882,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const mi = String(d.getMinutes()).padStart(2, '0');
         return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
     }
-
     function collectAttendanceEntriesForClass(className) {
         const students = loadClassStudents(className) || [];
         const entries = [];
@@ -2802,7 +2907,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         return entries;
     }
-
     function sortAttendanceEntries(entries) {
         entries.sort((a, b) => {
             const aDate = new Date(a.joinedAt);
@@ -2814,7 +2918,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         return entries;
     }
-
     function buildWorksheetData(entries) {
         const header = ['Student Name', 'Faculty Number', 'Joined Time', 'Left Time'];
         return [header, ...entries.map(e => [
@@ -2824,7 +2927,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             formatDateTime(e.leftAt)
         ])];
     }
-
     async function generateAndDownloadAttendanceXlsx(className, entries) {
         const XLSX = await ensureXlsxLoaded().catch(err => {
             console.error('[Attendance Export] XLSX load failed. Cannot generate .xlsx.', err);
@@ -2846,7 +2948,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const filename = `attendance_export_${safeClass}_${yyyy}-${mm}-${dd}.xlsx`;
         XLSX.writeFile(wb, filename);
     }
-
     function handleDownloadAttendanceTable(className) {
         const resolvedNow = getActiveClassName();
         const targetClass = (className || resolvedNow || currentClassName || '').trim();
@@ -2859,5 +2960,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sorted = sortAttendanceEntries(entries);
         generateAndDownloadAttendanceXlsx(targetClass, sorted);
     }
-});
 
+
+
+
+
+
+
+
+
+
+
+
+});

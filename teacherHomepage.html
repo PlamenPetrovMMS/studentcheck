@@ -18,135 +18,9 @@
 
     <main class="main-container" id="mainContainer">
 
-        <!-- Create Class Overlay -->
-         <div class="overlay" id="createClassOverlay">
-            <div class="card" role="dialog" aria-modal="true" aria-labelledby="classWizardTitle">
-                
-                <div class="card-header">
-                    <h1 id="classWizardTitle" class="title">Create Class</h1>
-                </div>
-
-                <div class="slider">
-                    <div class="slides-track" id="createClassSlidesTrack">
-                        <section class="slide" data-index="0" aria-label="Class Name">
-                            <div class="field">
-                                <label for="createClassNameInput">Name</label>
-                                <input id="createClassNameInput" type="text" required />
-                            </div>
-                            <div id="createClassErrorName" class="error" role="alert" aria-live="polite"></div>
-                        </section>
-                        <section class="slide" data-index="1" aria-label="Select Students">
-                            <div class="field">
-                                <label for="createClassSearchInput">Search students</label>
-                                <input id="createClassSearchInput" type="text" placeholder="Type to filter..." />
-                            </div>
-                            <div id="createClassStudentsBody"></div>
-                            
-                            <div id="createClassNoStudentsMsg" class="error" aria-live="polite" style="display:none"></div>
-                        </section>
-                    </div>
-                </div>
-
-                <div class="actions" id="createClassActions">
-                    <button type="button" id="createClassBackBtn" class="btn btn-secondary" disabled>Back</button>
-                    
-                    <div>
-                        <button type="button" id="createClassNextBtn" class="btn btn-primary">Continue</button>
-                        <button type="button" id="createClassFinishBtn" class="btn btn-primary finish-hidden">Finish</button>
-                    
-                    </div>
-                </div>
-
-                <button type="button" id="createClassCloseBtn" class="close-small" aria-label="Close">×</button>
-            </div>
-        </div>
-
-        <!-- Manage Students Overlay -->
-        <div class="overlay" id="manageStudentsOverlay">
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
-                <h2 id="manageStudentsTitle">Manage Students</h2>
-                <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close">×</button>
-                <div id="manageStudentsList" class="manage-students-list"></div>
-                <div class="manage-footer-actions">
-                    <button type="button" id="backToReadyBtn" class="role-button">Back</button>
-                    <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Students">Add Students</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add Students Overlay -->
-        <div class="overlay" id="addStudentsClassOverlay">
-            <div class="ready-class-popup add-students-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
-                <h2 id="addStudentsTitle">Add Students</h2>
-                <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close">×</button>
-                <div class="add-students-body">
-
-
-                    <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
-                    <div id="addStudentsList" class="add-students-list"></div>
-
-
-
-                </div>
-                <div class="add-students-footer">
-                    <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ready Class Overlay -->
-        <div class="overlay" id="readyClassPopupOverlay">
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="readyClassTitle">
-                <h2 id="readyClassTitle">Class Ready</h2>
-                <div class="ready-class-actions">
-                    <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
-                    <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
-                    <button type="button" id="downloadAttendanceTableBtn" class="role-button primary" aria-label="Download Attendance Table">Download Attendance Table</button>
-                    <button type="button" id="classOptionsBtn" class="role-button primary" aria-label="Class Options">Options</button>
-                </div>
-                <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
-            </div>
-        </div>
-
-        <!-- Scanner Overlay (Start Scanning) -->
-        <div class="overlay" id="scannerOverlay">
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
-                <h2 id="scannerTitle">Start Scanning</h2>
-                <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
-                <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
-                    <label class="mode-toggle" for="scanJoin">
-                        <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
-                        <span class="mode-label">Joining</span>
-                    </label>
-                    <label class="mode-toggle" for="scanLeave">
-                        <input type="radio" name="scanMode" value="leaving" id="scanLeave">
-                        <span class="mode-label">Leaving</span>
-                    </label>
-                </div>
-                <div id="cameraContainer" class="camera-container">
-                    <div id="qr-reader"></div>
-                </div>
-                <div class="scanner-footer-actions">
-                    <button type="button" id="scannerStopBtn" class="role-button primary">Show Attendance</button>
-                    <button type="button" id="scannerCloseBtn" class="role-button">Close</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attendance Overlay -->
-        <div class="overlay" id="attendanceOverlay">
-            <div class="ready-class-popup attendance-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceTitle">
-                <h2 id="attendanceTitle">Attendance</h2>
-                <div id="attendanceList" class="attendance-list"></div>
-                <div class="manage-footer-actions">
-                    <button type="button" id="attendanceCloseBtn" class="role-button">Close</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Not-Ready Class Overlay -->
-        <div class="overlay" id="notReadyClassOverlay">
-            <div class="overlay-content" id="overlayContent">
+        <!-- Search Students Overlay -->
+         <div class="overlay" id="searchStudentsOverlay">
+            <div class="overlay-content" id="searchOverlayContent">
 
                 <div class="overlay-content-top-section" id="overlayContentTopSection">
                     <h2 id="overlayTitle">Students</h2>
@@ -209,6 +83,169 @@
 
 
 
+        <!-- Attendance History Overlay -->
+         <div class="overlay" id="attendanceHistoryOverlay">
+            <div class="attendance-history-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceHistoryTitle">
+                <h2 id="attendanceHistoryTitle">Attendance History</h2>
+                <button type="button" id="closeAttendanceHistoryBtn" class="close-small" aria-label="Close">×</button>
+                <div id="attendanceHistoryList" class="attendance-history-list"></div>
+                <div class="manage-footer-actions">
+                    <button type="button" id="attendanceHistoryBackBtn" class="role-button">Back</button>
+                </div>
+            </div>
+         </div>
+
+
+
+        <!-- Create Class Overlay -->
+         <div class="overlay" id="createClassOverlay">
+            <div class="card" role="dialog" aria-modal="true" aria-labelledby="classWizardTitle">
+                
+                <div class="card-header">
+                    <h1 id="classWizardTitle" class="title">Create Class</h1>
+                </div>
+
+                <div class="slider">
+                    <div class="slides-track" id="createClassSlidesTrack">
+
+                        <section class="slide" data-index="0" aria-label="Class Name">
+                            <div class="field">
+                                <label for="createClassNameInput">Name</label>
+                                <input id="createClassNameInput" type="text" required />
+                            </div>
+                            <div id="createClassErrorName" class="error" role="alert" aria-live="polite"></div>
+                        </section>
+
+                        <section class="slide" data-index="1" aria-label="Select Students">
+                            <div class="field">
+                                <label for="createClassSearchInput">Search students</label>
+                                <input id="createClassSearchInput" type="text" placeholder="Type to filter..." />
+                            </div>
+                            <div id="createClassStudentsBody"></div>
+                            
+                            <div id="createClassNoStudentsMsg" class="error" aria-live="polite" style="display:none"></div>
+                        
+                        </section>
+                    </div>
+                </div>
+
+                <div class="actions" id="createClassActions">
+                    <button type="button" id="createClassBackBtn" class="btn btn-secondary" disabled>Back</button>
+                    
+                    <div>
+                        <button type="button" id="createClassNextBtn" class="btn btn-primary">Continue</button>
+                        <button type="button" id="createClassFinishBtn" class="btn btn-primary finish-hidden">Finish</button>
+                    
+                    </div>
+                </div>
+
+                <button type="button" id="createClassCloseBtn" class="close-small" aria-label="Close">×</button>
+            </div>
+        </div>
+
+
+
+        <!-- Manage Students Overlay -->
+        <div class="overlay" id="manageStudentsOverlay">
+            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
+                <h2 id="manageStudentsTitle">Manage Students</h2>
+                <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close">×</button>
+                <div id="manageStudentsList" class="manage-students-list"></div>
+                <div class="manage-footer-actions">
+                    <button type="button" id="backToReadyBtn" class="role-button">Back</button>
+                    <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Students">Add Students</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Add Students Overlay -->
+        <div class="overlay" id="addStudentsClassOverlay">
+            <div class="ready-class-popup add-students-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
+                <h2 id="addStudentsTitle">Add Students</h2>
+                <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close">×</button>
+                <div class="add-students-body">
+
+                    <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
+                    <div id="addStudentsList" class="add-students-list"></div>
+
+                </div>
+                <div class="add-students-footer">
+                    <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Ready Class Overlay -->
+        <div class="overlay" id="readyClassPopupOverlay">
+            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="readyClassTitle">
+                <h2 id="readyClassTitle">Class Ready</h2>
+                <div class="ready-class-actions">
+                    <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
+                    <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
+                    <button type="button" id="downloadAttendanceTableBtn" class="role-button primary" aria-label="Download Attendance Table">Download Attendance Table</button>
+                    <button type="button" id="classOptionsBtn" class="role-button primary" aria-label="Class Options">Options</button>
+                </div>
+                <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
+            </div>
+        </div>
+
+
+
+        <!-- Scanner Overlay (Start Scanning) -->
+        <div class="overlay" id="scannerOverlay">
+            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
+                <h2 id="scannerTitle">Start Scanning</h2>
+                <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
+                <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
+                    <label class="mode-toggle" for="scanJoin">
+                        <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
+                        <span class="mode-label">Joining</span>
+                    </label>
+                    <label class="mode-toggle" for="scanLeave">
+                        <input type="radio" name="scanMode" value="leaving" id="scanLeave">
+                        <span class="mode-label">Leaving</span>
+                    </label>
+                </div>
+                <div id="cameraContainer" class="camera-container">
+                    <div id="qr-reader"></div>
+                </div>
+                <div class="scanner-footer-actions">
+                    <button type="button" id="scannerStopBtn" class="role-button primary">Show Attendance</button>
+                    <button type="button" id="scannerCloseBtn" class="role-button">Close</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Attendance Overlay -->
+        <div class="overlay" id="attendanceOverlay">
+            <div class="ready-class-popup attendance-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceTitle">
+                <h2 id="attendanceTitle">Attendance</h2>
+                <div id="attendanceList" class="attendance-list"></div>
+                <div class="manage-footer-actions">
+                    <button type="button" id="attendanceCloseBtn" class="role-button">Close</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Not-Ready Class Overlay -->
+        <div class="overlay" id="notReadyClassOverlay">
+            <div class="overlay-content" id="overlayContent">
+
+                
+
+            </div>
+        </div>
+
+
+
         <section id="classesSection" aria-labelledby="classesTitle">
             <h1 id="classesTitle">Classes</h1>
             <ul id="classList" class="classes-list">
@@ -219,6 +256,9 @@
         </section>
 
     </main>
+
+
+
     <script src="javascript/shared.js"></script>
     <script src="javascript/utils.js"></script>
     <script src="javascript/students.js"></script>
