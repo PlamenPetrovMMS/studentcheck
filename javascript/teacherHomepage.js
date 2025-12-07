@@ -1887,30 +1887,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Add Students to Existing Class Overlay ---
-    let addStudentsClassOverlay = null;
-    let addStudentsListEl = null;
+    let addStudentsClassOverlay = document.getElementById('addStudentsClassOverlay');
+    let addStudentsListEl = document.getElementById('addStudentsList');
     let addStudentsSelections = new Set();
-    function ensureAddStudentsClassOverlay() {
-        if (addStudentsClassOverlay) return addStudentsClassOverlay;
-        addStudentsClassOverlay = document.createElement('div');
-        addStudentsClassOverlay.id = 'addStudentsClassOverlay';
-        addStudentsClassOverlay.className = 'overlay';
-        addStudentsClassOverlay.style.visibility = 'hidden';
-        addStudentsClassOverlay.innerHTML = `
-            <div class="ready-class-popup add-students-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
-                <h2 id="addStudentsTitle">Add Students</h2>
-                <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
-                <div class="add-students-body">
-                    <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
-                    <div id="addStudentsList" class="add-students-list"></div>
-                </div>
-                <div class="add-students-footer">
-                    <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
-                </div>
-            </div>`;
-        document.body.appendChild(addStudentsClassOverlay);
-        addStudentsListEl = addStudentsClassOverlay.querySelector('#addStudentsList');
-        // Events
+    
+    async function openAddStudentsToClass(className) {
+
+        console.log("[Manage Students Add Overlay] Opening for class:", className);
+
+        if (!className) return;
+
         const closeBtn = addStudentsClassOverlay.querySelector('#closeAddStudentsClassBtn');
         const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
         const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
@@ -1922,26 +1908,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
         addStudentsClassOverlay.addEventListener('click', (e) => { if (e.target === addStudentsClassOverlay) closeAddStudentsToClass(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addStudentsClassOverlay.style.visibility === 'visible') closeAddStudentsToClass(); });
-        return addStudentsClassOverlay;
-    }
-    async function openAddStudentsToClass(className) {
 
-        console.log("[Manage Students Add Overlay] Opening for class:", className);
 
-        if (!className) return;
-        ensureAddStudentsClassOverlay();
+
 
         console.log("[Manage Students Add Overlay] Ensured overlay exists");
         addStudentsSelections.clear();
 
-        const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
         if (confirmBtn) confirmBtn.textContent = 'Add (0)';
         // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
         renderAddStudentsList(className);
         updateAddStudentsCounter();
         addStudentsClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-        const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
         searchInput?.focus();
     }
 

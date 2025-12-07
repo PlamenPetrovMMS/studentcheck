@@ -29,8 +29,18 @@
             </div>
         </div>
 
-        <div>
-
+        <div class="overlay" id="addStudentsClassOverlay">
+            <div class="ready-class-popup add-students-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
+                <h2 id="addStudentsTitle">Add Students</h2>
+                <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close">×</button>
+                <div class="add-students-body">
+                    <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
+                    <div id="addStudentsList" class="add-students-list"></div>
+                </div>
+                <div class="add-students-footer">
+                    <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
+                </div>
+            </div>
         </div>
 
 
