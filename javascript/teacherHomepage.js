@@ -2130,12 +2130,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    let notReadyClassOverlay = document.getElementById('notReadyClassOverlay');
+    let searchStudentsOverlay = document.getElementById('searchStudentsOverlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     
     const openStudentsOverlay = () => {
-        if (!notReadyClassOverlay) return;
+        if (!searchStudentsOverlay) return;
         notReadyClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
         
@@ -2144,8 +2144,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // splitStudentNames now provided by Students module
 
     const closeNotReadyClassOverlay = () => {
-        if (!notReadyClassOverlay) return;
-        notReadyClassOverlay.style.visibility = 'hidden';
+        if (!searchStudentsOverlay) return;
+        searchStudentsOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 
@@ -2361,7 +2361,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log("[addStudentFromDatabase] Students rendered:", students);
 
-            const searchInput = notReadyClassOverlay.querySelector('#overlaySearchInput');
+            const searchInput = searchStudentsOverlay.querySelector('#overlaySearchInput');
 
 
 
