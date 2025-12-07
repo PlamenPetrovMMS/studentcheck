@@ -1852,6 +1852,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     async function openAddStudentsToClass(className) {
 
+        closeManageStudentsOverlay();
+
         console.log("[Manage Students Add Overlay] Opening for class:", className);
 
         if (!className) return;
