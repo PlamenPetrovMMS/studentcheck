@@ -1861,12 +1861,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const closeBtn = addStudentsClassOverlay.querySelector('#closeAddStudentsClassBtn');
         const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
         const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
-        closeBtn?.addEventListener('click', () => closeAddStudentsToClass());
+
+        closeBtn?.addEventListener('click', () => { 
+            closeAddStudentsToClass(); 
+            openManageStudentsOverlay(className); 
+        });
+
         if (confirmBtn) {
             confirmBtn.textContent = 'Add (0)';
             confirmBtn.addEventListener('click', () => finalizeAddStudentsToClass());
         }
+
         searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
+        
         addStudentsClassOverlay.addEventListener('click', (e) => { if (e.target === addStudentsClassOverlay) closeAddStudentsToClass(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addStudentsClassOverlay.style.visibility === 'visible') closeAddStudentsToClass(); });
 
