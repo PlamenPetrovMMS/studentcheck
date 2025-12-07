@@ -22,11 +22,29 @@
                 <div class="overlay-content-top-section" id="overlayContentTopSection">
                     <h2 id="overlayTitle">Students</h2>
                     <div class="top-section-search-filters">
-                        <input type="text" id="overlaySearchInput" placeholder="Search..." />
-                        <select id="filter" name="filter" required aria-required="true">
-                            <option value="" selected disabled>Select your faculty</option>
+
+                        <!-- Filter by level -->
+                         <select id="filterLevel" name="filterLevel" aria-label="Level" required aria-required="true">
+                            <option value="" selected disabled> </option>
+                         </select>
+
+                        <!-- Filter by faculty -->
+                        <select id="filterFaculty" name="filterFaculty" aria-label="Faculty" required aria-required="true">
+                            <option value="" selected disabled> </option>
                         </select>
+
+                        <!-- Filter by specialization -->
+                         <select id="filterSpecialization" name="filterSpecialization" aria-label="Specialization" required aria-required="true">
+                            <option value="" selected disabled> </option>
+                         </select>
+
+                        <!-- Filter by group -->
+                         <select id="filterGroup" name="filterGroup" aria-label="Group" required aria-required="true">
+                            <option value="" selected disabled> </option>
+                         </select>
+
                     </div>
+                    <input type="text" id="overlaySearchInput" placeholder="Search..." aria-label="Search students" />
                 </div>
 
                 <div class="overlay-content-main-section" id="overlayContentMainSection">

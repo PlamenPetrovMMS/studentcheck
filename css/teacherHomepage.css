@@ -1180,7 +1180,9 @@ body {
 }
 .top-section-search-filters{
 
-
+    display: flex;
+    gap: 12px;
+    align-items: center;
 
 }
 #overlaySearchInput{
