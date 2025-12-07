@@ -1858,9 +1858,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!className) return;
 
-        const closeBtn = addStudentsClassOverlay.querySelector('#closeAddStudentsClassBtn');
-        const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
-        const confirmBtn = addStudentsClassOverlay.querySelector('#confirmAddStudentsBtn');
+        const closeBtn = addStudentsClassOverlay.querySelector('#closeOverlayBtn');
+        const searchInput = addStudentsClassOverlay.querySelector('#overlaySearchInput');
+        const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
 
         closeBtn?.addEventListener('click', () => { 
             closeAddStudentsToClass(); 
@@ -1873,7 +1873,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
-        
+
         addStudentsClassOverlay.addEventListener('click', (e) => { if (e.target === addStudentsClassOverlay) closeAddStudentsToClass(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addStudentsClassOverlay.style.visibility === 'visible') closeAddStudentsToClass(); });
 
