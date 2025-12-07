@@ -1362,8 +1362,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Manage Students overlay (replaces ready-class overlay) ---
-    let manageStudentsOverlay = null;
-    let manageStudentsListEl = null;
+    let manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
+    let manageStudentsListEl = document.getElementById('manageStudentsList');
     let studentCache = [];
     let studentIndex = new Map(); // id -> full student object
     let studentInfoOverlay = null; // single-student details overlay
@@ -1387,14 +1387,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>`;
         document.body.appendChild(manageStudentsOverlay);
         manageStudentsListEl = manageStudentsOverlay.querySelector('#manageStudentsList');
-        const backBtn = manageStudentsOverlay.querySelector('#backToReadyBtn');
-        const closeBtn = manageStudentsOverlay.querySelector('#closeManageOverlayBtn');
-        const addBtn = manageStudentsOverlay.querySelector('#addStudentManageBtn');
-        backBtn?.addEventListener('click', () => returnToReadyClassPopup(currentClassName));
-        closeBtn?.addEventListener('click', () => closeAllClassOverlays());
-        addBtn?.addEventListener('click', () => openAddStudentsToClass(currentClassName));
-        manageStudentsOverlay.addEventListener('click', (e) => { if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && manageStudentsOverlay.style.visibility === 'visible') returnToReadyClassPopup(currentClassName); });
+        
+        
+        
         return manageStudentsOverlay;
     }
 
@@ -1493,7 +1488,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         //console.log('[Manage Students] Opening overlay for class:', className);
 
-        ensureManageStudentsOverlay();
+        // ensureManageStudentsOverlay();
+
+        manageStudentsOverlay.addEventListener('click', (e) => { if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); });
+
+        const backBtn = manageStudentsOverlay.querySelector('#backToReadyBtn');
+        const closeBtn = manageStudentsOverlay.querySelector('#closeManageOverlayBtn');
+        const addBtn = manageStudentsOverlay.querySelector('#addStudentManageBtn');
+        backBtn?.addEventListener('click', () => returnToReadyClassPopup(currentClassName));
+        closeBtn?.addEventListener('click', () => closeAllClassOverlays());
+        addBtn?.addEventListener('click', () => openAddStudentsToClass(currentClassName));
+
+        document.addEventListener('keydown', (e) => { 
+            if (e.key === 'Escape' && manageStudentsOverlay.style.visibility === 'visible') {
+                returnToReadyClassPopup(currentClassName); 
+            }
+        });
 
         //console.log('[Manage Students] Ensured overlay exists');
 
@@ -2241,8 +2251,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function filterStudents(query) {
-        const q = (query || '').trim().toLowerCase();
+    function filterStudents(levelValue, facultyValue, specializationValue, groupValue, searchInputValue) {
+        const q = (searchInputValue || '').trim().toLowerCase();
         if (!q) {
             allStudentItems.forEach(({ li }) => { li.style.display = ''; });
             updateUISelections();
@@ -2394,13 +2404,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
+
+        console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
+
         openStudentsOverlay();
+
+
         const container = document.getElementById('overlayMainSectionBody');
         if (container) container.innerHTML = '<p>Loading...</p>';
+
         try {
+
             const students = await (window.Students?.fetchAll?.() || Promise.resolve([]));
             renderStudents(students);
+
+            console.log("[addStudentFromDatabase] Students rendered:", students);
+
             const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
+
+
+
             if (searchInput) {
                 searchInput.setAttribute('aria-label', 'Search students by name or faculty number');
             }

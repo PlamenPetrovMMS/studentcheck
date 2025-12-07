@@ -370,6 +370,10 @@ body {
 #addStudentsOverlayBtn:hover { background: #1d4ed8; }
 #addStudentsOverlayBtn:active { transform: translateY(2px); }
 
+#manageStudentsOverlay{
+    visibility: hidden;
+}
+
 /* Dark buttons with white text for specific overlays */
 #manageStudentsOverlay .role-button,
 #studentInfoOverlay .role-button,
@@ -452,8 +456,8 @@ body {
 #readyClassPopupOverlay .role-button.secondary-green:hover { background: #047857; }
 .close-small {
     position: absolute;
-    top: 8px;
-    right: 10px;
+    top: 10px;
+    right: 12px;
     background: transparent;
     border: none;
     font-size: 2rem; /* enlarged X */
