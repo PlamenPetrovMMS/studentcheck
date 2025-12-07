@@ -102,76 +102,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ---- Scanner Overlay (Start Scanning) ----
-    let scannerOverlay = null;
+    let scannerOverlay = document.getElementById('scannerOverlay');
     let currentScanMode = 'joining';
     let html5QrCode = null; // Html5Qrcode instance
     // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
     const attendanceState = new Map();
     // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
     let attendanceDotIndex = new Map();
-    let attendanceOverlay = null;
-
-    function ensureScannerOverlay() {
-        if (scannerOverlay) return scannerOverlay;
-        scannerOverlay = document.createElement('div');
-        scannerOverlay.id = 'scannerOverlay';
-        scannerOverlay.className = 'overlay';
-        scannerOverlay.style.visibility = 'hidden';
-        scannerOverlay.innerHTML = `
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
-                <h2 id="scannerTitle" style="text-align:center; margin:0 0 16px 0;">Start Scanning</h2>
-                <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
-                <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
-                    <label class="mode-toggle" for="scanJoin">
-                        <input type="radio" name="scanMode" value="joining" id="scanJoin" checked>
-                        <span class="mode-label">Joining</span>
-                    </label>
-                    <label class="mode-toggle" for="scanLeave">
-                        <input type="radio" name="scanMode" value="leaving" id="scanLeave">
-                        <span class="mode-label">Leaving</span>
-                    </label>
-                </div>
-                <div id="cameraContainer" class="camera-container">
-                    <div id="qr-reader" style="width:100%; height:100%;"></div>
-                </div>
-                <div class="scanner-footer-actions">
-                    <button type="button" id="scannerStopBtn" class="role-button primary">Show Attendance</button>
-                    <button type="button" id="scannerCloseBtn" class="role-button">Close</button>
-                </div>
-            </div>`;
-        document.body.appendChild(scannerOverlay);
-        const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
-        // Close (X) triggers confirmation popup; overlay won't close by ESC or background clicks
-        closeBtn?.addEventListener('click', () => openCloseScannerConfirm());
-        // Disable background click closing for scanner overlay
-        scannerOverlay.addEventListener('click', (e) => {
-            // Intentionally do nothing to prevent accidental close on backdrop
-            return;
-        });
-        // Disable ESC-to-close for scanner overlay
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') {
-                // no-op; require explicit confirmation to close
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        });
-        // Radio handlers
-        const radios = scannerOverlay.querySelectorAll('input[name="scanMode"]');
-        radios.forEach(r => r.addEventListener('change', (ev) => {
-            const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
-            handleRadioChange(mode);
-        }));
-        // Footer action buttons
-        const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
-        stopBtn?.addEventListener('click', () => {
-            // Open attendance overlay while keeping scanner running for live updates
-            openAttendanceOverlay(currentClassName);
-        });
-        const closeActionBtn = scannerOverlay.querySelector('#scannerCloseBtn');
-        closeActionBtn?.addEventListener('click', () => openCloseScannerConfirm());
-        return scannerOverlay;
-    }
+    let attendanceOverlay = document.getElementById('attendanceOverlay');
 
     function stopAllCameraTracks() {
         try {
@@ -361,33 +299,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return id || null;
     }
 
-    function ensureAttendanceOverlay() {
-        if (attendanceOverlay) return attendanceOverlay;
-        attendanceOverlay = document.createElement('div');
-        attendanceOverlay.id = 'attendanceOverlay';
-        attendanceOverlay.className = 'overlay';
-        attendanceOverlay.style.visibility = 'hidden';
-        attendanceOverlay.innerHTML = `
-            <div class="ready-class-popup attendance-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceTitle">
-                <h2 id="attendanceTitle">Attendance</h2>
-                <div id="attendanceList" class="attendance-list"></div>
-                <div class="manage-footer-actions">
-                    <button type="button" id="attendanceCloseBtn" class="role-button">Close</button>
-                </div>
-            </div>`;
-        document.body.appendChild(attendanceOverlay);
-        const closeBtn = attendanceOverlay.querySelector('#attendanceCloseBtn');
-        closeBtn?.addEventListener('click', () => closeAttendanceOverlay());
-        attendanceOverlay.addEventListener('click', (e) => { if (e.target === attendanceOverlay) closeAttendanceOverlay(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay(); });
-        return attendanceOverlay;
-    }
-
     function openAttendanceOverlay(className) {
 
         //console.log("[Attendance Overlay] Opening for class:", className);
 
-        ensureAttendanceOverlay();
+        const closeBtn = attendanceOverlay.querySelector('#attendanceCloseBtn');
+        closeBtn?.addEventListener('click', () => closeAttendanceOverlay());
+        attendanceOverlay.addEventListener('click', (e) => { if (e.target === attendanceOverlay) closeAttendanceOverlay(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceOverlay.style.visibility === 'visible') closeAttendanceOverlay(); });
+
         const titleEl = attendanceOverlay.querySelector('#attendanceTitle');
         if (titleEl) titleEl.textContent = `Attendance — ${className || currentClassName}`;
 
@@ -820,8 +740,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         //console.log("[openScannerOverlay] Clearing studentTimestamps before starting scanner.", studentTimestamps);
         studentTimestamps.clear();
 
+        const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
+        // Close (X) triggers confirmation popup; overlay won't close by ESC or background clicks
+        closeBtn?.addEventListener('click', () => openCloseScannerConfirm());
+        // Disable background click closing for scanner overlay
+        scannerOverlay.addEventListener('click', (e) => {
+            // Intentionally do nothing to prevent accidental close on backdrop
+            return;
+        });
+        // Disable ESC-to-close for scanner overlay
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') {
+                // no-op; require explicit confirmation to close
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        });
+        // Radio handlers
+        const radios = scannerOverlay.querySelectorAll('input[name="scanMode"]');
+        radios.forEach(r => r.addEventListener('change', (ev) => {
+            const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
+            handleRadioChange(mode);
+        }));
+        // Footer action buttons
+        const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
+        stopBtn?.addEventListener('click', () => {
+            // Open attendance overlay while keeping scanner running for live updates
+            openAttendanceOverlay(currentClassName);
+        });
+        const closeActionBtn = scannerOverlay.querySelector('#scannerCloseBtn');
+        closeActionBtn?.addEventListener('click', () => openCloseScannerConfirm());
 
-        ensureScannerOverlay();
+
+
         // Hide ready overlay to avoid stacking
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
         // Title
@@ -846,26 +797,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Ready class popup dynamic creation (unchanged semantics)
-    let readyPopupOverlay = null;
-    function ensureReadyPopup() {
-        if (readyPopupOverlay) return readyPopupOverlay;
-        readyPopupOverlay = document.createElement('div');
-        readyPopupOverlay.id = 'readyClassPopupOverlay';
-        readyPopupOverlay.className = 'overlay';
-        readyPopupOverlay.style.visibility = 'hidden';
-        readyPopupOverlay.innerHTML = `
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="readyClassTitle">
-                <h2 id="readyClassTitle">Class Ready</h2>
-                <p class="ready-class-desc">Choose an action for this ready class.</p>
-                <div class="ready-class-actions">
-                    <button type="button" id="manageStudentsBtn" class="role-button primary">Manage Students</button>
-                    <button type="button" id="startScannerBtn" class="role-button secondary-green">Start Scanner</button>
-                    <button type="button" id="downloadAttendanceTableBtn" class="role-button primary" aria-label="Download Attendance Table">Download Attendance Table</button>
-                    <button type="button" id="classOptionsBtn" class="role-button primary" aria-label="Class Options">Options</button>
-                </div>
-                <button type="button" id="closeReadyPopupBtn" class="close-small" aria-label="Close">×</button>
-            </div>`;
-        document.body.appendChild(readyPopupOverlay);
+    
+    const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
+
+    function openReadyClassPopup(nameOptional) {
+        if (nameOptional) {
+            currentClassName = nameOptional;
+        }
+    
         const manageBtn = readyPopupOverlay.querySelector('#manageStudentsBtn');
         const scannerBtn = readyPopupOverlay.querySelector('#startScannerBtn');
         const downloadBtn = readyPopupOverlay.querySelector('#downloadAttendanceTableBtn');
@@ -877,30 +816,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeReadyClassPopup();
             openManageStudentsOverlay((className).trim());
         });
-    scannerBtn?.addEventListener('click', () => { startScanner(); });
+
+        scannerBtn?.addEventListener('click', () => { 
+            startScanner(); 
+        });
+
         downloadBtn?.addEventListener('click', () => {
             try {
                 const resolved = getActiveClassName();
-               //console.log('[Attendance Export] Resolved active class for download button click:', resolved);
+            //console.log('[Attendance Export] Resolved active class for download button click:', resolved);
                 handleDownloadAttendanceTable(resolved);
             } catch (e) {
                 console.error('Download Attendance Table failed unexpectedly:', e);
             }
         });
+
         optionsBtn?.addEventListener('click', () => {
             const name = getActiveClassName();
             openClassOptionsOverlay(name);
         });
+
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
-        return readyPopupOverlay;
-    }
-    function openReadyClassPopup(nameOptional) {
-        if (nameOptional) {
-            currentClassName = nameOptional;
-        }
-        ensureReadyPopup();
+        
+        
+        
         // Switch to buttons-only layout and vertical actions
         const popup = readyPopupOverlay.querySelector('.ready-class-popup');
         if (popup) {
@@ -918,6 +859,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         readyPopupOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
     }
+
+
+
+
     function closeReadyClassPopup() { if (!readyPopupOverlay) return; readyPopupOverlay.style.visibility = 'hidden'; document.body.style.overflow = ''; }
 
     // ---- Class Options (Rename / Delete) ----
