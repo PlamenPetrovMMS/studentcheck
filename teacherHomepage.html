@@ -26,22 +26,34 @@
                         <!-- Filter by level -->
                          <select id="filterLevel" name="filterLevel" aria-label="Level" required aria-required="true">
                             <option value="" selected disabled> Level </option>
-                         </select>
+                            <option value="bachelor">Bachelor</option>
+                            <option value="master">Master</option>
+                            <option value="phd">PhD</option>
+                        </select>
 
                         <!-- Filter by faculty -->
                         <select id="filterFaculty" name="filterFaculty" aria-label="Faculty" required aria-required="true">
                             <option value="" selected disabled> Faculty </option>
+                            
+                            <option value="Economics">Economics</option>
                         </select>
 
                         <!-- Filter by specialization -->
                          <select id="filterSpecialization" name="filterSpecialization" aria-label="Specialization" required aria-required="true">
                             <option value="" selected disabled> Specialization </option>
-                         </select>
+                            <!-- dynamically populate -->
+                        </select>
 
                         <!-- Filter by group -->
                          <select id="filterGroup" name="filterGroup" aria-label="Group" required aria-required="true">
                             <option value="" selected disabled> Group </option>
-                         </select>
+                            <option value="37" >37</option>
+                            <option value="38" >38</option>
+                            <option value="39" >39</option>
+                            <option value="40" >40</option>
+                            <option value="41" >41</option>
+                            <option value="42" >42</option>
+                        </select>
 
                     </div>
                     <input type="text" id="overlaySearchInput" placeholder="Search..." aria-label="Search students" />
