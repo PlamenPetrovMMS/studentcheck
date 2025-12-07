@@ -1168,6 +1168,7 @@ body {
 
 }
 .top-section-search-bar-reset-filters{
+    width: 100%;
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -1177,6 +1178,8 @@ body {
     border-radius: 10px;
     border: 1px solid #d1d5db;
 }
+.reset-filters-button:hover { background: #d1d5db; }
+
 .filter-select{
     padding: 5px;
     border-radius: 10px;
