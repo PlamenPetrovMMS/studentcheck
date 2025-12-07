@@ -1962,6 +1962,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(student, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
 
             if (existingSet.has(studentId)) {
+
+                console.log("APPLYING ALREADY IN FOR STUDENT on line 1966:", studentId, parts.fullName, facultyNumber);
+
                 // Render without checkbox, with two-line text and 'Already in' badge
                 li.classList.add('already-in');
                 const textWrap = document.createElement('div');
