@@ -266,24 +266,7 @@ body {
 
 
 
-/* Search input responsive styles */
-#overlaySearchInput {
-    height: 36px;
-    width: 300px;
-    font-size: 1rem;
-    padding: 6px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: #f9fafb;
-    outline: none;
-    flex: 2 1 280px;
-}
 
-#overlaySearchInput:focus {
-    background: #ffffff;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
-}
 
 /* Make search bar full width below 640px and stack under title */
 @media (max-width: 640px) {
@@ -1189,6 +1172,21 @@ body {
     border-radius: 10px;
 }
 
-#overlaySearchInput{
-    width: 100%;
+/* Search input responsive styles */
+#overlaySearchInput {
+    height: 36px;
+    width: 90%;
+    font-size: 1rem;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    outline: none;
+    flex: 2 1 280px;
+}
+
+#overlaySearchInput:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
 }
