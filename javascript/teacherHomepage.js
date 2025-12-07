@@ -2035,7 +2035,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    let studentsOverlay = document.getElementById('overlay');
+    let studentsOverlay = document.getElementById('manageStudentsOverlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     
