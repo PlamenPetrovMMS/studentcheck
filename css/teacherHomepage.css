@@ -1168,14 +1168,19 @@ body {
 
 }
 .top-section-search-bar-reset-filters{
-
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
 }
 .reset-filters-button{
-    
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
 }
 .filter-select{
     padding: 5px;
     border-radius: 10px;
+    border: 1px solid #d1d5db;
 }
 
 /* Search input responsive styles */
