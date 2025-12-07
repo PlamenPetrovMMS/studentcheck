@@ -2035,14 +2035,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    let studentsOverlay = document.getElementById('manageStudentsOverlay');
+    let notReadyClassOverlay = document.getElementById('notReadyClassOverlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     
 
     const openStudentsOverlay = () => {
-        if (!studentsOverlay) return;
-        studentsOverlay.style.visibility = 'visible';
+        if (!notReadyClassOverlay) return;
+        notReadyClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
         
     };
@@ -2057,9 +2057,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    const closeStudentsOverlay = () => {
-        if (!studentsOverlay) return;
-        studentsOverlay.style.visibility = 'hidden';
+    const closeNotReadyClassOverlay = () => {
+        if (!notReadyClassOverlay) return;
+        notReadyClassOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 
@@ -2067,7 +2067,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeOverlayBtn = document.getElementById('closeOverlayBtn');
     if (closeOverlayBtn) {
         closeOverlayBtn.addEventListener('click', () => {
-            closeStudentsOverlay();
+            closeNotReadyClassOverlay();
         });
         // Allow Escape key already handled globally; space/enter auto-trigger button
     }
@@ -2675,7 +2675,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim() === className);
             if (btn) updateClassStatusUI(btn);
             // Close overlay and clear selection
-            closeStudentsOverlay();
+            closeNotReadyClassOverlay();
             studentSelection.clear();
         });
         addStudentsOverlayBtn.dataset.bound = 'true';
