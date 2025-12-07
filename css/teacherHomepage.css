@@ -1184,6 +1184,11 @@ body {
     align-items: center;
 
 }
+.filter-select{
+    padding: 5px;
+    border-radius: 10px;
+}
+
 #overlaySearchInput{
     width: 100%;
 }
