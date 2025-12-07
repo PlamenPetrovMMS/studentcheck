@@ -16,7 +16,7 @@
     </button>
     <main class="main-container" id="mainContainer">
 
-
+        <!-- Manage Students Overlay -->
         <div class="overlay" id="manageStudentsOverlay">
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
                 <h2 id="manageStudentsTitle">Manage Students</h2>
@@ -29,6 +29,7 @@
             </div>
         </div>
 
+        <!-- Add Students Overlay -->
         <div class="overlay" id="addStudentsClassOverlay">
             <div class="ready-class-popup add-students-popup" role="dialog" aria-modal="true" aria-labelledby="addStudentsTitle">
                 <h2 id="addStudentsTitle">Add Students</h2>
@@ -43,6 +44,7 @@
             </div>
         </div>
 
+        <!-- Ready Class Overlay -->
         <div class="overlay" id="readyClassPopupOverlay">
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="readyClassTitle">
                 <h2 id="readyClassTitle">Class Ready</h2>
@@ -57,10 +59,10 @@
             </div>
         </div>
 
-
+        <!-- Scanner Overlay (Start Scanning) -->
         <div class="overlay" id="scannerOverlay">
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
-                <h2 id="scannerTitle" style="text-align:center; margin:0 0 16px 0;">Start Scanning</h2>
+                <h2 id="scannerTitle">Start Scanning</h2>
                 <button type="button" id="closeScannerBtn" class="close-small" aria-label="Close">×</button>
                 <div id="scannerModeGroup" class="mode-toggle-group" role="radiogroup" aria-label="Scan mode">
                     <label class="mode-toggle" for="scanJoin">
@@ -73,7 +75,7 @@
                     </label>
                 </div>
                 <div id="cameraContainer" class="camera-container">
-                    <div id="qr-reader" style="width:100%; height:100%;"></div>
+                    <div id="qr-reader"></div>
                 </div>
                 <div class="scanner-footer-actions">
                     <button type="button" id="scannerStopBtn" class="role-button primary">Show Attendance</button>
