@@ -1167,6 +1167,9 @@ body {
     align-items: center;
 
 }
+.top-section-search-bar-reset-filters{
+
+}
 .filter-select{
     padding: 5px;
     border-radius: 10px;
@@ -1182,7 +1185,6 @@ body {
     border-radius: 8px;
     background: #f9fafb;
     outline: none;
-    flex: 2 1 280px;
 }
 
 #overlaySearchInput:focus {
