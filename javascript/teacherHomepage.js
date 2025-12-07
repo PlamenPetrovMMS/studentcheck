@@ -2023,16 +2023,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     function filterAddStudentsList(query) {
         const q = (query||'').trim().toLowerCase();
+
         if (!addStudentsListEl) return;
+
         const items = addStudentsListEl.querySelectorAll('li.list-item');
+
         if (!q) { items.forEach(li=> li.style.display=''); return; }
+
         const tokens = q.split(/\s+/).filter(Boolean);
+
         items.forEach(li => {
             const text = li.textContent.toLowerCase();
             const matches = tokens.every(t => text.includes(t));
             li.style.display = matches ? '' : 'none';
         });
     }
+
+    
     async function finalizeAddStudentsToClass() {
 
         console.log("[finalizeAddStudentsToClass] Finalizing additions...");
@@ -2145,7 +2152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const openStudentsOverlay = () => {
         if (!searchStudentsOverlay) return;
-        notReadyClassOverlay.style.visibility = 'visible';
+        searchStudentsOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
         
     };
