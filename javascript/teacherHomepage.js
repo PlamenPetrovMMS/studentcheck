@@ -1013,131 +1013,82 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ---- CLASS CREATION WIZARD ----
-    let wizardOverlay = null;
-    let wizardTrack = null; // slides container
-    let wizardNameInput = null;
-    let wizardErrorName = null;
-    let wizardBackBtn = null;
-    let wizardNextBtn = null;
-    let wizardFinishBtn = null;
-    let wizardStudentContainer = null; // where students list renders
+    let createClassSlideIndex = 0;
+    let createClassOverlay = document.getElementById('createClassOverlay');
+    let createClassSlideTrack = document.getElementById('createClassSlidesTrack'); // slides container
+    let createClassNameInput = document.getElementById('createClassNameInput');
+    let createClassErrorName = document.getElementById('createClassErrorName');
+    let createClassBackBtn = document.getElementById('createClassBackBtn');
+    let createClassNextBtn = document.getElementById('createClassNextBtn');
+    let createClassFinishBtn = document.getElementById('createClassFinishBtn');
+    let createClassStudentContainer = document.getElementById('createClassStudentsBody'); // where students list renders
+    let createClassCloseBtn = document.getElementById('createClassCloseBtn');
+    let createClassSearchInput = document.getElementById('createClassSearchInput');
     const WIZARD_TOTAL_SLIDES = 2;
 
-    function ensureWizard() {
-        if (wizardOverlay) return;
-        wizardOverlay = document.createElement('div');
-        wizardOverlay.id = 'classWizardOverlay';
-        wizardOverlay.className = 'overlay';
-        wizardOverlay.style.visibility = 'hidden';
-        wizardOverlay.innerHTML = `
-            <div class="card" role="dialog" aria-modal="true" aria-labelledby="classWizardTitle">
-                <div class="card-header">
-                    <h1 id="classWizardTitle" class="title">Create Class</h1>
-                </div>
-                <div class="slider">
-                    <div class="slides-track" id="classWizardTrack">
-                        <section class="slide" data-index="0" aria-label="Class Name">
-                            <div class="field">
-                                <label for="wizardClassName">Name</label>
-                                <input id="wizardClassName" type="text" required />
-                            </div>
-                            <div id="wizardErrorName" class="error" role="alert" aria-live="polite"></div>
-                        </section>
-                        <section class="slide" data-index="1" aria-label="Select Students">
-                            <div class="field">
-                                <label for="wizardSearchInput">Search students</label>
-                                <input id="wizardSearchInput" type="text" placeholder="Type to filter..." />
-                            </div>
-                            <div id="wizardStudentsBody"></div>
-                            <div id="wizardNoStudentsMsg" class="error" aria-live="polite" style="display:none"></div>
-                        </section>
-                    </div>
-                </div>
-                <div class="actions" id="wizardActions">
-                    <button type="button" id="wizardBackBtn" class="btn btn-secondary" disabled>Back</button>
-                    <div>
-                        <button type="button" id="wizardNextBtn" class="btn btn-primary">Continue</button>
-                        <button type="button" id="wizardFinishBtn" class="btn btn-primary finish-hidden">Finish</button>
-                    </div>
-                </div>
-                <button type="button" id="wizardCloseBtn" class="close-small" aria-label="Close">×</button>
-            </div>`;
-        document.body.appendChild(wizardOverlay);
-        wizardTrack = wizardOverlay.querySelector('#classWizardTrack');
-        wizardNameInput = wizardOverlay.querySelector('#wizardClassName');
-        wizardErrorName = wizardOverlay.querySelector('#wizardErrorName');
-        wizardBackBtn = wizardOverlay.querySelector('#wizardBackBtn');
-        wizardNextBtn = wizardOverlay.querySelector('#wizardNextBtn');
-        wizardFinishBtn = wizardOverlay.querySelector('#wizardFinishBtn');
-        wizardStudentContainer = wizardOverlay.querySelector('#wizardStudentsBody');
-        const closeBtn = wizardOverlay.querySelector('#wizardCloseBtn');
-        closeBtn.addEventListener('click', closeWizard);
-        wizardBackBtn.addEventListener('click', () => goToSlide(0));
-        wizardNextBtn.addEventListener('click', handleWizardNext);
-        wizardFinishBtn.addEventListener('click', submitNewClass);
-        wizardOverlay.addEventListener('click', (e) => { if (e.target === wizardOverlay) closeWizard(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && wizardOverlay.style.visibility === 'visible') closeWizard(); });
-        const searchInput = wizardOverlay.querySelector('#wizardSearchInput');
+    function openClassCreationWizard() {
+        createClassCloseBtn.addEventListener('click', closeWizard);
+        createClassBackBtn.addEventListener('click', () => goToSlide(0));
+        createClassNextBtn.addEventListener('click', handleWizardNext);
+        createClassFinishBtn.addEventListener('click', submitNewClass);
+        createClassOverlay.addEventListener('click', (e) => { if (e.target === createClassOverlay) closeWizard(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && createClassOverlay.style.visibility === 'visible') closeWizard(); });
         if (window.Utils && typeof window.Utils.debounce === 'function') {
             const debounced = window.Utils.debounce((value) => filterStudentsWizard(value), 180);
-            searchInput.addEventListener('input', (e) => debounced(e.target.value));
+            createClassSearchInput.addEventListener('input', (e) => debounced(e.target.value));
         } else {
             let debounceTimer = null;
-            searchInput.addEventListener('input', (e) => {
+            createClassSearchInput.addEventListener('input', (e) => {
                 clearTimeout(debounceTimer);
                 const value = e.target.value;
                 debounceTimer = setTimeout(() => filterStudentsWizard(value), 180);
             });
         }
-    }
 
-    function openClassCreationWizard() {
-        ensureWizard();
-        wizardOverlay.style.visibility = 'visible';
+
+        createClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-        wizardSlideIndex = 0;
         goToSlide(0);
-        wizardNameInput.focus();
+        createClassNameInput.focus();
     }
-    function closeWizard() { if (wizardOverlay){ wizardOverlay.style.visibility='hidden'; document.body.style.overflow=''; } }
-
+    function closeWizard() { if (createClassOverlay){ createClassOverlay.style.visibility='hidden'; document.body.style.overflow=''; } }
     function goToSlide(index) {
-        wizardSlideIndex = index;
-        const slides = Array.from(wizardTrack.querySelectorAll('.slide'));
+        createClassSlideIndex = index;
+        const slides = Array.from(createClassSlideTrack.querySelectorAll('.slide'));
         slides.forEach(sl => sl.classList.toggle('active', Number(sl.dataset.index) === index));
         // Mirror registration button logic
-        wizardBackBtn.style.display = index === 0 ? 'none' : 'inline-block';
-        wizardBackBtn.disabled = index === 0;
+        createClassBackBtn.style.display = index === 0 ? 'none' : 'inline-block';
+        createClassBackBtn.disabled = index === 0;
         if (index < WIZARD_TOTAL_SLIDES - 1) {
-            wizardNextBtn.style.display = 'inline-block';
-            wizardFinishBtn.classList.add('finish-hidden');
+            createClassNextBtn.style.display = 'inline-block';
+            createClassFinishBtn.classList.add('finish-hidden');
         } else {
-            wizardNextBtn.style.display = 'none';
-            wizardFinishBtn.classList.remove('finish-hidden');
+            createClassNextBtn.style.display = 'none';
+            createClassFinishBtn.classList.remove('finish-hidden');
         }
         const actionsContainer = document.getElementById('wizardActions');
         if (actionsContainer) {
             if (index === 0) actionsContainer.classList.add('single-right');
             else actionsContainer.classList.remove('single-right');
         }
-        if (index === 1 && wizardStudentContainer && wizardStudentContainer.dataset.loaded !== 'true') {
+        if (index === 1 && createClassStudentContainer && createClassStudentContainer.dataset.loaded !== 'true') {
             loadStudentsIntoWizard();
         }
         // Focus appropriate input similar to registration
         requestAnimationFrame(() => {
-            if (index === 0) wizardNameInput?.focus();
-            else if (index === 1) document.getElementById('wizardSearchInput')?.focus();
+            if (index === 0) createClassNameInput?.focus();
+            else if (index === 1) document.getElementById('createClassSearchInput')?.focus();
         });
     }
 
     function handleWizardNext() {
-        const name = wizardNameInput.value.trim();
+        const name = createClassNameInput.value.trim();
         if (!name) {
-            wizardErrorName.textContent = 'Name is required.';
-            wizardNameInput.focus();
+            createClassErrorName.textContent = 'Name is required.';
+            createClassNameInput.focus();
             return;
         }
-        wizardErrorName.textContent = '';
+        createClassErrorName.textContent = '';
         wizardClassName = name;
         goToSlide(1);
     }
@@ -1173,8 +1124,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('[Class Creation] Server error response', { errorText });
         }
 
-        wizardFinishBtn.disabled = true;
-        wizardFinishBtn.textContent = 'Creating...';
+        createClassFinishBtn.disabled = true;
+        createClassFinishBtn.textContent = 'Creating...';
         // Debug logging for class creation flow
         const creationStartTs = Date.now();
         console.log('[Class Creation] Starting submitNewClass', {
@@ -1219,28 +1170,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             wizardSelections.clear();
             wizardClassName = '';
-            wizardFinishBtn.disabled = false;
-            wizardFinishBtn.textContent = 'Finish';
+            createClassFinishBtn.disabled = false;
+            createClassFinishBtn.textContent = 'Finish';
         });
     }
 
     // Student loading for wizard
     async function loadStudentsIntoWizard() {
-        if (!wizardStudentContainer) return;
-        wizardStudentContainer.innerHTML = '<p class="loading-hint">Loading...</p>';
+        if (!createClassStudentContainer) return;
+        createClassStudentContainer.innerHTML = '<p class="loading-hint">Loading...</p>';
         try {
             const students = await (window.Students?.fetchAll?.() || Promise.resolve([]));
-            wizardStudentContainer.innerHTML='';
+            createClassStudentContainer.innerHTML='';
             renderStudentsInWizard(students);
-            wizardStudentContainer.dataset.loaded='true';
+            createClassStudentContainer.dataset.loaded='true';
         } catch (e) {
             console.error('Wizard student fetch failed', e);
-            wizardStudentContainer.innerHTML = '<p style="color:#b91c1c;">Network error loading students.</p>';
+            createClassStudentContainer.innerHTML = '<p style="color:#b91c1c;">Network error loading students.</p>';
         }
     }
 
     function renderStudentsInWizard(students) {
-        if (!Array.isArray(students) || students.length === 0) { wizardStudentContainer.innerHTML='<p class="muted">No students found.</p>'; return; }
+        if (!Array.isArray(students) || students.length === 0) { createClassStudentContainer.innerHTML='<p class="muted">No students found.</p>'; return; }
         const list = document.createElement('ul');
         list.style.listStyle='none'; list.style.margin='0'; list.style.padding='0';
         wizardStudentIndex = new Map();
@@ -1265,18 +1216,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (wizardSelections.has(studentId)) { checkbox.checked=true; li.classList.add('selected'); }
             list.appendChild(li);
         });
-        wizardStudentContainer.innerHTML='';
-        wizardStudentContainer.appendChild(list);
+        createClassStudentContainer.innerHTML='';
+        createClassStudentContainer.appendChild(list);
     }
 
     function filterStudentsWizard(query) {
         const q = (query||'').trim().toLowerCase();
-        if (!wizardStudentContainer) return;
-        const items = wizardStudentContainer.querySelectorAll('li.list-item');
+        if (!createClassStudentContainer) return;
+        const items = createClassStudentContainer.querySelectorAll('li.list-item');
         if (!q) {
             // Reset visibility and hide 'no match' message entirely for empty query
             items.forEach(li=> li.style.display='');
-            const msgElExisting = wizardStudentContainer.querySelector('#wizardNoMatch');
+            const msgElExisting = createClassStudentContainer.querySelector('#wizardNoMatch');
             if (msgElExisting) msgElExisting.style.display = 'none';
             return;
         }
@@ -1287,11 +1238,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             li.style.display = matches? '' : 'none';
         });
         // Show message if none
-        if (!wizardStudentContainer.querySelector('#wizardNoMatch')) {
+        if (!createClassStudentContainer.querySelector('#wizardNoMatch')) {
             const msg = document.createElement('p'); msg.id='wizardNoMatch'; msg.textContent='No matching students.'; msg.style.display='none'; msg.style.fontStyle='italic'; msg.style.color='#6b7280'; wizardStudentContainer.appendChild(msg);
         }
         const anyVisible = Array.from(items).some(li=> li.style.display !== 'none');
-        const msgEl = wizardStudentContainer.querySelector('#wizardNoMatch'); if (msgEl) msgEl.style.display = anyVisible ? 'none':'block';
+        const msgEl = createClassStudentContainer.querySelector('#wizardNoMatch'); if (msgEl) msgEl.style.display = anyVisible ? 'none':'block';
     }
 
     function openAddStudentsPopup() { addStudentsFromDatabase(); }
@@ -1309,34 +1260,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Manage Students overlay (replaces ready-class overlay) ---
     let manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
     let manageStudentsListEl = document.getElementById('manageStudentsList');
-    let studentCache = [];
     let studentIndex = new Map(); // id -> full student object
     let studentInfoOverlay = null; // single-student details overlay
     let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
 
-    function ensureManageStudentsOverlay() {
-        if (manageStudentsOverlay) return manageStudentsOverlay;
-        manageStudentsOverlay = document.createElement('div');
-        manageStudentsOverlay.id = 'manageStudentsOverlay';
-        manageStudentsOverlay.className = 'overlay';
-        manageStudentsOverlay.style.visibility = 'hidden';
-        manageStudentsOverlay.innerHTML = `
-            <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
-                <h2 id="manageStudentsTitle">Manage Students</h2>
-                <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
-                <div id="manageStudentsList" class="manage-students-list"></div>
-                <div class="manage-footer-actions">
-                    <button type="button" id="backToReadyBtn" class="role-button">Back</button>
-                    <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Students">Add Students</button>
-                </div>
-            </div>`;
-        document.body.appendChild(manageStudentsOverlay);
-        manageStudentsListEl = manageStudentsOverlay.querySelector('#manageStudentsList');
-        
-        
-        
-        return manageStudentsOverlay;
-    }
 
     function renderManageStudentsForClass(className) {
 

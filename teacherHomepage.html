@@ -11,10 +11,55 @@
     <link rel="stylesheet" href="css/registration.css?v=1.0.0">
 </head>
 <body>
+
     <button class="navbar-logo" type="button" aria-label="Home" onclick="handleLogoClick()">
         <img src="images/new_main_logo.png" alt="Home">
     </button>
+
     <main class="main-container" id="mainContainer">
+
+        <!-- Create Class Overlay -->
+         <div class="overlay" id="createClassOverlay">
+            <div class="card" role="dialog" aria-modal="true" aria-labelledby="classWizardTitle">
+                
+                <div class="card-header">
+                    <h1 id="classWizardTitle" class="title">Create Class</h1>
+                </div>
+
+                <div class="slider">
+                    <div class="slides-track" id="createClassSlidesTrack">
+                        <section class="slide" data-index="0" aria-label="Class Name">
+                            <div class="field">
+                                <label for="createClassNameInput">Name</label>
+                                <input id="createClassNameInput" type="text" required />
+                            </div>
+                            <div id="createClassErrorName" class="error" role="alert" aria-live="polite"></div>
+                        </section>
+                        <section class="slide" data-index="1" aria-label="Select Students">
+                            <div class="field">
+                                <label for="createClassSearchInput">Search students</label>
+                                <input id="createClassSearchInput" type="text" placeholder="Type to filter..." />
+                            </div>
+                            <div id="createClassStudentsBody"></div>
+                            
+                            <div id="createClassNoStudentsMsg" class="error" aria-live="polite" style="display:none"></div>
+                        </section>
+                    </div>
+                </div>
+
+                <div class="actions" id="createClassActions">
+                    <button type="button" id="createClassBackBtn" class="btn btn-secondary" disabled>Back</button>
+                    
+                    <div>
+                        <button type="button" id="createClassNextBtn" class="btn btn-primary">Continue</button>
+                        <button type="button" id="createClassFinishBtn" class="btn btn-primary finish-hidden">Finish</button>
+                    
+                    </div>
+                </div>
+
+                <button type="button" id="createClassCloseBtn" class="close-small" aria-label="Close">×</button>
+            </div>
+        </div>
 
         <!-- Manage Students Overlay -->
         <div class="overlay" id="manageStudentsOverlay">
@@ -35,8 +80,13 @@
                 <h2 id="addStudentsTitle">Add Students</h2>
                 <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close">×</button>
                 <div class="add-students-body">
+
+
                     <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
                     <div id="addStudentsList" class="add-students-list"></div>
+
+
+
                 </div>
                 <div class="add-students-footer">
                     <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
@@ -156,6 +206,8 @@
 
             </div>
         </div>
+
+
 
         <section id="classesSection" aria-labelledby="classesTitle">
             <h1 id="classesTitle">Classes</h1>
