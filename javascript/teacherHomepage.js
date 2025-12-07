@@ -2271,7 +2271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log("[addStudentFromDatabase] Students rendered:", students);
 
-            const searchInput = studentsOverlay.querySelector('#overlaySearchInput');
+            const searchInput = notReadyClassOverlay.querySelector('#overlaySearchInput');
 
 
 
