@@ -2191,7 +2191,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!searchStudentsOverlay) return;
         searchStudentsOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
-        
     };
 
     // splitStudentNames now provided by Students module
@@ -2401,6 +2400,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
 
+        const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
+        closeBtn.addEventListener('click', () => {
+                closeStudentsOverlay();
+            });
+
         openStudentsOverlay();
 
 
@@ -2415,12 +2419,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("[addStudentFromDatabase] Students rendered:", students);
 
             const searchInput = searchStudentsOverlay.querySelector('#overlaySearchInput');
-            const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
-
-            closeBtn.addEventListener('click', () => {
-                closeStudentsOverlay();
-            });
-
 
             if (searchInput) {
                 searchInput.setAttribute('aria-label', 'Search students by name or faculty number');
