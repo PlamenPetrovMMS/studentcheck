@@ -69,6 +69,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const classList = document.getElementById('classList');
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
+    const attachNewClassButtonBehavior = (buttonEl) => {
+            if (!buttonEl) return;
+            const animate = () => {
+                buttonEl.classList.add('clicked');
+                setTimeout(() => buttonEl.classList.remove('clicked'), 340);
+            };
+            buttonEl.addEventListener('mousedown', animate);
+            buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
+            buttonEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleClassButtonClick(buttonEl);
+            });
+    };
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
     const addBtn = document.getElementById('addClassBtn');
@@ -2455,19 +2468,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    const attachNewClassButtonBehavior = (buttonEl) => {
-        if (!buttonEl) return;
-        const animate = () => {
-            buttonEl.classList.add('clicked');
-            setTimeout(() => buttonEl.classList.remove('clicked'), 340);
-        };
-        buttonEl.addEventListener('mousedown', animate);
-        buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
-        buttonEl.addEventListener('click', (e) => {
-            e.preventDefault();
-            handleClassButtonClick(buttonEl);
-        });
-    };
+    
 
 
 
