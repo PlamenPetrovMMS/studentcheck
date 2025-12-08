@@ -64,6 +64,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     let allStudentItems = [];
 
 
+    const ENDPOINTS = {
+        class_students: '/class_students',
+        updateCompletedClassesCount: '/update_completed_classes_count',
+        attendance: '/attendance',
+        createClass: '/classes',
+        students: '/students'
+        // Add any other endpoints your code uses
+        };
+
+    const readyClasses = new Set();
+
+
 
 
 
