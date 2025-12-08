@@ -2412,7 +2412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("Selected Students Array:", selectedStudentsArray);
 
-        return Array.fro,(studentSelection).map(id => {
+        return Array.from(studentSelection).map(id => {
             const item = allStudentItems.find(i => i.id === id);
             return {
                 id,
