@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
 
 
+    const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
+
 
     let currentScanMode = 'joining';
     let html5QrCode = null; // Html5Qrcode instance
@@ -57,13 +59,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     let attendanceDotIndex = new Map();
     
 
-
+    const studentSelection = new Set();
+    // Cache of all rendered student items for filtering without DOM rebuild
+    let allStudentItems = [];
 
 
 
 
 
     const classList = document.getElementById('classList');
+    classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
+    classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
+
     const addBtn = document.getElementById('addClassBtn');
 
     // Determine current teacher email with robust fallbacks (mobile reload safe)
@@ -80,6 +87,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateCompletedClassesCount: '/update_completed_classes_count',
         saveStudentTimestamps: '/save_student_timestamps',
     };
+
+
+
+    window.handleStudentSelect = handleStudentSelect;
+    window.filterStudents = filterStudents;
+    window.updateUISelections = updateUISelections; 
+
+
+
 
     async function apiCreateClass(name, studentIds, teacherEmail) {
         console.log('[API] Creating class:', name, 'with students:', studentIds);
@@ -2204,25 +2220,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = '';
     };
 
-    // Bind Close button functionality for the students overlay
-    const closeOverlayBtn = searchStudentsOverlay ? searchStudentsOverlay.querySelector('#closeOverlayBtn') : null;
-    if (closeOverlayBtn) {
-        closeOverlayBtn.addEventListener('click', () => {
-            closeStudentsOverlay();
-        });
-        // Allow Escape key already handled globally; space/enter auto-trigger button
-    }
-
-
-
 
 
 
 
     // Persistent selection state across filtering
-    const studentSelection = new Set();
-    // Cache of all rendered student items for filtering without DOM rebuild
-    let allStudentItems = [];
 
     function handleStudentSelect(id, li, checkbox) {
         if (!id) return;
@@ -2285,9 +2287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Expose for potential external use
-    window.handleStudentSelect = handleStudentSelect;
-    window.filterStudents = filterStudents;
-    window.updateUISelections = updateUISelections;
+    
 
     const renderStudents = (students) => {
         const main_section_body = document.getElementById('overlayMainSectionBody');
@@ -2682,7 +2682,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
-    classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
+    
 
     //console.log("Loading classes...");
     loadClasses();
@@ -2732,7 +2732,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Wire Add Students overlay button to add selected students and mark ready
-    const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
+    
     if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
         addStudentsOverlayBtn.addEventListener('click', async () => {
 
@@ -2853,7 +2853,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })();
 
     // Apply ready styling to rendered classes
-    classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
+    
 
 
 
