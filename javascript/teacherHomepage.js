@@ -1992,8 +1992,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             classStudents = await loadClassStudents(className, classId);
             allStudents = await loadStudentsFromDatabase();
             
-            //console.log("[Render Add Students] Loaded stored students:", classStudents);
-            //console.log("[Render Add Students] Loaded all students from database:", allStudents);
+            console.log("[Render Add Students] Loaded stored students:", classStudents);
+            console.log("[Render Add Students] Loaded all students from database:", allStudents);
 
             classStudents.forEach(student => {
                 console.log(student);
