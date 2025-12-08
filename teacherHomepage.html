@@ -98,8 +98,8 @@
 
 
         <!-- Create Class Overlay -->
-        <div class="overlay" id="createClassOverlay">
-            <div class="card" role="dialog" aria-modal="true">
+         <div class="overlay" id="createClassOverlay">
+            <div class="card" role="dialog" aria-modal="true" aria-labelledby="classWizardTitle">
                 
                 <div class="card-header">
                     <h1 id="classWizardTitle" class="title">Create Class</h1>
@@ -130,14 +130,16 @@
                 </div>
 
                 <div class="actions" id="createClassActions">
-                    <button type="button" id="createClassCloseBtn" class="btn btn-secondary">Close</button>
+                    <button type="button" id="createClassBackBtn" class="btn btn-secondary" disabled>Back</button>
                     
                     <div>
-                        <button type="button" id="createClassContinueBtn" class="btn btn-primary">Continue</button>
+                        <button type="button" id="createClassNextBtn" class="btn btn-primary">Continue</button>
                         <button type="button" id="createClassFinishBtn" class="btn btn-primary finish-hidden">Finish</button>
                     
                     </div>
                 </div>
+
+                <button type="button" id="createClassCloseBtn" class="close-small" aria-label="Close">×</button>
             </div>
         </div>
 
@@ -248,14 +250,19 @@
             <h1 id="classesTitle">Classes</h1>
             <ul id="classList" class="classes-list">
                 <li>
-                    <button id="newClassBtn" type="button" class="add-class-btn" aria-label="New Class">New Class</button>
+                    <button id="addClassBtn" type="button" class="add-class-btn" aria-label="New Class">New Class</button>
                 </li>
             </ul>
         </section>
 
     </main>
 
-    <script src="./javascript/teacherHomepage.js"></script>
+
+
+    <script src="javascript/shared.js"></script>
+    <script src="javascript/utils.js"></script>
+    <script src="javascript/students.js"></script>
+    <script src="javascript/teacherHomepage.js"></script>
 </body>
 </html>
 

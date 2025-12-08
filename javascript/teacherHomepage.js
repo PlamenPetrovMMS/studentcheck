@@ -1,12 +1,4 @@
-
 const serverBaseUrl = 'https://studentcheck-server.onrender.com'; // Set to your server base URL if needed
-// Ensure teacherEmail is defined from localStorage
-let teacherEmail = '';
-try {
-    teacherEmail = localStorage.getItem('teacherEmail') || '';
-} catch (e) {
-    console.error('Could not read teacherEmail from localStorage:', e);
-}
 
 
 
@@ -19,212 +11,117 @@ try {
 // Add click logging and behavior for dynamically created "New Class" buttons
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // OVERLAYS
-    const searchStudentsOverlay = document.getElementById('searchStudentsOverlay');
-    const scannerOverlay = document.getElementById('scannerOverlay');
-    const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
-    const attendanceOverlay = document.getElementById('attendanceOverlay');
-    const attendanceHistoryOverlay = document.getElementById('attendanceHistoryOverlay');
-    const manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
-    const createClassOverlay = document.getElementById('createClassOverlay');
-    const addStudentsClassOverlay = document.getElementById('searchStudentsOverlay');
+    const classList = document.getElementById('classList');
+    const addBtn = document.getElementById('addClassBtn');
 
+    // Determine current teacher email with robust fallbacks (mobile reload safe)
+    let teacherEmail = localStorage.getItem('teacherEmail') || null;
+    if(!teacherEmail) console.error('No teacher email found in localStorage for session.');
 
-
-    let addStudentsListEl = document.getElementById('addStudentsList');
-    let addStudentsSelections = new Set();
-
-
-
-    let createClassSlideIndex = 0;
-    const createClassSlideTrack = document.getElementById('createClassSlidesTrack'); // slides container
-    const createClassNameInput = document.getElementById('createClassNameInput');
-    const createClassErrorName = document.getElementById('createClassErrorName');
-    const createClassBackBtn = document.getElementById('createClassBackBtn');
-    const createClassNextBtn = document.getElementById('createClassNextBtn');
-    const createClassFinishBtn = document.getElementById('createClassFinishBtn');
-    const createClassStudentContainer = document.getElementById('createClassStudentsBody'); // where students list renders
-    const createClassCloseBtn = document.getElementById('createClassCloseBtn');
-    const createClassSearchInput = document.getElementById('createClassSearchInput');
-    const WIZARD_TOTAL_SLIDES = 2;
-
-
-
-    let manageStudentsListEl = document.getElementById('manageStudentsList');
-    let studentIndex = new Map(); // id -> full student object
-    let studentInfoOverlay = null; // single-student details overlay
-    let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
-
-
-    const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
-
-
-    let currentScanMode = 'joining';
-    let html5QrCode = null; // Html5Qrcode instance
-    // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
-    const attendanceState = new Map();
-    // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
-    let attendanceDotIndex = new Map();
-    
-
-    const studentSelection = new Set();
-    // Cache of all rendered student items for filtering without DOM rebuild
-    let allStudentItems = [];
-
+    const normalizeEmail = (e) => (e || '').trim().toLowerCase();
 
     const ENDPOINTS = {
+        createClass: `/classes`,
+        attendance: `/attendance`,
         class_students: '/class_students',
+        students: '/students',
         updateCompletedClassesCount: '/update_completed_classes_count',
-        attendance: '/attendance',
-        createClass: '/classes',
-        students: '/students'
-        // Add any other endpoints your code uses
-        };
+        saveStudentTimestamps: '/save_student_timestamps',
+    };
 
-    const readyClasses = new Set();
+    async function apiCreateClass(name, studentIds, teacherEmail) {
+        console.log('[API] Creating class:', name, 'with students:', studentIds);
+        const res = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds, teacherEmail }) });
+        if (!res.ok) throw new Error('Class create failed');
+        return res.json();
+    }
+    
+    async function apiMarkAttendance(classId, studentId) {
+        const res = await fetch(serverBaseUrl + ENDPOINTS.attendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
+        if (!res.ok) throw new Error('Attendance mark failed');
+        return res.json();
+    }
+
+    async function apiFetchClassAttendance(classId) {
+        const res = await fetch(serverBaseUrl + ENDPOINTS.classAttendanceSummary(classId), { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Attendance summary fetch failed');
+        return res.json();
+    }
+
+    const classIdByName = new Map();
+    const attendanceCountCache = new Map();
+
+    const storageKey = (email) => {
+        const e = normalizeEmail(email || teacherEmail);
+        return e ? `teacher:classes:${e}` : null;
+    };
 
 
 
 
 
-    const classList = document.getElementById('classList');
-    classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
-    const attachNewClassButtonBehavior = (buttonEl) => {
-            if (!buttonEl) return;
-            const animate = async () => {
-                buttonEl.classList.add('clicked');
 
-                // Guard against repeated/concurrent calls
-                if (window.isAddStudentsListLoading) return;
-                window.isAddStudentsListLoading = true;
 
-                let classId = getClassIdByName(className);
-                if (!classId) {
-                    console.error("[Render Add Students] No class ID found for class:", className);
-                    window.isAddStudentsListLoading = false;
-                    return;
-                }
 
-                if (!addStudentsListEl) {
-                    window.isAddStudentsListLoading = false;
-                    return;
-                }
 
-                addStudentsListEl.innerHTML = '';
-                console.log("Cleared existing list.");
 
-                const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
-                console.log("Existing assigned IDs:", Array.from(existingSet));
 
-                let classStudents = null, allStudents = null;
-                console.log("1");
-                try {
-                    console.log("2")
-                    classStudents = await loadClassStudents(className, classId);
-                    console.log("3")
-                    allStudents = await loadStudentsFromDatabase();
-                    console.log("4")
-                    console.log("Loaded stored students:", classStudents);
-                    console.log("Loaded all students from database:", allStudents);
-                    if (Array.isArray(classStudents)) {
-                        classStudents.forEach(student => {
-                            const id = student.faculty_number?.trim();
-                            console.log("Checking stored student ID:", id);
-                            if (id) {
-                                console.log("Adding existing student ID to set:", id);
-                                existingSet.add(id);
-                            }
-                        });
-                    }
-                } catch(_) {
-                    console.error("[Render Add Students] Failed to load stored students for class:", className);
-                    addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;color:#b91c1c;">Error loading students. Please try again later.</p>';
-                    window.isAddStudentsListLoading = false;
-                    return;
-                }
+    // --- Per-class readiness state ---
+    const readyClasses = new Set(); // class name strings
+    const classStudentAssignments = new Map(); // className -> Set(studentIds)
+    let currentClassButton = null;
+    let currentClassName = '';
+    let currentClassId = '';
+    let wizardSelections = new Set();
+    let wizardClassName = '';
+    let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
 
-                if (!classStudents || !Array.isArray(classStudents)) {
-                    console.error("[Render Add Students] No stored students found for class:", className);
-                    addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;color:#b91c1c;">No students found for this class.</p>';
-                    window.isAddStudentsListLoading = false;
-                    return;
-                }
+    // =============================================================
 
-                if (classStudents.length === 0) {
-                    addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
-                    window.isAddStudentsListLoading = false;
-                    return;
-                }
+    let studentTimestamps = new Map(); // faculty_number -> { joined_at, left_at }
 
-                const ul = document.createElement('ul');
-                ul.style.listStyle='none'; 
-                ul.style.margin='0'; 
-                ul.style.padding='0';
+    // let timestamps = {
+    //     joined_at: null,
+    //     left_at: null,
+    // }
 
-                allStudents.forEach((student, idx) => {
-                    const li = document.createElement('li');
-                    li.className='list-item';
-                    const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(student);
-                    const facultyNumber = student.faculty_number;
-                    const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(student, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
+    // =============================================================
 
-                    if (existingSet.has(studentId)) {
-                        li.classList.add('already-in');
-                        const textWrap = document.createElement('div');
-                        textWrap.className = 'student-card-text';
-                        const nameEl = document.createElement('span');
-                        nameEl.className = 'student-name';
-                        nameEl.textContent = parts.fullName;
-                        const facEl = document.createElement('span');
-                        facEl.className = 'student-fac';
-                        facEl.textContent = facultyNumber || '';
-                        textWrap.appendChild(nameEl);
-                        textWrap.appendChild(facEl);
-                        const badge = document.createElement('span');
-                        badge.className = 'already-in-badge';
-                        badge.textContent = 'Already in';
-                        li.appendChild(textWrap);
-                        li.appendChild(badge);
-                        ul.appendChild(li);
-                        return;
-                    }
+    // Helper: Get normalized class name text from a class button
+    // Purpose: Centralizes extraction from dataset/text and removes the "✓ Ready" suffix.
+    function getRawClassNameFromButton(button) {
+        if (!button) return '';
+        return (button.dataset.className || button.dataset.originalLabel || button.textContent || '')
+            .replace(/✓\s*Ready/g, '')
+            .trim();
+    }
 
-                    const checkbox = document.createElement('input');
-                    checkbox.type='checkbox';
-                    checkbox.id = `addStudent_${idx}`;
-                    const label = document.createElement('label');
-                    label.htmlFor = checkbox.id;
-                    const wrap = document.createElement('div');
-                    wrap.className = 'student-card-text';
-                    const nameEl = document.createElement('span');
-                    nameEl.className = 'student-name';
-                    nameEl.textContent = parts.fullName;
-                    const facEl = document.createElement('span');
-                    facEl.className = 'student-fac';
-                    facEl.textContent = facultyNumber || '';
-                    wrap.appendChild(nameEl);
-                    wrap.appendChild(facEl);
-                    label.appendChild(wrap);
-
-                    checkbox.addEventListener('change', () => {
-                        if (checkbox.checked) { addStudentsSelections.add(studentId); li.classList.add('selected'); }
-                        else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
-                        updateAddStudentsCounter();
-                    });
-
-                    li.addEventListener('click', (e)=>{
-                        if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
-                        checkbox.checked = !checkbox.checked;
-                        checkbox.dispatchEvent(new Event('change'));
-                    });
-                    li.appendChild(checkbox); li.appendChild(label);
-                    ul.appendChild(li);
-                });
-                addStudentsListEl.innerHTML='';
-                addStudentsListEl.appendChild(ul);
-                window.isAddStudentsListLoading = false;
-            }
+    function updateClassStatusUI(btn) {
+        const button = btn || currentClassButton;
+        if (!button) return;
+        const className = getRawClassNameFromButton(button);
+        const isReady = readyClasses.has(className);
+        if (isReady) {
+            button.classList.add('class-ready');
+        } else {
+            button.classList.remove('class-ready');
         }
+    }
+
+    function flashReadyBadge(button) {
+        if (!button) return;
+        const badge = document.createElement('div');
+        badge.className = 'ready-badge';
+        badge.textContent = '✓ Ready';
+        button.appendChild(badge);
+        setTimeout(() => {
+            badge.remove();
+        }, 2000);
+    }
+
+
+
+
 
 
 
@@ -233,7 +130,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     
     // ---- Scanner Overlay (Start Scanning) ----
-    
+    let scannerOverlay = document.getElementById('scannerOverlay');
+    let currentScanMode = 'joining';
+    let html5QrCode = null; // Html5Qrcode instance
+    // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
+    const attendanceState = new Map();
+    // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
+    let attendanceDotIndex = new Map();
+    let attendanceOverlay = document.getElementById('attendanceOverlay');
 
     function stopAllCameraTracks() {
         try {
@@ -920,7 +824,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Ready class popup dynamic creation (unchanged semantics)
     
-    
+    const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
     function openReadyClassPopup(nameOptional) {
         if (nameOptional) {
             currentClassName = nameOptional;
@@ -1167,6 +1071,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ---- CLASS CREATION WIZARD ----
+    let createClassSlideIndex = 0;
+    let createClassOverlay = document.getElementById('createClassOverlay');
+    let createClassSlideTrack = document.getElementById('createClassSlidesTrack'); // slides container
+    let createClassNameInput = document.getElementById('createClassNameInput');
+    let createClassErrorName = document.getElementById('createClassErrorName');
+    let createClassBackBtn = document.getElementById('createClassBackBtn');
+    let createClassNextBtn = document.getElementById('createClassNextBtn');
+    let createClassFinishBtn = document.getElementById('createClassFinishBtn');
+    let createClassStudentContainer = document.getElementById('createClassStudentsBody'); // where students list renders
+    let createClassCloseBtn = document.getElementById('createClassCloseBtn');
+    let createClassSearchInput = document.getElementById('createClassSearchInput');
+    const WIZARD_TOTAL_SLIDES = 2;
 
     function openClassCreationWizard() {
         createClassCloseBtn.addEventListener('click', closeWizard);
@@ -1406,12 +1322,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!buttonEl.dataset.className) buttonEl.dataset.className = raw;
         if (!buttonEl.dataset.originalLabel) buttonEl.dataset.originalLabel = raw;
         const className = raw;
-
-        if (readyClasses.has(className)) {
-             openReadyClassPopup(); 
-        } else { 
-            openAddStudentsPopup(); 
-        }
+        if (readyClasses.has(className)) { openReadyClassPopup(); }
+        else { openAddStudentsPopup(); }
     }
 
 
@@ -1422,11 +1334,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Manage Students overlay (replaces ready-class overlay) ---
-    
+    let manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
+    let manageStudentsListEl = document.getElementById('manageStudentsList');
+    let studentIndex = new Map(); // id -> full student object
+    let studentInfoOverlay = null; // single-student details overlay
+    let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
+
 
     function renderManageStudentsForClass(className) {
 
-        //console.log('[renderManageStudentsForClass] Rendering students for class:', className);
+        console.log('[renderManageStudentsForClass] Rendering students for class:', className);
 
         if (!manageStudentsListEl) return;
         manageStudentsListEl.innerHTML = '';
@@ -1442,7 +1359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             students.forEach(student => {
 
-                //console.log('[renderManageStudentsForClass] Rendering student from storage:', student);
+                console.log('[renderManageStudentsForClass] Rendering student from storage:', student);
 
                 const li = document.createElement('li');
                 li.className = 'list-item';
@@ -1469,14 +1386,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ul.appendChild(li);
             });
 
-            //console.log('[renderManageStudentsForClass] Rendered', students.length, 'students from storage for class:', className);
+            console.log('[renderManageStudentsForClass] Rendered', students.length, 'students from storage for class:', className);
 
             manageStudentsListEl.appendChild(ul);
             return;
         }
 
-        //console.log('[renderManageStudentsForClass] No students found in storage for class:', className);
-        //console.log('[renderManageStudentsForClass] Falling back to in-memory assignments for class:', className);
+        console.log('[renderManageStudentsForClass] No students found in storage for class:', className);
+        console.log('[renderManageStudentsForClass] Falling back to in-memory assignments for class:', className);
 
         // Fallback to in-memory id set + cache index
         const set = classStudentAssignments.get(className);
@@ -1696,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ---- Attendance History Overlay ----
-    
+    let attendanceHistoryOverlay = document.getElementById('attendanceHistoryOverlay');
     function renderAttendanceHistoryList(className, studentId) {
 
         console.log("[renderAttendanceHistoryList] Rendering attendance history for student ID:", studentId, "in class:", className);
@@ -1929,19 +1846,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Add Students to Existing Class Overlay ---
-    
-
-    function manageStudentAddCloseBtnBehavior(e) {
-        e.preventDefault();
-        closeAddStudentsToClass();
-        openManageStudentsOverlay(currentClassName);
-    }
+    let addStudentsClassOverlay = document.getElementById('searchStudentsOverlay');
+    let addStudentsListEl = document.getElementById('addStudentsList');
+    let addStudentsSelections = new Set();
     
     async function openAddStudentsToClass(className) {
 
         closeManageStudentsOverlay();
 
-        //console.log("[Manage Students Add Overlay] Opening for class:", className);
+        console.log("[Manage Students Add Overlay] Opening for class:", className);
 
         if (!className) return;
 
@@ -1949,10 +1862,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const searchInput = addStudentsClassOverlay.querySelector('#overlaySearchInput');
         const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
 
-        closeBtn?.removeEventListener('click', notReadyClassCloseBtnBehavior);
-        closeBtn?.addEventListener('click', manageStudentAddCloseBtnBehavior);
-
-        console.log("Close Button behavior was changed for manage students add overlay.");
+        closeBtn?.addEventListener('click', () => { 
+            closeAddStudentsToClass(); 
+            openManageStudentsOverlay(className); 
+        });
 
         if (confirmBtn) {
             confirmBtn.textContent = 'Add (0)';
@@ -1967,22 +1880,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-        //console.log("[Manage Students Add Overlay] Ensured overlay exists");
+        console.log("[Manage Students Add Overlay] Ensured overlay exists");
         addStudentsSelections.clear();
 
         if (confirmBtn) confirmBtn.textContent = 'Add (0)';
         // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
-        await renderAddStudentsList(className);
+        renderAddStudentsList(className);
         updateAddStudentsCounter();
         addStudentsClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
         searchInput?.focus();
     }
-
-
-    
-
-
     function closeAddStudentsToClass() {
         if (addStudentsClassOverlay) addStudentsClassOverlay.style.visibility = 'hidden';
         // Keep body overflow hidden if manage overlay still open
@@ -1998,40 +1906,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        //console.log("[Render Add Students] for class:", className);
+        console.log("[Render Add Students] for class:", className);
         
         if (!addStudentsListEl) return;
-
-         // Always clear the list
-        addStudentsListEl.innerHTML = '';
-        console.log("Cleared existing list.");
-        
         // Build existing set from assignments map and as a fallback from per-class stored students
         const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
 
-        console.log("Existing assigned IDs:", Array.from(existingSet));
+        console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
 
         let classStudents, allStudents;
         
-        console.log("1");
-
         try {
-            //console.log("[Render Add Students] Loading stored students for class:", className, "...");
+            console.log("[Render Add Students] Loading stored students for class:", className, "...");
             // preload students from database
-            console.log("2")
             classStudents = await loadClassStudents(className, classId);
-            console.log("3")
             allStudents = await loadStudentsFromDatabase();
-            console.log("4")
             
-            console.log("Loaded stored students:", classStudents);
-            console.log("Loaded all students from database:", allStudents);
+            console.log("[Render Add Students] Loaded stored students:", classStudents);
+            console.log("[Render Add Students] Loaded all students from database:", allStudents);
 
             classStudents.forEach(student => {
+                console.log(student);
                 const id = student.faculty_number.trim();
-                console.log("Checking stored student ID:", id);
                 if (id) {
-                    console.log("Adding existing student ID to set:", id);
                     existingSet.add(id);
                 }
             });
@@ -2040,6 +1937,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if(!classStudents){
+            console.log("[Render Add Students] No stored students loaded, using empty array.");
             console.error("[Render Add Students] No stored students found for class:", className);
             return;
         }
@@ -2054,7 +1952,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ul.style.margin='0'; 
         ul.style.padding='0';
 
-        //console.log("[Render Add Students] Rendering list of students...");
+        console.log("[Render Add Students] Rendering list of students...");
 
         allStudents.forEach((student, idx) => {
             const li = document.createElement('li');
@@ -2065,30 +1963,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (existingSet.has(studentId)) {
 
-                //console.log("APPLYING ALREADY IN FOR STUDENT on line 1966:", studentId, parts.fullName, facultyNumber);
+                console.log("APPLYING ALREADY IN FOR STUDENT on line 1966:", studentId, parts.fullName, facultyNumber);
 
                 // Render without checkbox, with two-line text and 'Already in' badge
                 li.classList.add('already-in');
-
                 const textWrap = document.createElement('div');
                 textWrap.className = 'student-card-text';
-
                 const nameEl = document.createElement('span');
                 nameEl.className = 'student-name';
                 nameEl.textContent = parts.fullName;
-
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
                 facEl.textContent = facultyNumber || '';
-
                 textWrap.appendChild(nameEl);
                 textWrap.appendChild(facEl);
-
                 const badge = document.createElement('span');
                 badge.className = 'already-in-badge';
                 badge.textContent = 'Already in';
-                
-
                 li.appendChild(textWrap);
                 li.appendChild(badge);
                 ul.appendChild(li);
@@ -2118,7 +2009,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
                 updateAddStudentsCounter();
             });
-
+            
             li.addEventListener('click', (e)=>{
                 if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
                 checkbox.checked = !checkbox.checked;
@@ -2259,7 +2150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    
+    let searchStudentsOverlay = document.getElementById('searchStudentsOverlay');
 
     // Create/upgrade overlay lazily if missing or incomplete
     
@@ -2267,21 +2158,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!searchStudentsOverlay) return;
         searchStudentsOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
+        
     };
 
     // splitStudentNames now provided by Students module
 
-    const closeStudentsOverlay = () => {
+    const closeNotReadyClassOverlay = () => {
         if (!searchStudentsOverlay) return;
         searchStudentsOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
+
+    // Bind Close button functionality for the students overlay
+    const closeOverlayBtn = document.getElementById('closeOverlayBtn');
+    if (closeOverlayBtn) {
+        closeOverlayBtn.addEventListener('click', () => {
+            closeNotReadyClassOverlay();
+        });
+        // Allow Escape key already handled globally; space/enter auto-trigger button
+    }
+
+
 
 
 
 
 
     // Persistent selection state across filtering
+    const studentSelection = new Set();
+    // Cache of all rendered student items for filtering without DOM rebuild
+    let allStudentItems = [];
 
     function handleStudentSelect(id, li, checkbox) {
         if (!id) return;
@@ -2344,7 +2250,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Expose for potential external use
-    
+    window.handleStudentSelect = handleStudentSelect;
+    window.filterStudents = filterStudents;
+    window.updateUISelections = updateUISelections;
 
     const renderStudents = (students) => {
         const main_section_body = document.getElementById('overlayMainSectionBody');
@@ -2440,7 +2348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("Selected Students Array:", selectedStudentsArray);
 
-        return Array.from(studentSelection).map(id => {
+        return Array.fro,(studentSelection).map(id => {
             const item = allStudentItems.find(i => i.id === id);
             return {
                 id,
@@ -2452,23 +2360,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    function notReadyClassCloseBtnBehavior(e) {
-        e.preventDefault();
-        closeStudentsOverlay();
-    }
 
 
 
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
 
-        //console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
-
-        const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
-        closeBtn.removeEventListener('click', manageStudentAddCloseBtnBehavior);
-        closeBtn.addEventListener('click', notReadyClassCloseBtnBehavior);
-
-        console.log("Close button behaviour was changed for the NOT ready class overlay.");
+        console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
 
         openStudentsOverlay();
 
@@ -2481,9 +2379,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const students = await (window.Students?.fetchAll?.() || Promise.resolve([]));
             renderStudents(students);
 
-            //console.log("[addStudentFromDatabase] Students rendered:", students);
+            console.log("[addStudentFromDatabase] Students rendered:", students);
 
             const searchInput = searchStudentsOverlay.querySelector('#overlaySearchInput');
+
+
 
             if (searchInput) {
                 searchInput.setAttribute('aria-label', 'Search students by name or faculty number');
@@ -2516,7 +2416,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    
+    const attachNewClassButtonBehavior = (buttonEl) => {
+        if (!buttonEl) return;
+        const animate = () => {
+            buttonEl.classList.add('clicked');
+            setTimeout(() => buttonEl.classList.remove('clicked'), 340);
+        };
+        buttonEl.addEventListener('mousedown', animate);
+        buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
+        buttonEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleClassButtonClick(buttonEl);
+        });
+    };
 
 
 
@@ -2605,7 +2517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadStudentsFromDatabase() {
         
-        //console.log("[loadStudentsFromDatabase] Fetching all students from server...");
+        console.log("[loadStudentsFromDatabase] Fetching all students from server...");
         let result = await fetch(`${serverBaseUrl + ENDPOINTS.students}`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -2614,7 +2526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(result.ok){
             const data = await result.json();
             const students = data.students;
-            //console.log("[loadStudentsFromDatabase] Students fetched from server:", students);
+            console.log("[loadStudentsFromDatabase] Students fetched from server:", students);
             return students;
         }
 
@@ -2731,7 +2643,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Attach behavior to any pre-existing .newClassBtn (if present in HTML)
-    
+    classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
     //console.log("Loading classes...");
     loadClasses();
@@ -2775,16 +2687,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { console.warn('pageshow handler error', e); }
     });
 
-
-    // Ensure addBtn is defined before use
-    const addBtn = document.getElementById('addStudentManageBtn');
     addBtn?.addEventListener('click', () => {
         // Open the class creation wizard (replaces legacy modal)
         openClassCreationWizard();
     });
 
     // Wire Add Students overlay button to add selected students and mark ready
-    
+    const addStudentsOverlayBtn = document.getElementById('addStudentsOverlayBtn');
     if (addStudentsOverlayBtn && !addStudentsOverlayBtn.dataset.bound) {
         addStudentsOverlayBtn.addEventListener('click', async () => {
 
@@ -2905,7 +2814,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })();
 
     // Apply ready styling to rendered classes
-    
+    classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
 
 
 
