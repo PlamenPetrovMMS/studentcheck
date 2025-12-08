@@ -1,9 +1,19 @@
+document.DOMContentLoaded = function() {
+
+    console.log("Teacher homepage script loaded.");
+
+    // New Class button event listener
+    const newClassBtn = document.getElementById("newClassBtn");
+    newClassBtn.addEventListener("click", function() {
+        openNewClassOverlay();
+    });
+
+};
 
 
 
-// New Class button
-const addNewClassBtn = document.getElementById('newClassBtn');
-addNewClassBtn.addEventListener('click', () => {
-    const overlay = document.getElementById('createClassOverlay');
-    overlay.style.display = 'flex';
-});
+
+function openNewClassOverlay() {
+    const overlay = document.getElementById("createClassOverlay");
+    overlay.style.display = "block";
+}
