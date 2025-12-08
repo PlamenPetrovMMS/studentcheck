@@ -2009,6 +2009,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
                 updateAddStudentsCounter();
             });
+            
             li.addEventListener('click', (e)=>{
                 if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
                 checkbox.checked = !checkbox.checked;
