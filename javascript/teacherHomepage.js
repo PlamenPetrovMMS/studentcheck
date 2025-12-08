@@ -1928,9 +1928,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
 
         closeBtn?.removeEventListener('click', notReadyClassCloseBtnBehavior);
-        console.log("[Manage Students Add Overlay] Removed previous close button behavior");
         closeBtn?.addEventListener('click', manageStudentAddCloseBtnBehavior);
-        console.log("[Manage Students Add Overlay] Added new close button behavior");
+
+        console.log("Close Button behavior was changed for manage students add overlay.");
 
         if (confirmBtn) {
             confirmBtn.textContent = 'Add (0)';
@@ -1982,12 +1982,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
          // Always clear the list
         addStudentsListEl.innerHTML = '';
-        console.log("[Render Add Students] Cleared existing list.");
+        console.log("Cleared existing list.");
         
         // Build existing set from assignments map and as a fallback from per-class stored students
         const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
 
-        //console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
+        console.log("Existing assigned IDs:", Array.from(existingSet));
 
         let classStudents, allStudents;
         
@@ -1997,8 +1997,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             classStudents = await loadClassStudents(className, classId);
             allStudents = await loadStudentsFromDatabase();
             
-            console.log("[Render Add Students] Loaded stored students:", classStudents);
-            console.log("[Render Add Students] Loaded all students from database:", allStudents);
+            console.log("Loaded stored students:", classStudents);
+            console.log("Loaded all students from database:", allStudents);
 
             classStudents.forEach(student => {
                 console.log(student);
@@ -2438,8 +2438,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
         closeBtn.removeEventListener('click', manageStudentAddCloseBtnBehavior);
-        console.log("[addStudentFromDatabase] Removed previous Close button functionality");
         closeBtn.addEventListener('click', notReadyClassCloseBtnBehavior);
+
+        console.log("Close button behaviour was changed for the NOT ready class overlay.");
 
         openStudentsOverlay();
 
