@@ -1,4 +1,4 @@
-
+console.log("teacherHomepage.js loaded");
 
 
 
