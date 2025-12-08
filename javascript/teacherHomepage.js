@@ -11,6 +11,58 @@ const serverBaseUrl = 'https://studentcheck-server.onrender.com'; // Set to your
 // Add click logging and behavior for dynamically created "New Class" buttons
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // OVERLAYS
+    const searchStudentsOverlay = document.getElementById('searchStudentsOverlay');
+    const scannerOverlay = document.getElementById('scannerOverlay');
+    const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
+    const attendanceOverlay = document.getElementById('attendanceOverlay');
+    const attendanceHistoryOverlay = document.getElementById('attendanceHistoryOverlay');
+    const manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
+    const createClassOverlay = document.getElementById('createClassOverlay');
+    const addStudentsClassOverlay = document.getElementById('searchStudentsOverlay');
+
+
+
+    let addStudentsListEl = document.getElementById('addStudentsList');
+    let addStudentsSelections = new Set();
+
+
+
+    let createClassSlideIndex = 0;
+    const createClassSlideTrack = document.getElementById('createClassSlidesTrack'); // slides container
+    const createClassNameInput = document.getElementById('createClassNameInput');
+    const createClassErrorName = document.getElementById('createClassErrorName');
+    const createClassBackBtn = document.getElementById('createClassBackBtn');
+    const createClassNextBtn = document.getElementById('createClassNextBtn');
+    const createClassFinishBtn = document.getElementById('createClassFinishBtn');
+    const createClassStudentContainer = document.getElementById('createClassStudentsBody'); // where students list renders
+    const createClassCloseBtn = document.getElementById('createClassCloseBtn');
+    const createClassSearchInput = document.getElementById('createClassSearchInput');
+    const WIZARD_TOTAL_SLIDES = 2;
+
+
+
+    let manageStudentsListEl = document.getElementById('manageStudentsList');
+    let studentIndex = new Map(); // id -> full student object
+    let studentInfoOverlay = null; // single-student details overlay
+    let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
+
+
+
+    let currentScanMode = 'joining';
+    let html5QrCode = null; // Html5Qrcode instance
+    // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
+    const attendanceState = new Map();
+    // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
+    let attendanceDotIndex = new Map();
+    
+
+
+
+
+
+
+
     const classList = document.getElementById('classList');
     const addBtn = document.getElementById('addClassBtn');
 
@@ -130,14 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     
     // ---- Scanner Overlay (Start Scanning) ----
-    let scannerOverlay = document.getElementById('scannerOverlay');
-    let currentScanMode = 'joining';
-    let html5QrCode = null; // Html5Qrcode instance
-    // Attendance state per class: Map<className, Map<studentId, 'none'|'joined'|'completed'>>
-    const attendanceState = new Map();
-    // Quick index for UI dots in attendance overlay: Map<studentId, HTMLElement>
-    let attendanceDotIndex = new Map();
-    let attendanceOverlay = document.getElementById('attendanceOverlay');
+    
 
     function stopAllCameraTracks() {
         try {
@@ -824,7 +869,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Ready class popup dynamic creation (unchanged semantics)
     
-    const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
+    
     function openReadyClassPopup(nameOptional) {
         if (nameOptional) {
             currentClassName = nameOptional;
@@ -1071,18 +1116,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ---- CLASS CREATION WIZARD ----
-    let createClassSlideIndex = 0;
-    let createClassOverlay = document.getElementById('createClassOverlay');
-    let createClassSlideTrack = document.getElementById('createClassSlidesTrack'); // slides container
-    let createClassNameInput = document.getElementById('createClassNameInput');
-    let createClassErrorName = document.getElementById('createClassErrorName');
-    let createClassBackBtn = document.getElementById('createClassBackBtn');
-    let createClassNextBtn = document.getElementById('createClassNextBtn');
-    let createClassFinishBtn = document.getElementById('createClassFinishBtn');
-    let createClassStudentContainer = document.getElementById('createClassStudentsBody'); // where students list renders
-    let createClassCloseBtn = document.getElementById('createClassCloseBtn');
-    let createClassSearchInput = document.getElementById('createClassSearchInput');
-    const WIZARD_TOTAL_SLIDES = 2;
 
     function openClassCreationWizard() {
         createClassCloseBtn.addEventListener('click', closeWizard);
@@ -1334,12 +1367,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Manage Students overlay (replaces ready-class overlay) ---
-    let manageStudentsOverlay = document.getElementById('manageStudentsOverlay');
-    let manageStudentsListEl = document.getElementById('manageStudentsList');
-    let studentIndex = new Map(); // id -> full student object
-    let studentInfoOverlay = null; // single-student details overlay
-    let manageStudentsScrollPos = 0; // preserve scroll when drilling into a student
-
+    
 
     function renderManageStudentsForClass(className) {
 
@@ -1613,7 +1641,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ---- Attendance History Overlay ----
-    let attendanceHistoryOverlay = document.getElementById('attendanceHistoryOverlay');
+    
     function renderAttendanceHistoryList(className, studentId) {
 
         console.log("[renderAttendanceHistoryList] Rendering attendance history for student ID:", studentId, "in class:", className);
@@ -1846,9 +1874,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Add Students to Existing Class Overlay ---
-    let addStudentsClassOverlay = document.getElementById('searchStudentsOverlay');
-    let addStudentsListEl = document.getElementById('addStudentsList');
-    let addStudentsSelections = new Set();
+    
     
     async function openAddStudentsToClass(className) {
 
@@ -2157,7 +2183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Students overlay (blurred background) and fetch/display logic ---
-    let searchStudentsOverlay = document.getElementById('searchStudentsOverlay');
+    
 
     // Create/upgrade overlay lazily if missing or incomplete
     
