@@ -1979,6 +1979,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         //console.log("[Render Add Students] for class:", className);
         
         if (!addStudentsListEl) return;
+
+         // Always clear the list
+        addStudentsListEl.innerHTML = '';
+        
         // Build existing set from assignments map and as a fallback from per-class stored students
         const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
 
