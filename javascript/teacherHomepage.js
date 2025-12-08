@@ -1913,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         closeManageStudentsOverlay();
 
-        console.log("[Manage Students Add Overlay] Opening for class:", className);
+        //console.log("[Manage Students Add Overlay] Opening for class:", className);
 
         if (!className) return;
 
@@ -1922,6 +1922,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
 
         closeBtn?.addEventListener('click', () => { 
+            console.log("[Manage Students Add Overlay] Adding Close button clicked functions");
             closeAddStudentsToClass(); 
             openManageStudentsOverlay(className); 
         });
@@ -1939,7 +1940,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-        console.log("[Manage Students Add Overlay] Ensured overlay exists");
+        //console.log("[Manage Students Add Overlay] Ensured overlay exists");
         addStudentsSelections.clear();
 
         if (confirmBtn) confirmBtn.textContent = 'Add (0)';
@@ -2557,7 +2558,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadStudentsFromDatabase() {
         
-        console.log("[loadStudentsFromDatabase] Fetching all students from server...");
+        //console.log("[loadStudentsFromDatabase] Fetching all students from server...");
         let result = await fetch(`${serverBaseUrl + ENDPOINTS.students}`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -2566,7 +2567,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(result.ok){
             const data = await result.json();
             const students = data.students;
-            console.log("[loadStudentsFromDatabase] Students fetched from server:", students);
+            //console.log("[loadStudentsFromDatabase] Students fetched from server:", students);
             return students;
         }
 
