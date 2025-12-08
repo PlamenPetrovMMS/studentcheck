@@ -73,136 +73,138 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!buttonEl) return;
             const animate = () => {
                 buttonEl.classList.add('clicked');
-                setTimeout(() => buttonEl.classList.remove('clicked'), 340);
-            };
-            buttonEl.addEventListener('mousedown', animate);
-            buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
-            buttonEl.addEventListener('click', (e) => {
-                e.preventDefault();
-                handleClassButtonClick(buttonEl);
-            });
-    };
-    classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
 
-    const addBtn = document.getElementById('addClassBtn');
+                // Guard against repeated/concurrent calls
+                if (window.isAddStudentsListLoading) return;
+                window.isAddStudentsListLoading = true;
 
-    // Determine current teacher email with robust fallbacks (mobile reload safe)
-    let teacherEmail = localStorage.getItem('teacherEmail') || null;
-    if(!teacherEmail) console.error('No teacher email found in localStorage for session.');
+                let classId = getClassIdByName(className);
+                if (!classId) {
+                    console.error("[Render Add Students] No class ID found for class:", className);
+                    window.isAddStudentsListLoading = false;
+                    return;
+                }
 
-    const normalizeEmail = (e) => (e || '').trim().toLowerCase();
+                if (!addStudentsListEl) {
+                    window.isAddStudentsListLoading = false;
+                    return;
+                }
 
-    const ENDPOINTS = {
-        createClass: `/classes`,
-        attendance: `/attendance`,
-        class_students: '/class_students',
-        students: '/students',
-        updateCompletedClassesCount: '/update_completed_classes_count',
-        saveStudentTimestamps: '/save_student_timestamps',
-    };
+                addStudentsListEl.innerHTML = '';
+                console.log("Cleared existing list.");
 
+                const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
+                console.log("Existing assigned IDs:", Array.from(existingSet));
 
+                let classStudents = null, allStudents = null;
+                console.log("1");
+                try {
+                    console.log("2")
+                    classStudents = await loadClassStudents(className, classId);
+                    console.log("3")
+                    allStudents = await loadStudentsFromDatabase();
+                    console.log("4")
+                    console.log("Loaded stored students:", classStudents);
+                    console.log("Loaded all students from database:", allStudents);
+                    if (Array.isArray(classStudents)) {
+                        classStudents.forEach(student => {
+                            const id = student.faculty_number?.trim();
+                            console.log("Checking stored student ID:", id);
+                            if (id) {
+                                console.log("Adding existing student ID to set:", id);
+                                existingSet.add(id);
+                            }
+                        });
+                    }
+                } catch(_) {
+                    console.error("[Render Add Students] Failed to load stored students for class:", className);
+                    addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;color:#b91c1c;">Error loading students. Please try again later.</p>';
+                    window.isAddStudentsListLoading = false;
+                    return;
+                }
 
-    window.handleStudentSelect = handleStudentSelect;
-    window.filterStudents = filterStudents;
-    window.updateUISelections = updateUISelections; 
+                if (!classStudents || !Array.isArray(classStudents)) {
+                    console.error("[Render Add Students] No stored students found for class:", className);
+                    addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;color:#b91c1c;">No students found for this class.</p>';
+                    window.isAddStudentsListLoading = false;
+                    return;
+                }
 
+                if (classStudents.length === 0) {
+                    addStudentsListEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
+                    window.isAddStudentsListLoading = false;
+                    return;
+                }
 
+                const ul = document.createElement('ul');
+                ul.style.listStyle='none'; 
+                ul.style.margin='0'; 
+                ul.style.padding='0';
 
+                allStudents.forEach((student, idx) => {
+                    const li = document.createElement('li');
+                    li.className='list-item';
+                    const parts = (window.Students?.splitNames || (()=>({ fullName: '' })))(student);
+                    const facultyNumber = student.faculty_number;
+                    const studentId = (window.Students?.idForStudent ? window.Students.idForStudent(student, 'add', idx) : (facultyNumber || parts.fullName || `add_${idx}`));
 
-    async function apiCreateClass(name, studentIds, teacherEmail) {
-        console.log('[API] Creating class:', name, 'with students:', studentIds);
-        const res = await fetch(serverBaseUrl + ENDPOINTS.createClass, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, students: studentIds, teacherEmail }) });
-        if (!res.ok) throw new Error('Class create failed');
-        return res.json();
-    }
-    
-    async function apiMarkAttendance(classId, studentId) {
-        const res = await fetch(serverBaseUrl + ENDPOINTS.attendance, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_id: classId, student_id: studentId }) });
-        if (!res.ok) throw new Error('Attendance mark failed');
-        return res.json();
-    }
+                    if (existingSet.has(studentId)) {
+                        li.classList.add('already-in');
+                        const textWrap = document.createElement('div');
+                        textWrap.className = 'student-card-text';
+                        const nameEl = document.createElement('span');
+                        nameEl.className = 'student-name';
+                        nameEl.textContent = parts.fullName;
+                        const facEl = document.createElement('span');
+                        facEl.className = 'student-fac';
+                        facEl.textContent = facultyNumber || '';
+                        textWrap.appendChild(nameEl);
+                        textWrap.appendChild(facEl);
+                        const badge = document.createElement('span');
+                        badge.className = 'already-in-badge';
+                        badge.textContent = 'Already in';
+                        li.appendChild(textWrap);
+                        li.appendChild(badge);
+                        ul.appendChild(li);
+                        return;
+                    }
 
-    async function apiFetchClassAttendance(classId) {
-        const res = await fetch(serverBaseUrl + ENDPOINTS.classAttendanceSummary(classId), { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error('Attendance summary fetch failed');
-        return res.json();
-    }
+                    const checkbox = document.createElement('input');
+                    checkbox.type='checkbox';
+                    checkbox.id = `addStudent_${idx}`;
+                    const label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    const wrap = document.createElement('div');
+                    wrap.className = 'student-card-text';
+                    const nameEl = document.createElement('span');
+                    nameEl.className = 'student-name';
+                    nameEl.textContent = parts.fullName;
+                    const facEl = document.createElement('span');
+                    facEl.className = 'student-fac';
+                    facEl.textContent = facultyNumber || '';
+                    wrap.appendChild(nameEl);
+                    wrap.appendChild(facEl);
+                    label.appendChild(wrap);
 
-    const classIdByName = new Map();
-    const attendanceCountCache = new Map();
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) { addStudentsSelections.add(studentId); li.classList.add('selected'); }
+                        else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
+                        updateAddStudentsCounter();
+                    });
 
-    const storageKey = (email) => {
-        const e = normalizeEmail(email || teacherEmail);
-        return e ? `teacher:classes:${e}` : null;
-    };
-
-
-
-
-
-
-
-
-
-
-
-    // --- Per-class readiness state ---
-    const readyClasses = new Set(); // class name strings
-    const classStudentAssignments = new Map(); // className -> Set(studentIds)
-    let currentClassButton = null;
-    let currentClassName = '';
-    let currentClassId = '';
-    let wizardSelections = new Set();
-    let wizardClassName = '';
-    let wizardStudentIndex = new Map(); // id -> { fullName, facultyNumber }
-
-    // =============================================================
-
-    let studentTimestamps = new Map(); // faculty_number -> { joined_at, left_at }
-
-    // let timestamps = {
-    //     joined_at: null,
-    //     left_at: null,
-    // }
-
-    // =============================================================
-
-    // Helper: Get normalized class name text from a class button
-    // Purpose: Centralizes extraction from dataset/text and removes the "✓ Ready" suffix.
-    function getRawClassNameFromButton(button) {
-        if (!button) return '';
-        return (button.dataset.className || button.dataset.originalLabel || button.textContent || '')
-            .replace(/✓\s*Ready/g, '')
-            .trim();
-    }
-
-    function updateClassStatusUI(btn) {
-        const button = btn || currentClassButton;
-        if (!button) return;
-        const className = getRawClassNameFromButton(button);
-        const isReady = readyClasses.has(className);
-        if (isReady) {
-            button.classList.add('class-ready');
-        } else {
-            button.classList.remove('class-ready');
+                    li.addEventListener('click', (e)=>{
+                        if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    });
+                    li.appendChild(checkbox); li.appendChild(label);
+                    ul.appendChild(li);
+                });
+                addStudentsListEl.innerHTML='';
+                addStudentsListEl.appendChild(ul);
+                window.isAddStudentsListLoading = false;
+            }
         }
-    }
-
-    function flashReadyBadge(button) {
-        if (!button) return;
-        const badge = document.createElement('div');
-        badge.className = 'ready-badge';
-        badge.textContent = '✓ Ready';
-        button.appendChild(badge);
-        setTimeout(() => {
-            badge.remove();
-        }, 2000);
-    }
-
-
-
-
 
 
 
