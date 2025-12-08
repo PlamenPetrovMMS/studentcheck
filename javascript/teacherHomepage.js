@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
     const attachNewClassButtonBehavior = (buttonEl) => {
             if (!buttonEl) return;
-            const animate = () => {
+            const animate = async () => {
                 buttonEl.classList.add('clicked');
 
                 // Guard against repeated/concurrent calls
