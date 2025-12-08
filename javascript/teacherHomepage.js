@@ -1,5 +1,6 @@
 console.log("teacherHomepage.js loaded");
 
+loadNewClassButton();
 
 
 
@@ -7,10 +8,21 @@ console.log("teacherHomepage.js loaded");
 
 // New Class button event listener
 
-const newClassBtn = document.getElementById("newClassBtn");
-newClassBtn.addEventListener("click", function() {
-    openNewClassOverlay();
-});
+function loadNewClassButton() {
+    const newClassBtn = document.getElementById("newClassBtn");
+
+    if(!newClassBtn){
+
+        console.error("newClassBtn button not found!");
+
+    }else{
+
+        newClassBtn.addEventListener("click", function() {
+            openNewClassOverlay();
+        });
+
+    }
+}
 
 function openNewClassOverlay() {
     const overlay = document.getElementById("createClassOverlay");
