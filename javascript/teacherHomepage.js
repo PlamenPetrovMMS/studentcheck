@@ -1908,6 +1908,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Add Students to Existing Class Overlay ---
     
+
+    function manageStudentAddCloseBtnBehavior(e) {
+        e.preventDefault();
+        closeAddStudentsToClass();
+        openManageStudentsOverlay(currentClassName);
+    }
     
     async function openAddStudentsToClass(className) {
 
@@ -1921,11 +1927,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const searchInput = addStudentsClassOverlay.querySelector('#overlaySearchInput');
         const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
 
-        closeBtn?.addEventListener('click', () => { 
-            console.log("[Manage Students Add Overlay] Adding Close button clicked functions");
-            closeAddStudentsToClass(); 
-            openManageStudentsOverlay(className); 
-        });
+        closeBtn?.removeEventListener('click', (e) => notReadyClassCloseBtnBehavior(e));
+        console.log("[Manage Students Add Overlay] Removed previous close button behavior");
+        closeBtn?.addEventListener('click', (e) => manageStudentAddCloseBtnBehavior(e));
+        console.log("[Manage Students Add Overlay] Added new close button behavior");
 
         if (confirmBtn) {
             confirmBtn.textContent = 'Add (0)';
@@ -1951,6 +1956,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = 'hidden';
         searchInput?.focus();
     }
+
+
+    
+
+
     function closeAddStudentsToClass() {
         if (addStudentsClassOverlay) addStudentsClassOverlay.style.visibility = 'hidden';
         // Keep body overflow hidden if manage overlay still open
@@ -2409,6 +2419,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+    function notReadyClassCloseBtnBehavior(e) {
+        e.preventDefault();
+        closeStudentsOverlay();
+    }
 
 
 
@@ -2418,10 +2432,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         //console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
 
         const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
-        closeBtn.addEventListener('click', () => {
-            console.log("[addStudentFromDatabase] Close button clicked.");
-                closeStudentsOverlay();
-            });
+        closeBtn.removeEventListener('click', (e) => manageStudentAddCloseBtnBehavior(e));
+        console.log("[addStudentFromDatabase] Removed previous Close button functionality");
+        closeBtn.addEventListener('click', (e) => notReadyClassCloseBtnBehavior(e));
 
         openStudentsOverlay();
 
