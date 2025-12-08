@@ -2170,17 +2170,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // splitStudentNames now provided by Students module
 
-    const closeNotReadyClassOverlay = () => {
+    const closeStudentsOverlay = () => {
         if (!searchStudentsOverlay) return;
         searchStudentsOverlay.style.visibility = 'hidden';
         document.body.style.overflow = '';
     };
 
     // Bind Close button functionality for the students overlay
-    const closeOverlayBtn = document.getElementById('closeOverlayBtn');
+    const closeOverlayBtn = searchStudentsOverlay ? searchStudentsOverlay.querySelector('#closeOverlayBtn') : null;
     if (closeOverlayBtn) {
         closeOverlayBtn.addEventListener('click', () => {
-            closeNotReadyClassOverlay();
+            closeStudentsOverlay();
         });
         // Allow Escape key already handled globally; space/enter auto-trigger button
     }
@@ -2389,7 +2389,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("[addStudentFromDatabase] Students rendered:", students);
 
             const searchInput = searchStudentsOverlay.querySelector('#overlaySearchInput');
+            const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
 
+            closeBtn.addEventListener('click', () => {
+                closeStudentsOverlay();
+            });
 
 
             if (searchInput) {
