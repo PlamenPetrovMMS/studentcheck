@@ -18,6 +18,7 @@ function loadNewClassButton() {
     }else{
 
         newClassBtn.addEventListener("click", function() {
+            console.log("New Class button clicked");
             openNewClassOverlay();
         });
 
@@ -25,6 +26,9 @@ function loadNewClassButton() {
 }
 
 function openNewClassOverlay() {
+    
+    console.log("Opening Create Class Overlay");
+
     const overlay = document.getElementById("createClassOverlay");
     overlay.style.display = "block";
 }
