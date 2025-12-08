@@ -1,4 +1,12 @@
+
 const serverBaseUrl = 'https://studentcheck-server.onrender.com'; // Set to your server base URL if needed
+// Ensure teacherEmail is defined from localStorage
+let teacherEmail = '';
+try {
+    teacherEmail = localStorage.getItem('teacherEmail') || '';
+} catch (e) {
+    console.error('Could not read teacherEmail from localStorage:', e);
+}
 
 
 
@@ -2767,6 +2775,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { console.warn('pageshow handler error', e); }
     });
 
+
+    // Ensure addBtn is defined before use
+    const addBtn = document.getElementById('addStudentManageBtn');
     addBtn?.addEventListener('click', () => {
         // Open the class creation wizard (replaces legacy modal)
         openClassCreationWizard();
