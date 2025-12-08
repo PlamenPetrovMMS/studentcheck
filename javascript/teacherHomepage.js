@@ -1355,8 +1355,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!buttonEl.dataset.className) buttonEl.dataset.className = raw;
         if (!buttonEl.dataset.originalLabel) buttonEl.dataset.originalLabel = raw;
         const className = raw;
-        if (readyClasses.has(className)) { openReadyClassPopup(); }
-        else { openAddStudentsPopup(); }
+
+        if (readyClasses.has(className)) {
+             openReadyClassPopup(); 
+        } else { 
+            openAddStudentsPopup(); 
+        }
     }
 
 
@@ -1371,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderManageStudentsForClass(className) {
 
-        console.log('[renderManageStudentsForClass] Rendering students for class:', className);
+        //console.log('[renderManageStudentsForClass] Rendering students for class:', className);
 
         if (!manageStudentsListEl) return;
         manageStudentsListEl.innerHTML = '';
@@ -1387,7 +1391,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             students.forEach(student => {
 
-                console.log('[renderManageStudentsForClass] Rendering student from storage:', student);
+                //console.log('[renderManageStudentsForClass] Rendering student from storage:', student);
 
                 const li = document.createElement('li');
                 li.className = 'list-item';
@@ -1414,14 +1418,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ul.appendChild(li);
             });
 
-            console.log('[renderManageStudentsForClass] Rendered', students.length, 'students from storage for class:', className);
+            //console.log('[renderManageStudentsForClass] Rendered', students.length, 'students from storage for class:', className);
 
             manageStudentsListEl.appendChild(ul);
             return;
         }
 
-        console.log('[renderManageStudentsForClass] No students found in storage for class:', className);
-        console.log('[renderManageStudentsForClass] Falling back to in-memory assignments for class:', className);
+        //console.log('[renderManageStudentsForClass] No students found in storage for class:', className);
+        //console.log('[renderManageStudentsForClass] Falling back to in-memory assignments for class:', className);
 
         // Fallback to in-memory id set + cache index
         const set = classStudentAssignments.get(className);
@@ -1932,24 +1936,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        console.log("[Render Add Students] for class:", className);
+        //console.log("[Render Add Students] for class:", className);
         
         if (!addStudentsListEl) return;
         // Build existing set from assignments map and as a fallback from per-class stored students
         const existingSet = new Set([...(classStudentAssignments.get(className) || new Set())]);
 
-        console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
+        //console.log("[Render Add Students] Existing assigned IDs:", Array.from(existingSet));
 
         let classStudents, allStudents;
         
         try {
-            console.log("[Render Add Students] Loading stored students for class:", className, "...");
+            //console.log("[Render Add Students] Loading stored students for class:", className, "...");
             // preload students from database
             classStudents = await loadClassStudents(className, classId);
             allStudents = await loadStudentsFromDatabase();
             
-            console.log("[Render Add Students] Loaded stored students:", classStudents);
-            console.log("[Render Add Students] Loaded all students from database:", allStudents);
+            //console.log("[Render Add Students] Loaded stored students:", classStudents);
+            //console.log("[Render Add Students] Loaded all students from database:", allStudents);
 
             classStudents.forEach(student => {
                 console.log(student);
@@ -1963,7 +1967,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if(!classStudents){
-            console.log("[Render Add Students] No stored students loaded, using empty array.");
             console.error("[Render Add Students] No stored students found for class:", className);
             return;
         }
@@ -1978,7 +1981,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ul.style.margin='0'; 
         ul.style.padding='0';
 
-        console.log("[Render Add Students] Rendering list of students...");
+        //console.log("[Render Add Students] Rendering list of students...");
 
         allStudents.forEach((student, idx) => {
             const li = document.createElement('li');
@@ -1989,7 +1992,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (existingSet.has(studentId)) {
 
-                console.log("APPLYING ALREADY IN FOR STUDENT on line 1966:", studentId, parts.fullName, facultyNumber);
+                //console.log("APPLYING ALREADY IN FOR STUDENT on line 1966:", studentId, parts.fullName, facultyNumber);
 
                 // Render without checkbox, with two-line text and 'Already in' badge
                 li.classList.add('already-in');
@@ -2398,10 +2401,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Frontend cannot run SQL; this calls the server to run SELECT * FROM students
     async function addStudentsFromDatabase() {
 
-        console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
+        //console.log("[addStudentFromDatabase] Opening students overlay and fetching students...");
 
         const closeBtn = searchStudentsOverlay.querySelector('#closeOverlayBtn');
         closeBtn.addEventListener('click', () => {
+            console.log("[addStudentFromDatabase] Close button clicked.");
                 closeStudentsOverlay();
             });
 
@@ -2416,7 +2420,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const students = await (window.Students?.fetchAll?.() || Promise.resolve([]));
             renderStudents(students);
 
-            console.log("[addStudentFromDatabase] Students rendered:", students);
+            //console.log("[addStudentFromDatabase] Students rendered:", students);
 
             const searchInput = searchStudentsOverlay.querySelector('#overlaySearchInput');
 
