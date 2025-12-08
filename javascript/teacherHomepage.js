@@ -1967,19 +1967,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Render without checkbox, with two-line text and 'Already in' badge
                 li.classList.add('already-in');
+
                 const textWrap = document.createElement('div');
                 textWrap.className = 'student-card-text';
+
                 const nameEl = document.createElement('span');
                 nameEl.className = 'student-name';
                 nameEl.textContent = parts.fullName;
+
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
                 facEl.textContent = facultyNumber || '';
+
                 textWrap.appendChild(nameEl);
                 textWrap.appendChild(facEl);
+
                 const badge = document.createElement('span');
                 badge.className = 'already-in-badge';
                 badge.textContent = 'Already in';
+                
+
                 li.appendChild(textWrap);
                 li.appendChild(badge);
                 ul.appendChild(li);
@@ -2009,7 +2016,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 else { addStudentsSelections.delete(studentId); li.classList.remove('selected'); }
                 updateAddStudentsCounter();
             });
-            
+
             li.addEventListener('click', (e)=>{
                 if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
                 checkbox.checked = !checkbox.checked;

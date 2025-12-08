@@ -540,7 +540,13 @@ body {
     }
 }
 
-/* Add Students overlay styling */
+
+
+
+
+
+
+/* Search Students overlay styling */
 #searchStudentsOverlay .add-students-popup {
     background: #ffffff;
     color: #111827;
@@ -656,6 +662,16 @@ body {
     #searchStudentsOverlay #addStudentsSearchInput { height: 38px; font-size: 0.95rem; }
     #searchStudentsOverlay .add-students-footer .role-button { padding: 10px 16px; font-size: 0.95rem; }
 }
+
+
+
+
+
+
+
+
+
+
 #manageStudentsOverlay #manageStudentsTitle {
     margin: 0 0 10px 0;
     font-size: 1.5rem;
