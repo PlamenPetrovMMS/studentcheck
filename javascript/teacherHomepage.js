@@ -1991,19 +1991,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let classStudents, allStudents;
         
+        console.log("1");
+
         try {
             //console.log("[Render Add Students] Loading stored students for class:", className, "...");
             // preload students from database
+            console.log("2")
             classStudents = await loadClassStudents(className, classId);
+            console.log("3")
             allStudents = await loadStudentsFromDatabase();
+            console.log("4")
             
             console.log("Loaded stored students:", classStudents);
             console.log("Loaded all students from database:", allStudents);
 
             classStudents.forEach(student => {
-                console.log(student);
                 const id = student.faculty_number.trim();
+                console.log("Checking stored student ID:", id);
                 if (id) {
+                    console.log("Adding existing student ID to set:", id);
                     existingSet.add(id);
                 }
             });
