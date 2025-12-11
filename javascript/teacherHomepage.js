@@ -1431,7 +1431,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         manageStudentsListEl.appendChild(ul);
     }
-    async function openManageStudentsOverlay(className) {
+    function openManageStudentsOverlay(className) {
 
         //console.log('[Manage Students] Opening overlay for class:', className);
 
