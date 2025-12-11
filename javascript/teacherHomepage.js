@@ -1431,9 +1431,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         manageStudentsListEl.appendChild(ul);
     }
-    function openManageStudentsOverlay(className) {
 
-        //console.log('[Manage Students] Opening overlay for class:', className);
+    let manageStudentsOverlayInitialized = false;
+
+    function ensureManageStudentsOverlayInitialized() {
+        if (manageStudentsOverlayInitialized) return;
+        manageStudentsOverlayInitialized = true;
 
         manageStudentsOverlay.addEventListener('click', (e) => { 
             if (e.target === manageStudentsOverlay) returnToReadyClassPopup(currentClassName); 
@@ -1452,7 +1455,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        //console.log('[Manage Students] Ensured overlay exists');
+        console.log('[Manage Students] Event listeners initialized');
+    }
+
+    function openManageStudentsOverlay(className) {
+
+        //console.log('[Manage Students] Opening overlay for class:', className);
+
+        ensureManageStudentsOverlayInitialized();
 
         // Hide ready overlay to avoid stacking
         if (readyPopupOverlay) readyPopupOverlay.style.visibility = 'hidden';
