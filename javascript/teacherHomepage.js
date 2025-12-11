@@ -1547,18 +1547,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         const h2 = document.createElement('h2');
         h2.textContent = 'Student Info';
         wrapper.appendChild(h2);
+
+        // Get student data from storage if available
+        const classStudents = loadClassStudentsFromStorage(className);
+        let studentData = studentObj;
+        if (classStudents && Array.isArray(classStudents)) {
+            const found = classStudents.find(s => (s.faculty_number || s.id) === String(studentId));
+            if (found) studentData = found;
+        }
+
         const nameP = document.createElement('p');
-        nameP.textContent = `Full Name: ${studentObj.fullName || studentObj.full_name || ''}`;
+        nameP.textContent = `Full Name: ${studentData.fullName || studentData.full_name || ''}`;
         nameP.style.margin = '0 0 8px 0';
         wrapper.appendChild(nameP);
         const facultyP = document.createElement('p');
-        facultyP.textContent = `Faculty Number: ${studentObj.faculty_number || studentObj.facultyNumber || ''}`;
+        facultyP.textContent = `Faculty Number: ${studentData.faculty_number || studentData.facultyNumber || ''}`;
         facultyP.style.margin = '0 0 12px 0';
         wrapper.appendChild(facultyP);
         // Optional extra fields (exclude id per new requirement)
-        if (studentObj.email) {
+        if (studentData.email) {
             const emailP = document.createElement('p');
-            emailP.textContent = `Email: ${studentObj.email}`;
+            emailP.textContent = `Email: ${studentData.email}`;
             emailP.style.margin = '0 0 10px 0';
             wrapper.appendChild(emailP);
         }
@@ -1582,6 +1591,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         historyBtn.style.width = '100%';
         historyBtn.addEventListener('click', () => openAttendanceHistoryOverlay(className || currentClassName, studentId));
         wrapper.appendChild(historyBtn);
+
+        // Remove from class button (full width, danger style)
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'role-button danger';
+        removeBtn.textContent = 'Remove from Class';
+        removeBtn.style.marginTop = '12px';
+        removeBtn.style.width = '100%';
+        removeBtn.addEventListener('click', () => {
+            openConfirmOverlay(
+                `Are you sure you want to remove ${studentData.fullName || studentData.full_name || 'this student'} from the class?`,
+                () => removeStudentFromClass(studentId, className || currentClassName),
+                () => { /* cancelled */ }
+            );
+        });
+        wrapper.appendChild(removeBtn);
+
         return wrapper;
     }
     function openStudentInfoOverlay(studentId, className) {
@@ -1620,18 +1646,80 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.style.overflow = 'hidden'; // keep modal context since manage overlay is still open
     }
 
+    /*
+     * SERVER IMPLEMENTATION NOTES: Remove Student from Class
+     * 
+     * Endpoint: POST /class_students/remove (or similar)
+     * 
+     * Request Body:
+     * {
+     *   "class_id": <number>,
+     *   "student_id": <number>  // or faculty_number: <string>
+     * }
+     * 
+     * Server Logic:
+     * 1. Validate that the teacher owns the class
+     * 2. Check if the student_id exists in the class_students table
+     * 3. Delete the record from class_students table WHERE class_id = ? AND student_id = ?
+     * 4. Return success response: { success: true }
+     * 5. On error, return: { success: false, message: "error description" }
+     * 
+     * Database Table: class_students
+     * - Likely structure: id, class_id, student_id, faculty_number, created_at, etc.
+     */
 
+    async function removeStudentFromClass(studentId, className) {
+        console.log('[removeStudentFromClass] Removing student ID:', studentId, 'from class:', className);
 
+        const classId = getClassIdByName(className);
+        if (!classId) {
+            console.error('[removeStudentFromClass] Unable to get class ID for class:', className);
+            alert('Error: Class ID not found.');
+            return;
+        }
 
+        try {
+            const response = await fetch(serverBaseUrl + '/class_students/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    class_id: classId,
+                    student_id: studentId
+                })
+            });
 
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to remove student from class');
+            }
 
+            console.log('[removeStudentFromClass] Successfully removed student:', studentId);
 
+            // Update UI: remove from storage
+            const classStudents = loadClassStudentsFromStorage(className);
+            if (classStudents && Array.isArray(classStudents)) {
+                const filtered = classStudents.filter(s => s.faculty_number !== String(studentId) && s.id !== String(studentId));
+                addNewStudentsToStorage(className, filtered);
+            }
 
+            // Update in-memory assignments
+            const assignSet = classStudentAssignments.get(className);
+            if (assignSet) {
+                assignSet.delete(String(studentId));
+            }
 
+            // Close overlays and refresh the manage students list
+            closeStudentInfoOverlay();
+            if (manageStudentsOverlay && manageStudentsOverlay.style.visibility === 'visible') {
+                renderManageStudentsForClass(className);
+            }
 
-
-
-
+            alert('Student removed from class successfully.');
+        } catch (error) {
+            console.error('[removeStudentFromClass] Error:', error);
+            alert('Failed to remove student: ' + error.message);
+        }
+    }
 
     // ---- Attendance History Overlay ----
     let attendanceHistoryOverlay = document.getElementById('attendanceHistoryOverlay');
