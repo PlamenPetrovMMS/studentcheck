@@ -167,12 +167,49 @@
                 <button type="button" id="closeAddStudentsClassBtn" class="close-small" aria-label="Close">×</button>
                 <div class="add-students-body">
 
-                    <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
-                    <div id="addStudentsOverlayList" class="add-students-list"></div>
+                    <div class="top-section-search-filters">
+                        <!-- Filter by level -->
+                        <select class="filter-select" id="addStudentsFilterLevel" name="filterLevel" aria-label="Level" required aria-required="true">
+                            <option value="" selected disabled> Level </option>
+                            <option value="bachelor">Bachelor</option>
+                            <option value="master">Master</option>
+                            <option value="phd">PhD</option>
+                        </select>
+
+                        <!-- Filter by faculty -->
+                        <select class="filter-select" id="addStudentsFilterFaculty" name="filterFaculty" aria-label="Faculty" required aria-required="true">
+                            <option value="" selected disabled> Faculty </option>
+                            <option value="Economics">Economics</option>
+                        </select>
+
+                        <!-- Filter by specialization -->
+                        <select class="filter-select" id="addStudentsFilterSpecialization" name="filterSpecialization" aria-label="Specialization" required aria-required="true">
+                            <option value="" selected disabled> Specialization </option>
+                            <!-- dynamically populate -->
+                        </select>
+
+                        <!-- Filter by group -->
+                        <select class="filter-select" id="addStudentsFilterGroup" name="filterGroup" aria-label="Group" required aria-required="true">
+                            <option value="" selected disabled> Group </option>
+                            <option value="37" >37</option>
+                            <option value="38" >38</option>
+                            <option value="39" >39</option>
+                            <option value="40" >40</option>
+                            <option value="41" >41</option>
+                            <option value="42" >42</option>
+                        </select>
+                    </div>
+
+                    <div class="top-section-search-bar-reset-filters">
+                        <input type="text" id="addStudentsSearchInput" placeholder="Search..." />
+                        <button id="addStudentsResetFiltersBtn" class="reset-filters-button" type="button">Reset</button>
+                    </div>
+
+                    <div id="addStudentsList" class="add-students-list"></div>
 
                 </div>
                 <div class="add-students-footer">
-                    <button type="button" id="confirmAddStudentsBtn" class="role-button primary" aria-label="Add Selected">Add</button>
+                    <button type="button" id="addStudentsOverlayBtn" class="role-button primary" aria-label="Add Selected">Add</button>
                 </div>
             </div>
         </div>

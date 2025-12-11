@@ -1887,9 +1887,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (addStudentsOverlayInitialized) return;
         addStudentsOverlayInitialized = true;
 
-        const closeBtn = addStudentsClassOverlay.querySelector('#closeOverlayBtn');
-        const searchInput = addStudentsClassOverlay.querySelector('#overlaySearchInput');
+        const closeBtn = addStudentsClassOverlay.querySelector('#closeAddStudentsClassBtn');
+        const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
         const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
+        const resetBtn = addStudentsClassOverlay.querySelector('#addStudentsResetFiltersBtn');
+        const levelSelect = addStudentsClassOverlay.querySelector('#addStudentsFilterLevel');
+        const facultySelect = addStudentsClassOverlay.querySelector('#addStudentsFilterFaculty');
+        const specializationSelect = addStudentsClassOverlay.querySelector('#addStudentsFilterSpecialization');
+        const groupSelect = addStudentsClassOverlay.querySelector('#addStudentsFilterGroup');
 
         closeBtn?.addEventListener('click', () => { 
             closeAddStudentsToClass(); 
@@ -1901,6 +1906,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
+
+        levelSelect?.addEventListener('change', () => {
+            filterAddStudentsListBySelects(
+                levelSelect.value,
+                facultySelect?.value || '',
+                specializationSelect?.value || '',
+                groupSelect?.value || '',
+                searchInput?.value || ''
+            );
+        });
+
+        facultySelect?.addEventListener('change', () => {
+            filterAddStudentsListBySelects(
+                levelSelect?.value || '',
+                facultySelect.value,
+                specializationSelect?.value || '',
+                groupSelect?.value || '',
+                searchInput?.value || ''
+            );
+        });
+
+        specializationSelect?.addEventListener('change', () => {
+            filterAddStudentsListBySelects(
+                levelSelect?.value || '',
+                facultySelect?.value || '',
+                specializationSelect.value,
+                groupSelect?.value || '',
+                searchInput?.value || ''
+            );
+        });
+
+        groupSelect?.addEventListener('change', () => {
+            filterAddStudentsListBySelects(
+                levelSelect?.value || '',
+                facultySelect?.value || '',
+                specializationSelect?.value || '',
+                groupSelect.value,
+                searchInput?.value || ''
+            );
+        });
+
+        resetBtn?.addEventListener('click', resetAddStudentsFilters);
 
         addStudentsClassOverlay.addEventListener('click', (e) => { if (e.target === addStudentsClassOverlay) closeAddStudentsToClass(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addStudentsClassOverlay.style.visibility === 'visible') closeAddStudentsToClass(); });
@@ -1919,7 +1966,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ensureAddStudentsOverlayInitialized();
 
         const confirmBtn = addStudentsClassOverlay.querySelector('#addStudentsOverlayBtn');
-        const searchInput = addStudentsClassOverlay.querySelector('#overlaySearchInput');
+        const searchInput = addStudentsClassOverlay.querySelector('#addStudentsSearchInput');
 
         addStudentsSelections.clear();
 
@@ -2064,7 +2111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         addStudentsListEl.appendChild(ul);
     }
     function updateAddStudentsCounter() {
-        const confirmBtn = addStudentsClassOverlay?.querySelector('#confirmAddStudentsBtn');
+        const confirmBtn = addStudentsClassOverlay?.querySelector('#addStudentsOverlayBtn');
         if (confirmBtn) confirmBtn.textContent = `Add (${addStudentsSelections.size})`;
     }
     function filterAddStudentsList(query) {
@@ -2083,6 +2130,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             const matches = tokens.every(t => text.includes(t));
             li.style.display = matches ? '' : 'none';
         });
+    }
+
+    function filterAddStudentsListBySelects(levelValue, facultyValue, specializationValue, groupValue, searchInputValue) {
+        const q = (searchInputValue || '').trim().toLowerCase();
+        if (!addStudentsListEl) return;
+        const items = addStudentsListEl.querySelectorAll('li.list-item');
+        
+        if (!q && !levelValue && !facultyValue && !specializationValue && !groupValue) {
+            items.forEach(li => li.style.display = '');
+            return;
+        }
+
+        const tokens = q.split(/\s+/).filter(Boolean);
+
+        items.forEach(li => {
+            const text = li.textContent.toLowerCase();
+            const matches = tokens.every(t => text.includes(t));
+            li.style.display = matches ? '' : 'none';
+        });
+    }
+
+    function resetAddStudentsFilters() {
+        const levelSelect = document.getElementById('addStudentsFilterLevel');
+        const facultySelect = document.getElementById('addStudentsFilterFaculty');
+        const specializationSelect = document.getElementById('addStudentsFilterSpecialization');
+        const groupSelect = document.getElementById('addStudentsFilterGroup');
+        const searchInput = document.getElementById('addStudentsSearchInput');
+
+        if (levelSelect) levelSelect.value = '';
+        if (facultySelect) facultySelect.value = '';
+        if (specializationSelect) specializationSelect.value = '';
+        if (groupSelect) groupSelect.value = '';
+        if (searchInput) searchInput.value = '';
+
+        // Show all items again
+        if (addStudentsListEl) {
+            const items = addStudentsListEl.querySelectorAll('li.list-item');
+            items.forEach(li => li.style.display = '');
+        }
     }
 
     
