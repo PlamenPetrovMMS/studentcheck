@@ -1601,6 +1601,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         removeBtn.style.width = '100%';
         removeBtn.style.backgroundColor = '#dc2626';
         removeBtn.style.color = 'white';
+        removeBtn.style.border = 'none';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.addEventListener('mouseover', () => {
+            removeBtn.style.backgroundColor = '#991b1b';
+        });
+        removeBtn.addEventListener('mouseout', () => {
+            removeBtn.style.backgroundColor = '#dc2626';
+        });
         removeBtn.addEventListener('click', () => {
             openConfirmOverlay(
                 `Are you sure you want to remove ${studentData.fullName || studentData.full_name || 'this student'} from the class?`,
