@@ -1850,7 +1850,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let addStudentsListEl = document.getElementById('addStudentsList');
     let addStudentsSelections = new Set();
     
-    async function openAddStudentsToClass(className) {
+    function openAddStudentsToClass(className) {
 
         closeManageStudentsOverlay();
 
@@ -1885,8 +1885,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (confirmBtn) confirmBtn.textContent = 'Add (0)';
         // Load students (reuse fetchStudentsCache + studentIndex build from manage overlay)
+
+
+
         renderAddStudentsList(className);
         console.log("[Manage Students Add Overlay] Rendered student list for class:", className);
+
+
+
         updateAddStudentsCounter();
         addStudentsClassOverlay.style.visibility = 'visible';
         document.body.style.overflow = 'hidden';
