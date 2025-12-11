@@ -1846,7 +1846,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Add Students to Existing Class Overlay ---
-    let addStudentsClassOverlay = document.getElementById('searchStudentsOverlay');
+    let addStudentsClassOverlay = document.getElementById('addStudentsClassOverlay');
     let addStudentsListEl = document.getElementById('addStudentsList');
     let addStudentsSelections = new Set();
     
