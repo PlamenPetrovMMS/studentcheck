@@ -825,11 +825,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Ready class popup dynamic creation (unchanged semantics)
     
     const readyPopupOverlay = document.getElementById('readyClassPopupOverlay');
-    function openReadyClassPopup(nameOptional) {
-        if (nameOptional) {
-            currentClassName = nameOptional;
-        }
-    
+    let readyPopupOverlayInitialized = false;
+
+    function ensureReadyPopupOverlayInitialized() {
+        if (readyPopupOverlayInitialized) return;
+        readyPopupOverlayInitialized = true;
+
         const manageBtn = readyPopupOverlay.querySelector('#manageStudentsBtn');
         const scannerBtn = readyPopupOverlay.querySelector('#startScannerBtn');
         const downloadBtn = readyPopupOverlay.querySelector('#downloadAttendanceTableBtn');
@@ -864,6 +865,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         closeBtn?.addEventListener('click', () => closeAllClassOverlays());
         readyPopupOverlay.addEventListener('click', (e) => { if (e.target === readyPopupOverlay) closeReadyClassPopup(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeReadyClassPopup(); });
+
+        console.log('[Ready Popup Overlay] Event listeners initialized');
+    }
+
+    function openReadyClassPopup(nameOptional) {
+        if (nameOptional) {
+            currentClassName = nameOptional;
+        }
+    
+        ensureReadyPopupOverlayInitialized();
         
         
         
@@ -1685,9 +1696,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         container.appendChild(ul);
     }
-    function openAttendanceHistoryOverlay(className, studentId) {
+    let attendanceHistoryOverlayInitialized = false;
 
-        console.log("[openAttendanceHistoryOverlay] Opening attendance history for student ID:", studentId, "in class:", className);
+    function ensureAttendanceHistoryOverlayInitialized() {
+        if (attendanceHistoryOverlayInitialized) return;
+        attendanceHistoryOverlayInitialized = true;
 
         const closeBtn = attendanceHistoryOverlay.querySelector('#closeAttendanceHistoryBtn');
         const backBtn = attendanceHistoryOverlay.querySelector('#attendanceHistoryBackBtn');
@@ -1695,6 +1708,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         backBtn?.addEventListener('click', () => returnToStudentInfoOverlay());
         attendanceHistoryOverlay.addEventListener('click', (e) => { if (e.target === attendanceHistoryOverlay) returnToManageStudentsFromHistory(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && attendanceHistoryOverlay.style.visibility === 'visible') returnToManageStudentsFromHistory(); });
+
+        console.log('[Attendance History Overlay] Event listeners initialized');
+    }
+
+    function openAttendanceHistoryOverlay(className, studentId) {
+
+        console.log("[openAttendanceHistoryOverlay] Opening attendance history for student ID:", studentId, "in class:", className);
+
+        ensureAttendanceHistoryOverlayInitialized();
         
         // Hide student info overlay while viewing history
 
