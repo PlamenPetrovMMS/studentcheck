@@ -2425,8 +2425,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
 
+    function updateClassStatusUI(btn) {
+        const button = btn || currentClassButton;
+        if (!button) return;
+        const className = getRawClassNameFromButton(button);
+        const isReady = readyClasses.has(className);
+        if (isReady) {
+            button.classList.add('class-ready');
+        } else {
+            button.classList.remove('class-ready');
+        }
+    }
 
-    
+
+
+
 
 
 
