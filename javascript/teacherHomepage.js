@@ -2436,6 +2436,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             button.classList.remove('class-ready');
         }
     }
+    function getRawClassNameFromButton(button) {
+        if (!button) return '';
+        return (button.dataset.className || button.dataset.originalLabel || button.textContent || '')
+            .replace(/✓\s*Ready/g, '')
+            .trim();
+    }
 
 
 
