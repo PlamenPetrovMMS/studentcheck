@@ -1177,6 +1177,7 @@ body {
     display: flex;
     justify-content: space-between;
     gap: 12px;
+    margin-bottom: 10px;
 }
 .reset-filters-button{
     padding: 5px;
