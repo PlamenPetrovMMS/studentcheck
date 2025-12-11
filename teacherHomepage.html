@@ -117,13 +117,47 @@
                         </section>
 
                         <section class="slide" data-index="1" aria-label="Select Students">
-                            <div class="field">
-                                <label for="createClassSearchInput">Search students</label>
-                                <input id="createClassSearchInput" type="text" placeholder="Type to filter..." />
+                            <div class="top-section-search-filters">
+                                <!-- Filter by level -->
+                                <select class="filter-select" id="createClassFilterLevel" name="filterLevel" aria-label="Level" required aria-required="true">
+                                    <option value="" selected disabled> Level </option>
+                                    <option value="bachelor">Bachelor</option>
+                                    <option value="master">Master</option>
+                                    <option value="phd">PhD</option>
+                                </select>
+
+                                <!-- Filter by faculty -->
+                                <select class="filter-select" id="createClassFilterFaculty" name="filterFaculty" aria-label="Faculty" required aria-required="true">
+                                    <option value="" selected disabled> Faculty </option>
+                                    <option value="Economics">Economics</option>
+                                </select>
+
+                                <!-- Filter by specialization -->
+                                <select class="filter-select" id="createClassFilterSpecialization" name="filterSpecialization" aria-label="Specialization" required aria-required="true">
+                                    <option value="" selected disabled> Specialization </option>
+                                    <!-- dynamically populate -->
+                                </select>
+
+                                <!-- Filter by group -->
+                                <select class="filter-select" id="createClassFilterGroup" name="filterGroup" aria-label="Group" required aria-required="true">
+                                    <option value="" selected disabled> Group </option>
+                                    <option value="37" >37</option>
+                                    <option value="38" >38</option>
+                                    <option value="39" >39</option>
+                                    <option value="40" >40</option>
+                                    <option value="41" >41</option>
+                                    <option value="42" >42</option>
+                                </select>
                             </div>
+
+                            <div class="top-section-search-bar-reset-filters">
+                                <input id="createClassSearchInput" type="text" placeholder="Search students..." aria-label="Search students" />
+                                <button id="createClassResetFiltersBtn" class="reset-filters-button" type="button">Reset</button>
+                            </div>
+
                             <div id="createClassStudentsBody"></div>
                             
-                            <div id="createClassNoStudentsMsg" class="error" aria-live="polite" style="display:none"></div>
+                            <div id="createClassNoStudentsMsg" class="error error-hidden" aria-live="polite"></div>
                         
                         </section>
                     </div>

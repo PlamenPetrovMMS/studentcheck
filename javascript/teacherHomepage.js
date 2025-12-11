@@ -1265,6 +1265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             createClassStudentContainer.innerHTML='';
             renderStudentsInWizard(students);
             createClassStudentContainer.dataset.loaded='true';
+            ensureCreateClassFiltersInitialized();
         } catch (e) {
             console.error('Wizard student fetch failed', e);
             createClassStudentContainer.innerHTML = '<p style="color:#b91c1c;">Network error loading students.</p>';
@@ -2284,7 +2285,133 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    
+    // Create Class wizard student filters
+    function filterCreateClassStudents(query) {
+        const q = (query || '').trim().toLowerCase();
+        if (!createClassStudentContainer) return;
+
+        const items = createClassStudentContainer.querySelectorAll('li.list-item');
+        if (!q) {
+            items.forEach(li => li.style.display = '');
+            return;
+        }
+
+        const tokens = q.split(/\s+/).filter(Boolean);
+        items.forEach(li => {
+            const text = li.textContent.toLowerCase();
+            const matches = tokens.every(t => text.includes(t));
+            li.style.display = matches ? '' : 'none';
+        });
+    }
+
+    function filterCreateClassStudentsBySelects(levelValue, facultyValue, specializationValue, groupValue, searchInputValue) {
+        const q = (searchInputValue || '').trim().toLowerCase();
+        if (!createClassStudentContainer) return;
+        const items = createClassStudentContainer.querySelectorAll('li.list-item');
+
+        if (!q && !levelValue && !facultyValue && !specializationValue && !groupValue) {
+            items.forEach(li => li.style.display = '');
+            return;
+        }
+
+        const tokens = q.split(/\s+/).filter(Boolean);
+        items.forEach(li => {
+            const text = li.textContent.toLowerCase();
+            const matches = tokens.every(t => text.includes(t));
+            li.style.display = matches ? '' : 'none';
+        });
+    }
+
+    function resetCreateClassFilters() {
+        const levelSelect = document.getElementById('createClassFilterLevel');
+        const facultySelect = document.getElementById('createClassFilterFaculty');
+        const specializationSelect = document.getElementById('createClassFilterSpecialization');
+        const groupSelect = document.getElementById('createClassFilterGroup');
+        const searchInput = document.getElementById('createClassSearchInput');
+
+        if (levelSelect) levelSelect.value = '';
+        if (facultySelect) facultySelect.value = '';
+        if (specializationSelect) specializationSelect.value = '';
+        if (groupSelect) groupSelect.value = '';
+        if (searchInput) searchInput.value = '';
+
+        // Show all items again
+        if (createClassStudentContainer) {
+            const items = createClassStudentContainer.querySelectorAll('li.list-item');
+            items.forEach(li => li.style.display = '');
+        }
+    }
+
+    function ensureCreateClassFiltersInitialized() {
+        const levelSelect = document.getElementById('createClassFilterLevel');
+        const facultySelect = document.getElementById('createClassFilterFaculty');
+        const specializationSelect = document.getElementById('createClassFilterSpecialization');
+        const groupSelect = document.getElementById('createClassFilterGroup');
+        const resetBtn = document.getElementById('createClassResetFiltersBtn');
+        const searchInput = document.getElementById('createClassSearchInput');
+
+        if (createClassFiltersInitialized) return;
+        createClassFiltersInitialized = true;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => filterCreateClassStudents(e.target.value));
+        }
+
+        if (levelSelect) {
+            levelSelect.addEventListener('change', () => {
+                filterCreateClassStudentsBySelects(
+                    levelSelect.value,
+                    facultySelect?.value || '',
+                    specializationSelect?.value || '',
+                    groupSelect?.value || '',
+                    searchInput?.value || ''
+                );
+            });
+        }
+
+        if (facultySelect) {
+            facultySelect.addEventListener('change', () => {
+                filterCreateClassStudentsBySelects(
+                    levelSelect?.value || '',
+                    facultySelect.value,
+                    specializationSelect?.value || '',
+                    groupSelect?.value || '',
+                    searchInput?.value || ''
+                );
+            });
+        }
+
+        if (specializationSelect) {
+            specializationSelect.addEventListener('change', () => {
+                filterCreateClassStudentsBySelects(
+                    levelSelect?.value || '',
+                    facultySelect?.value || '',
+                    specializationSelect.value,
+                    groupSelect?.value || '',
+                    searchInput?.value || ''
+                );
+            });
+        }
+
+        if (groupSelect) {
+            groupSelect.addEventListener('change', () => {
+                filterCreateClassStudentsBySelects(
+                    levelSelect?.value || '',
+                    facultySelect?.value || '',
+                    specializationSelect?.value || '',
+                    groupSelect.value,
+                    searchInput?.value || ''
+                );
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetCreateClassFilters);
+        }
+    }
+
+    let createClassFiltersInitialized = false;
+
     async function finalizeAddStudentsToClass() {
 
         console.log("[finalizeAddStudentsToClass] Finalizing additions...");

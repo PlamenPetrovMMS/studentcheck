@@ -1214,3 +1214,8 @@ body {
     text-align:center; 
     margin:0 0 16px 0;
 }
+
+/* Hide elements by default */
+.error-hidden {
+    display: none;
+}
