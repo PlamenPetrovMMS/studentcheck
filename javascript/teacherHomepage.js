@@ -2408,6 +2408,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+
+
+    const attachNewClassButtonBehavior = (buttonEl) => {
+        if (!buttonEl) return;
+        const animate = () => {
+            buttonEl.classList.add('clicked');
+            setTimeout(() => buttonEl.classList.remove('clicked'), 340);
+        };
+        buttonEl.addEventListener('mousedown', animate);
+        buttonEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') animate(); });
+        buttonEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleClassButtonClick(buttonEl);
+        });
+    };
+
+
+
+    
+
+
+
     function addNewStudentsToStorage(className, newlyAddedStudents) {
         const storedClassKey = `${className}:students`;
         localStorage.setItem(storedClassKey, JSON.stringify(newlyAddedStudents));
