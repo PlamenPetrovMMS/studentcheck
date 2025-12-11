@@ -1599,6 +1599,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         removeBtn.textContent = 'Remove from Class';
         removeBtn.style.marginTop = '12px';
         removeBtn.style.width = '100%';
+        removeBtn.style.backgroundColor = '#dc2626';
+        removeBtn.style.color = 'white';
         removeBtn.addEventListener('click', () => {
             openConfirmOverlay(
                 `Are you sure you want to remove ${studentData.fullName || studentData.full_name || 'this student'} from the class?`,
