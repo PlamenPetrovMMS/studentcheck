@@ -1679,21 +1679,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
+            const requestBody = {
+                class_id: classId,
+                student_id: studentId
+            };
+            console.log('[removeStudentFromClass] Sending request with body:', requestBody);
+
             const response = await fetch(serverBaseUrl + '/class_students/remove', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    class_id: classId,
-                    student_id: studentId
-                })
+                body: JSON.stringify(requestBody)
             });
 
+            console.log('[removeStudentFromClass] Response status:', response.status, 'OK:', response.ok);
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to remove student from class');
+                let errorMessage = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    console.error('[removeStudentFromClass] Error response body:', errorData);
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) {
+                    const errorText = await response.text();
+                    console.error('[removeStudentFromClass] Error response text:', errorText);
+                }
+                throw new Error(errorMessage);
             }
 
-            console.log('[removeStudentFromClass] Successfully removed student:', studentId);
+            const data = await response.json();
+            console.log('[removeStudentFromClass] Successfully removed student:', studentId, 'Response:', data);
 
             // Update UI: remove from storage
             const classStudents = loadClassStudentsFromStorage(className);
@@ -1716,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             alert('Student removed from class successfully.');
         } catch (error) {
-            console.error('[removeStudentFromClass] Error:', error);
+            console.error('[removeStudentFromClass] Error:', error.message);
             alert('Failed to remove student: ' + error.message);
         }
     }
