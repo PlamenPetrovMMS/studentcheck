@@ -1681,7 +1681,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const requestBody = {
                 class_id: classId,
-                student_id: studentId
+                student_id: studentId,
+                teacherEmail: teacherEmail
             };
             console.log('[removeStudentFromClass] Sending request with body:', requestBody);
 
@@ -1698,7 +1699,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 try {
                     const errorData = await response.json();
                     console.error('[removeStudentFromClass] Error response body:', errorData);
-                    errorMessage = errorData.message || errorMessage;
+                    errorMessage = errorData.message || errorData.error || errorMessage;
                 } catch (e) {
                     const errorText = await response.text();
                     console.error('[removeStudentFromClass] Error response text:', errorText);
