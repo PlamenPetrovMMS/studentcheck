@@ -30,6 +30,13 @@ body {
 	min-height: 64px;
 }
 
+/* Push action buttons to the right side */
+.actions-right {
+	margin-left: auto;
+	display: flex;
+	gap: 12px;
+}
+
 /* Buttons now use shared .btn styles from registration.css */
 
 /* Optional: center the heading text */
