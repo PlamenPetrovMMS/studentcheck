@@ -1169,6 +1169,7 @@ body {
     display: flex;
     gap: 12px;
     align-items: center;
+    margin-bottom: 10px;
 
 }
 .top-section-search-bar-reset-filters{
