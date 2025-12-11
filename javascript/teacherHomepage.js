@@ -1668,8 +1668,8 @@ document.addEventListener('DOMContentLoaded', async () => {
      * - Likely structure: id, class_id, student_id, faculty_number, created_at, etc.
      */
 
-    async function removeStudentFromClass(studentId, className) {
-        console.log('[removeStudentFromClass] Removing student ID:', studentId, 'from class:', className);
+    async function removeStudentFromClass(facultyNumber, className) {
+        console.log('[removeStudentFromClass] Removing student ID:', facultyNumber, 'from class:', className);
 
         const classId = getClassIdByName(className);
         if (!classId) {
@@ -1681,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const requestBody = {
                 class_id: classId,
-                student_id: studentId,
+                faculty_number: facultyNumber,
                 teacherEmail: teacherEmail
             };
             console.log('[removeStudentFromClass] Sending request with body:', requestBody);
@@ -1708,19 +1708,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const data = await response.json();
-            console.log('[removeStudentFromClass] Successfully removed student:', studentId, 'Response:', data);
+            console.log('[removeStudentFromClass] Successfully removed student:', facultyNumber, 'Response:', data);
 
             // Update UI: remove from storage
             const classStudents = loadClassStudentsFromStorage(className);
             if (classStudents && Array.isArray(classStudents)) {
-                const filtered = classStudents.filter(s => s.faculty_number !== String(studentId) && s.id !== String(studentId));
+                const filtered = classStudents.filter(s => s.faculty_number !== String(facultyNumber) && s.id !== String(facultyNumber));
                 addNewStudentsToStorage(className, filtered);
             }
 
             // Update in-memory assignments
             const assignSet = classStudentAssignments.get(className);
             if (assignSet) {
-                assignSet.delete(String(studentId));
+                assignSet.delete(String(facultyNumber));
             }
 
             // Close overlays and refresh the manage students list
