@@ -1192,7 +1192,9 @@ body {
 }
 
 /* Search input responsive styles */
-#overlaySearchInput {
+#overlaySearchInput,
+#addStudentsSearchInput,
+#createClassSearchInput {
     height: 36px;
     width: 90%;
     font-size: 1rem;
@@ -1203,7 +1205,9 @@ body {
     outline: none;
 }
 
-#overlaySearchInput:focus {
+#overlaySearchInput:focus,
+#addStudentsSearchInput:focus,
+#createClassSearchInput:focus {
     background: #ffffff;
     border-color: #2563eb;
     box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
