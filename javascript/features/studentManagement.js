@@ -16,10 +16,12 @@ import {
     ensureClassStudentAssignments,
     removeStudentFromClassAssignments,
     setClassReady,
-    getClassIdByName
+    getClassIdByName,
+    setClassId
 } from '../state/appState.js';
 import { loadClassStudentsFromStorage, addNewStudentsToStorage, getStudentInfoForFacultyNumber } from '../storage/studentStorage.js';
-import { getClassIdByNameFromStorage } from '../storage/classStorage.js';
+import { getClassIdByNameFromStorage, getStoredClassesMap } from '../storage/classStorage.js';
+import { fetchClasses } from '../api/classApi.js';
 import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from '../ui/overlays.js';
 import { updateClassStatusUI } from '../ui/classUI.js';
 import { renderAttendanceForClass } from '../ui/attendanceUI.js';
@@ -785,52 +787,150 @@ function closeAddStudentsToClass() {
 }
 
 /**
+ * Resolve class ID with fallback logic
+ * @param {string} className - Class name
+ * @returns {Promise<number|null>} Class ID or null if not found
+ */
+async function resolveClassId(className) {
+    // Try appState first
+    let classId = getClassIdByName(className);
+    if (classId) return classId;
+
+    // Try localStorage
+    classId = getClassIdByNameFromStorage(className);
+    if (classId) {
+        // Update appState for future lookups
+        setClassId(className, classId);
+        return classId;
+    }
+
+    // Last resort: fetch classes and update state
+    try {
+        const teacherEmail = getTeacherEmail();
+        if (!teacherEmail) {
+            console.error('[resolveClassId] No teacher email available');
+            return null;
+        }
+        const data = await fetchClasses(teacherEmail);
+        const classes = data.classes || [];
+        const classesMap = new Map();
+        
+        for (const _class of classes) {
+            classesMap.set(_class.id, _class.name);
+            setClassId(_class.name, _class.id);
+            if (_class.name === className) {
+                return _class.id;
+            }
+        }
+    } catch (e) {
+        console.error('[resolveClassId] Failed to fetch classes:', e);
+    }
+
+    return null;
+}
+
+/**
  * Render add students list
  * @param {string} className - Class name
  */
 async function renderAddStudentsList(className) {
-    const classId = getClassIdByName(className);
-    if (!classId) {
-        console.error('[Render Add Students] No class ID found for class:', className);
+    const listEl = getAddStudentsListEl();
+    if (!listEl) {
+        console.error('[Render Add Students] List element not found');
         return;
     }
 
-    const listEl = getAddStudentsListEl();
-    if (!listEl) return;
+    // Show loading state
+    listEl.innerHTML = '<p class="muted" style="text-align:center;">Loading students...</p>';
+
+    // Resolve classId with fallbacks
+    const classId = await resolveClassId(className);
+    if (!classId) {
+        console.error('[Render Add Students] No class ID found for class:', className);
+        // Still try to show all students even without classId
+    }
 
     // Build existing set from assignments map and stored students
     const assignments = getClassStudentAssignments(className);
     const existingSet = new Set([...(assignments || new Set())]);
 
-    let classStudents, allStudents;
+    let classStudents = [];
+    let allStudents = [];
+    let fetchError = false;
 
-    try {
-        classStudents = await fetchClassStudents(classId, className);
-        allStudents = await fetchAllStudents();
-
-        if (classStudents) {
-            classStudents.forEach(student => {
-                const id = (student.faculty_number || '').trim();
-                if (id) {
-                    existingSet.add(id);
-                }
-            });
+    // Fetch class roster if classId is available
+    if (classId) {
+        try {
+            const fetched = await fetchClassStudents(classId, className);
+            classStudents = fetched || [];
+            
+            // Add to existing set
+            if (classStudents && classStudents.length > 0) {
+                classStudents.forEach(student => {
+                    const id = (student.faculty_number || '').trim();
+                    if (id) {
+                        existingSet.add(id);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('[Render Add Students] Failed to fetch class students:', className, e);
+            fetchError = true;
+            // Try loading from storage as fallback
+            const stored = loadClassStudentsFromStorage(className);
+            if (stored) {
+                classStudents = stored;
+            }
         }
-    } catch (_) {
-        console.error('[Render Add Students] Failed to load students for class:', className);
+    } else {
+        // No classId, try storage only
+        const stored = loadClassStudentsFromStorage(className);
+        if (stored) {
+            classStudents = stored;
+        }
     }
 
-    if (!classStudents) {
-        console.error('[Render Add Students] No stored students found for class:', className);
+    // Always fetch all students for selection
+    try {
+        allStudents = await fetchAllStudents();
+        if (!Array.isArray(allStudents)) {
+            allStudents = [];
+        }
+    } catch (e) {
+        console.error('[Render Add Students] Failed to fetch all students:', e);
+        fetchError = true;
+    }
+
+    // Clear loading state
+    listEl.innerHTML = '';
+
+    // If no students available at all, show empty state
+    if (!allStudents || allStudents.length === 0) {
+        const emptyMsg = document.createElement('p');
+        emptyMsg.className = 'muted';
+        emptyMsg.style.textAlign = 'center';
+        emptyMsg.style.padding = '20px';
+        if (fetchError) {
+            emptyMsg.textContent = 'Unable to load students. Please check your connection and try again.';
+        } else {
+            emptyMsg.textContent = 'No students available in the database.';
+        }
+        listEl.appendChild(emptyMsg);
         return;
     }
 
-    // Fixed: Changed !classStudents.length === 0 to classStudents.length === 0
-    if (classStudents.length === 0) {
-        listEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
-        return;
+    // Show empty state message if class has no assigned students
+    if (!classStudents || classStudents.length === 0) {
+        const emptyStateMsg = document.createElement('p');
+        emptyStateMsg.className = 'muted';
+        emptyStateMsg.style.textAlign = 'center';
+        emptyStateMsg.style.padding = '10px 0';
+        emptyStateMsg.style.marginBottom = '10px';
+        emptyStateMsg.textContent = 'No students assigned to this class yet. Select students below to add them.';
+        listEl.appendChild(emptyStateMsg);
     }
 
+    // Render the list of all students
     const ul = document.createElement('ul');
     ul.style.listStyle = 'none';
     ul.style.margin = '0';
