@@ -47,3 +47,55 @@ export function getRawClassNameFromButton(button) {
         .replace(/✓\s*Ready/g, '')
         .trim();
 }
+
+/**
+ * Error Handling Utilities
+ * Centralized error logging and safe error message extraction.
+ */
+
+/**
+ * Log an error with consistent formatting and context
+ * @param {string} context - Context description (e.g., "closeScannerConfirm", "fetchClassStudents")
+ * @param {Error|any} error - The error object
+ * @param {Object} extra - Optional extra context data
+ */
+export function logError(context, error, extra = {}) {
+    const message = error?.message || String(error);
+    const stack = error?.stack;
+    const extraStr = Object.keys(extra).length > 0 ? ` | Extra: ${JSON.stringify(extra)}` : '';
+    console.error(`[${context}] Error: ${message}${extraStr}`, stack || '');
+}
+
+/**
+ * Extract a safe user-friendly message from an error
+ * @param {Error|any} error - The error object
+ * @returns {string} Safe error message
+ */
+export function asUserMessage(error) {
+    if (!error) return 'An unexpected error occurred';
+    if (typeof error === 'string') return error;
+    if (error?.message) return error.message;
+    return 'An unexpected error occurred';
+}
+
+/**
+ * Check if error is an abort error (e.g., fetch abort)
+ * @param {Error|any} error - The error object
+ * @returns {boolean} True if abort error
+ */
+export function isAbortError(error) {
+    return error?.name === 'AbortError' || error?.message?.includes('abort');
+}
+
+/**
+ * Check if error is camera-related
+ * @param {Error|any} error - The error object
+ * @returns {boolean} True if camera error
+ */
+export function isCameraError(error) {
+    const message = String(error?.message || '').toLowerCase();
+    return message.includes('camera') || 
+           message.includes('permission') || 
+           message.includes('notallowed') ||
+           message.includes('notreadable');
+}

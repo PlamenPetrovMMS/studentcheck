@@ -133,11 +133,29 @@ export function openConfirmOverlay(message, onConfirm, onCancel) {
         newOk = confirmOverlay.querySelector('#confirmOkBtn');
         newCancel?.addEventListener('click', () => {
             closeConfirmOverlay();
-            if (onCancel) onCancel();
+            if (onCancel) {
+                try {
+                    onCancel();
+                } catch (e) {
+                    console.error('[Confirm Overlay] Cancel callback error:', e);
+                }
+            }
         });
-        newOk?.addEventListener('click', () => {
+        newOk?.addEventListener('click', async () => {
             closeConfirmOverlay();
-            if (onConfirm) onConfirm();
+            if (onConfirm) {
+                try {
+                    // Await async callbacks to prevent unhandled promise rejections
+                    const result = onConfirm();
+                    if (result && typeof result.then === 'function') {
+                        await result;
+                    }
+                } catch (e) {
+                    // Log error but ensure overlay closes
+                    console.error('[Confirm Overlay] Confirm callback error:', e);
+                    // Error is logged; overlay already closed, UI remains responsive
+                }
+            }
         });
     };
     cleanup();

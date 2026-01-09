@@ -13,6 +13,7 @@ import {
     setAttendanceCountCache,
     getStudentTimestamp,
     setStudentTimestamp,
+    getStudentTimestamps,
     getCurrentClass,
     clearAttendanceState,
     clearStudentTimestamps,
@@ -21,7 +22,7 @@ import {
 import { loadClassStudentsFromStorage } from '../storage/studentStorage.js';
 import { markAttendance, fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData } from '../api/attendanceApi.js';
 import { updateAttendanceDot } from '../ui/attendanceUI.js';
-import { getActiveClassName } from '../utils/helpers.js';
+import { getActiveClassName, logError } from '../utils/helpers.js';
 import { openConfirmOverlay, getOverlay, hideOverlay } from '../ui/overlays.js';
 import { closeScanner } from './scanner.js';
 
@@ -231,42 +232,99 @@ export async function openCloseScannerConfirm(className, onClosed) {
     openConfirmOverlay(
         'Are you sure you want to close the scanner? All attendance data will be deleted.',
         async () => {
-            const classId = getClassIdByName(className);
-            
-            if (!classId) {
-                console.error('Cannot save attendance data: missing currentClassId.');
-                alert('Error: Cannot save attendance data, class ID not found.');
-                return;
-            }
+            try {
+                const classId = getClassIdByName(className);
+                
+                if (!classId) {
+                    logError('closeScannerConfirm', new Error('Missing class ID'), { className });
+                    // Still attempt to close scanner even without classId
+                } else {
+                    // Safely get timestamps (may be empty map, which is fine)
+                    const timestamps = getStudentTimestamps();
+                    if (timestamps && timestamps.size > 0) {
+                        try {
+                            await saveStudentTimestamps(classId, timestamps);
+                        } catch (e) {
+                            logError('closeScannerConfirm', e, { className, classId, action: 'saveStudentTimestamps' });
+                            // Continue with cleanup even if save fails
+                        }
+                    }
 
-            const timestamps = getStudentTimestamps();
-            await saveStudentTimestamps(classId, timestamps);
-            await updateCompletedClassesCount(classId);
+                    try {
+                        await updateCompletedClassesCount(classId);
+                    } catch (e) {
+                        logError('closeScannerConfirm', e, { className, classId, action: 'updateCompletedClassesCount' });
+                        // Continue with cleanup
+                    }
 
-            const classStudents = loadClassStudentsFromStorage(className);
-            const completedStudentIds = [];
-            const stateMap = getAttendanceState(className);
+                    const classStudents = loadClassStudentsFromStorage(className);
+                    const completedStudentIds = [];
+                    const stateMap = getAttendanceState(className);
 
-            if (stateMap && classStudents) {
-                for (const [facultyNumber, state] of stateMap.entries()) {
-                    const student = classStudents.find(s => s.faculty_number === facultyNumber);
-                    if (student && state === 'completed') {
-                        completedStudentIds.push(student.id);
+                    if (stateMap && classStudents) {
+                        for (const [facultyNumber, state] of stateMap.entries()) {
+                            const student = classStudents.find(s => s.faculty_number === facultyNumber);
+                            if (student && state === 'completed') {
+                                completedStudentIds.push(student.id);
+                            }
+                        }
+                    }
+
+                    if (completedStudentIds.length > 0) {
+                        try {
+                            await saveAttendanceData(classId, completedStudentIds);
+                        } catch (e) {
+                            logError('closeScannerConfirm', e, { className, classId, action: 'saveAttendanceData' });
+                            // Continue with cleanup
+                        }
+                    }
+                }
+
+                // Always clear state and close overlays, even if saves failed
+                clearAttendanceState(className);
+                const attendanceOverlay = getOverlay('attendanceOverlay');
+                if (attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
+                    hideOverlay(attendanceOverlay, false);
+                }
+
+                // Close scanner with guaranteed cleanup
+                try {
+                    await closeScanner(() => {
+                        clearStudentTimestamps();
+                        if (onClosed) {
+                            try {
+                                onClosed();
+                            } catch (e) {
+                                logError('closeScannerConfirm', e, { className, action: 'onClosed callback' });
+                            }
+                        }
+                    });
+                } catch (e) {
+                    logError('closeScannerConfirm', e, { className, action: 'closeScanner' });
+                    // Ensure body scroll is restored even if scanner close fails
+                    document.body.style.overflow = '';
+                    // Still call onClosed if provided
+                    if (onClosed) {
+                        try {
+                            onClosed();
+                        } catch (callbackErr) {
+                            logError('closeScannerConfirm', callbackErr, { className, action: 'onClosed callback (fallback)' });
+                        }
+                    }
+                }
+            } catch (e) {
+                // Catch-all for any unexpected errors
+                logError('closeScannerConfirm', e, { className, action: 'unexpected error' });
+                // Ensure overlays close and state is restored
+                document.body.style.overflow = '';
+                if (onClosed) {
+                    try {
+                        onClosed();
+                    } catch (callbackErr) {
+                        logError('closeScannerConfirm', callbackErr, { className, action: 'onClosed callback (error handler)' });
                     }
                 }
             }
-            await saveAttendanceData(classId, completedStudentIds);
-
-            clearAttendanceState(className);
-            const attendanceOverlay = getOverlay('attendanceOverlay');
-            if (attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
-                hideOverlay(attendanceOverlay, false);
-            }
-
-            await closeScanner(() => {
-                clearStudentTimestamps();
-                if (onClosed) onClosed();
-            });
         },
         () => { /* canceled */ }
     );
