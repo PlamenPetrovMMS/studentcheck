@@ -893,6 +893,7 @@ async function renderAddStudentsList(className) {
     // Always fetch all students for selection
     try {
         allStudents = await fetchAllStudents();
+        console.log('[Render Add Students] All students fetched:', allStudents);
         if (!Array.isArray(allStudents)) {
             allStudents = [];
         }
