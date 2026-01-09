@@ -62,11 +62,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const optionsBtn = readyPopupOverlay?.querySelector('#classOptionsBtn');
         const closeBtn = readyPopupOverlay?.querySelector('#closeReadyPopupBtn');
 
-        manageBtn?.addEventListener('click', () => {
+        manageBtn?.addEventListener('click', async () => {
             const current = getCurrentClass();
             const className = current.name || (current.button ? getRawClassNameFromButton(current.button) : '');
             closeReadyClassPopup();
-            openManageStudentsOverlay(className.trim());
+            await openManageStudentsOverlay(className.trim());
         });
 
         scannerBtn?.addEventListener('click', () => {

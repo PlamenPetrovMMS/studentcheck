@@ -58,91 +58,136 @@ function loadAttendanceLog(className, studentId) {
  * Render manage students list for a class
  * @param {string} className - Class name
  */
-export function renderManageStudentsForClass(className) {
+export async function renderManageStudentsForClass(className) {
+    const module = 'STUDENT_MANAGEMENT';
+    const functionName = 'renderManageStudentsForClass';
+    
     const listEl = getManageStudentsListEl();
-    if (!listEl) return;
-
-    listEl.innerHTML = '';
-
-    // Prefer per-class stored student objects
-    const students = loadClassStudentsFromStorage(className);
-
-    if (students && students.length > 0) {
-        const ul = document.createElement('ul');
-        ul.style.listStyle = 'none';
-        ul.style.padding = '0';
-        ul.style.margin = '0';
-
-        students.forEach(student => {
-            const li = document.createElement('li');
-            li.className = 'list-item';
-            const studentId = student.faculty_number || student.facultyNumber;
-            li.dataset.studentId = studentId;
-
-            const wrap = document.createElement('div');
-            wrap.className = 'student-card-text';
-
-            const nameEl = document.createElement('span');
-            nameEl.className = 'student-name';
-            nameEl.textContent = student.full_name || student.fullName;
-
-            const facEl = document.createElement('span');
-            facEl.className = 'student-fac';
-            facEl.textContent = student.faculty_number || student.facultyNumber;
-
-            wrap.appendChild(nameEl);
-            wrap.appendChild(facEl);
-            li.appendChild(wrap);
-            li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
-
-            ul.appendChild(li);
-        });
-
-        listEl.appendChild(ul);
+    if (!listEl) {
+        console.error(`[${module}] List element not found for class:`, className);
         return;
     }
 
-    // Fallback to in-memory id set
-    const assignments = getClassStudentAssignments(className);
-    if (!assignments || assignments.size === 0) {
+    // Show loading state initially
+    listEl.innerHTML = '<p class="muted" style="text-align:center; padding:20px;">Loading students...</p>';
+
+    try {
+        // First, try to load from localStorage (fast path)
+        let students = loadClassStudentsFromStorage(className);
+        
+        // If localStorage is empty, fetch from API
+        if (!students || students.length === 0) {
+            console.log(`[${module}] No students in localStorage for "${className}", fetching from API...`);
+            
+            // Resolve classId to fetch from API
+            const classId = await resolveClassId(className);
+            
+            if (classId) {
+                try {
+                    const fetched = await fetchClassStudents(classId, className);
+                    students = fetched || [];
+                    console.log(`[${module}] Fetched ${students.length} students from API for class:`, className);
+                } catch (e) {
+                    console.error(`[${module}] Failed to fetch class students from API:`, className, e);
+                    // Continue with empty array - will show empty state below
+                    students = [];
+                }
+            } else {
+                console.warn(`[${module}] No classId found for "${className}", cannot fetch from API`);
+                students = [];
+            }
+        } else {
+            console.log(`[${module}] Loaded ${students.length} students from localStorage for class:`, className);
+        }
+
+        // Clear loading state
+        listEl.innerHTML = '';
+
+        // Render students if we have any
+        if (students && students.length > 0) {
+            const ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.padding = '0';
+            ul.style.margin = '0';
+
+            students.forEach(student => {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                const studentId = student.faculty_number || student.facultyNumber;
+                li.dataset.studentId = studentId;
+
+                const wrap = document.createElement('div');
+                wrap.className = 'student-card-text';
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'student-name';
+                nameEl.textContent = student.full_name || student.fullName;
+
+                const facEl = document.createElement('span');
+                facEl.className = 'student-fac';
+                facEl.textContent = student.faculty_number || student.facultyNumber;
+
+                wrap.appendChild(nameEl);
+                wrap.appendChild(facEl);
+                li.appendChild(wrap);
+                li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
+
+                ul.appendChild(li);
+            });
+
+            listEl.appendChild(ul);
+            return;
+        }
+
+        // Fallback to in-memory id set if no students from storage/API
+        const assignments = getClassStudentAssignments(className);
+        if (assignments && assignments.size > 0) {
+            const ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.padding = '0';
+            ul.style.margin = '0';
+
+            Array.from(assignments).forEach((id) => {
+                const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.dataset.studentId = id;
+
+                const wrap = document.createElement('div');
+                wrap.className = 'student-card-text';
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'student-name';
+                nameEl.textContent = info.fullName || '';
+
+                const facEl = document.createElement('span');
+                facEl.className = 'student-fac';
+                facEl.textContent = info.faculty_number || '';
+
+                wrap.appendChild(nameEl);
+                wrap.appendChild(facEl);
+                li.appendChild(wrap);
+                li.addEventListener('click', () => openStudentInfoOverlay(id, className));
+
+                ul.appendChild(li);
+            });
+
+            listEl.appendChild(ul);
+            return;
+        }
+
+        // Show empty state if no students found
         const p = document.createElement('p');
         p.className = 'muted';
+        p.style.textAlign = 'center';
+        p.style.padding = '20px';
         p.textContent = 'No students assigned to this class.';
         listEl.appendChild(p);
-        return;
+        
+    } catch (error) {
+        console.error(`[${module}] Error rendering manage students list:`, className, error);
+        listEl.innerHTML = '<p class="muted" style="text-align:center; padding:20px; color:red;">Error loading students. Please try again.</p>';
     }
-
-    const ul = document.createElement('ul');
-    ul.style.listStyle = 'none';
-    ul.style.padding = '0';
-    ul.style.margin = '0';
-
-    Array.from(assignments).forEach((id) => {
-        const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
-        const li = document.createElement('li');
-        li.className = 'list-item';
-        li.dataset.studentId = id;
-
-        const wrap = document.createElement('div');
-        wrap.className = 'student-card-text';
-
-        const nameEl = document.createElement('span');
-        nameEl.className = 'student-name';
-        nameEl.textContent = info.fullName || '';
-
-        const facEl = document.createElement('span');
-        facEl.className = 'student-fac';
-        facEl.textContent = info.faculty_number || '';
-
-        wrap.appendChild(nameEl);
-        wrap.appendChild(facEl);
-        li.appendChild(wrap);
-        li.addEventListener('click', () => openStudentInfoOverlay(id, className));
-
-        ul.appendChild(li);
-    });
-
-    listEl.appendChild(ul);
 }
 
 /**
@@ -195,7 +240,7 @@ function ensureManageStudentsOverlayInitialized() {
  * Open manage students overlay
  * @param {string} className - Class name
  */
-export function openManageStudentsOverlay(className) {
+export async function openManageStudentsOverlay(className) {
     ensureManageStudentsOverlayInitialized();
 
     const current = getCurrentClass();
@@ -205,17 +250,22 @@ export function openManageStudentsOverlay(className) {
     const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
     if (readyPopupOverlay) hideOverlay(readyPopupOverlay);
 
-    const classStudents = loadClassStudentsFromStorage(className);
-
     // Title reflect class name
     const overlay = getManageStudentsOverlay();
     const titleEl = overlay?.querySelector('#manageStudentsTitle');
     if (titleEl) titleEl.textContent = `Manage Students — ${className}`;
 
-    renderManageStudentsForClass(className);
-
+    // Show overlay immediately (renderManageStudentsForClass will show loading state)
     if (overlay) {
         showOverlay(overlay);
+    }
+
+    // Render students list (async, will fetch from API if needed)
+    try {
+        await renderManageStudentsForClass(className);
+    } catch (e) {
+        console.error('[openManageStudentsOverlay] Failed to render students list:', className, e);
+        // Error handling is done inside renderManageStudentsForClass
     }
 }
 
@@ -438,7 +488,7 @@ export async function removeStudentFromClass(facultyNumber, className) {
         closeStudentInfoOverlay();
         const manageOverlay = getManageStudentsOverlay();
         if (manageOverlay && isOverlayVisible(manageOverlay)) {
-            renderManageStudentsForClass(className);
+            await renderManageStudentsForClass(className);
         }
 
         alert('Student removed from class successfully.');
@@ -1087,7 +1137,7 @@ export async function finalizeAddStudentsToClass(className) {
     // Re-render manage list
     const manageOverlay = getManageStudentsOverlay();
     if (manageOverlay && isOverlayVisible(manageOverlay)) {
-        renderManageStudentsForClass(className);
+        await renderManageStudentsForClass(className);
     }
 
     // Refresh attendance overlay if open
