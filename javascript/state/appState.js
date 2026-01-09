@@ -42,6 +42,9 @@ let currentScanMode = 'joining';
 let html5QrCode = null;
 let lastScanAt = 0;
 
+// All students cache (shared across modules)
+let allStudents = null;
+
 // ========== Class ID Management ==========
 
 /**
@@ -407,4 +410,33 @@ export function getLastScanAt() {
  */
 export function setLastScanAt(timestamp) {
     lastScanAt = timestamp;
+}
+
+// ========== All Students Cache ==========
+
+/**
+ * Get all students from shared cache
+ * @returns {Array<Object>|null} Array of all students or null if not cached
+ */
+export function getAllStudents() {
+    return allStudents;
+}
+
+/**
+ * Set all students in shared cache
+ * @param {Array<Object>} students - Array of all students
+ */
+export function setAllStudents(students) {
+    allStudents = students;
+    console.log('[appState] All students cached in shared state', {
+        count: students?.length || 0,
+        sampleStudent: students?.[0] || null
+    });
+}
+
+/**
+ * Clear all students cache
+ */
+export function clearAllStudents() {
+    allStudents = null;
 }

@@ -17,7 +17,9 @@ import {
     removeStudentFromClassAssignments,
     setClassReady,
     getClassIdByName,
-    setClassId
+    setClassId,
+    getAllStudents,
+    setAllStudents
 } from '../state/appState.js';
 import { loadClassStudentsFromStorage, addNewStudentsToStorage, getStudentInfoForFacultyNumber } from '../storage/studentStorage.js';
 import { getClassIdByNameFromStorage, getStoredClassesMap } from '../storage/classStorage.js';
@@ -1039,32 +1041,50 @@ async function renderAddStudentsList(className) {
         }
     }
 
-    // Always fetch all students for selection
-    console.log('[Render Add Students] Preparing to fetch all students', {
+    // Read all students from shared state first
+    console.log('[Render Add Students] Preparing to get all students', {
         className,
         classId,
         classStudentsCount: classStudents?.length || 0
     });
     
-    try {
-        allStudents = await fetchAllStudents();
-        console.log('[Render Add Students] All students fetched:', {
-            allStudents,
-            count: allStudents?.length || 0,
-            sampleStudent: allStudents?.[0] || null,
-            sampleStudentKeys: allStudents?.[0] ? Object.keys(allStudents[0]) : []
-        });
-        
-        // Note: fetchAllStudents returns data but does not store in global state
-        // This data is only used locally in renderAddStudentsList
-        console.log('[Render Add Students] fetchAllStudents result stored in local variable only (not global state)');
-        
-        if (!Array.isArray(allStudents)) {
+    // Check shared state first
+    allStudents = getAllStudents();
+    const currentClass = getCurrentClass();
+    
+    console.log('[Render Add Students] Checking shared state for all students', {
+        className,
+        selectedClassId: currentClass.id,
+        allStudentsInState: allStudents,
+        countInState: allStudents?.length || 0,
+        source: allStudents ? 'shared state' : 'not cached'
+    });
+    
+    // If not in shared state, fetch and store
+    if (!allStudents || !Array.isArray(allStudents) || allStudents.length === 0) {
+        console.log('[Render Add Students] All students not in shared state, fetching...');
+        try {
+            allStudents = await fetchAllStudents();
+            console.log('[Render Add Students] All students fetched and stored in shared state:', {
+                count: allStudents?.length || 0,
+                sampleStudent: allStudents?.[0] || null,
+                source: 'API -> shared state'
+            });
+        } catch (e) {
+            console.error('[Render Add Students] Failed to fetch all students:', e);
+            fetchError = true;
             allStudents = [];
         }
-    } catch (e) {
-        console.error('[Render Add Students] Failed to fetch all students:', e);
-        fetchError = true;
+    } else {
+        console.log('[Render Add Students] Using all students from shared state cache:', {
+            count: allStudents.length,
+            source: 'shared state cache'
+        });
+    }
+    
+    // Ensure allStudents is an array
+    if (!Array.isArray(allStudents)) {
+        allStudents = [];
     }
 
     // Clear loading state

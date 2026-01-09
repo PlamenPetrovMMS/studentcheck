@@ -77,6 +77,10 @@ export function renderClassItem(name, id, classList, onClickHandler, loadStudent
     btn.textContent = name;
     btn.dataset.className = name;
     btn.dataset.originalLabel = name;
+    // CRITICAL: Set data-class-id for reliable click handler resolution
+    if (id) {
+        btn.dataset.classId = String(id);
+    }
 
     attachNewClassButtonBehavior(btn, onClickHandler);
 

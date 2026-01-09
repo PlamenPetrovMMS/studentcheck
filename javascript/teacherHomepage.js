@@ -250,19 +250,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ===== CLASS BUTTON CLICK HANDLER =====
     async function handleClassButtonClickWrapper(buttonEl) {
-        const className = getRawClassNameFromButton(buttonEl);
-        const classId = buttonEl.dataset.classId || getClassIdByName(className);
+        // Robustly resolve the clicked button element
+        const btn = buttonEl?.closest?.('.newClassBtn') || buttonEl;
+        
+        // Read dataset attributes - these must be present
+        const className = btn.dataset.className || getRawClassNameFromButton(btn);
+        const classIdFromDataset = btn.dataset.classId;
         
         console.log('[Class Open] Clicked class', {
             className,
-            classId,
-            classIdType: typeof classId,
-            classIdFromDataset: buttonEl.dataset.classId,
+            classIdFromDataset,
+            classIdFromDatasetType: typeof classIdFromDataset,
             classIdFromState: getClassIdByName(className),
-            buttonElement: buttonEl
+            buttonElement: btn,
+            hasDatasetClassId: !!classIdFromDataset,
+            hasDatasetClassName: !!btn.dataset.className
         });
         
-        setCurrentClass(className, classId, buttonEl);
+        // CRITICAL: Require dataset.classId - do not proceed without it
+        if (!classIdFromDataset) {
+            const errorContext = {
+                module: 'teacherHomepage',
+                function: 'handleClassButtonClickWrapper',
+                action: 'resolveClassDataset',
+                errorMessage: 'Missing data-class-id on class button',
+                className,
+                clickedElement: btn?.outerHTML?.slice(0, 200),
+                allDatasetKeys: Object.keys(btn.dataset || {})
+            };
+            console.error('[UI_ERROR]', errorContext);
+            // Do not proceed - abort opening overlays
+            alert('Error: Class ID not found. Please refresh the page.');
+            return;
+        }
+        
+        // Validate that className matches if we have state fallback
+        const classIdFromState = getClassIdByName(className);
+        if (classIdFromState && String(classIdFromState) !== String(classIdFromDataset)) {
+            console.warn('[Class Open] Dataset classId does not match state classId', {
+                className,
+                classIdFromDataset,
+                classIdFromState,
+                warning: 'Using dataset value, but mismatch detected'
+            });
+        }
+        
+        // Use dataset classId exclusively
+        const classId = classIdFromDataset;
+        
+        setCurrentClass(className, classId, btn);
         
         const currentAfterSet = getCurrentClass();
         console.log('[Class Open] selectedClassId set', {
@@ -271,9 +307,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             type: typeof currentAfterSet.id
         });
         
-        if (!buttonEl.dataset.className) buttonEl.dataset.className = className;
-        if (!buttonEl.dataset.originalLabel) buttonEl.dataset.originalLabel = className;
-        if (classId && !buttonEl.dataset.classId) buttonEl.dataset.classId = classId;
+        // Ensure dataset is complete (defensive)
+        if (!btn.dataset.className) btn.dataset.className = className;
+        if (!btn.dataset.originalLabel) btn.dataset.originalLabel = className;
 
         if (isClassReady(className)) {
             console.log('[Class Open] Class is ready, opening ready popup');
