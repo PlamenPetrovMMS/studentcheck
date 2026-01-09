@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ===== CLASS BUTTON CLICK HANDLER =====
-    function handleClassButtonClickWrapper(buttonEl) {
+    async function handleClassButtonClickWrapper(buttonEl) {
         const className = getRawClassNameFromButton(buttonEl);
         const classId = buttonEl.dataset.classId || getClassIdByName(className);
         
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isClassReady(className)) {
             openReadyClassPopup(className);
         } else {
-            openAddStudentsToClass(className);
+            await openAddStudentsToClass(className);
         }
     }
 

@@ -178,10 +178,10 @@ function ensureManageStudentsOverlayInitialized() {
         closeAllClassOverlays();
     });
 
-    addBtn?.addEventListener('click', () => {
-        const current = getCurrentClass();
-        openAddStudentsToClass(current.name);
-    });
+        addBtn?.addEventListener('click', async () => {
+            const current = getCurrentClass();
+            await openAddStudentsToClass(current.name);
+        });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && isOverlayVisible(overlay)) {
@@ -750,7 +750,7 @@ function ensureAddStudentsOverlayInitialized() {
  * Open add students to class overlay
  * @param {string} className - Class name
  */
-export function openAddStudentsToClass(className) {
+export async function openAddStudentsToClass(className) {
     closeManageStudentsOverlay();
 
     if (!className) return;
@@ -765,12 +765,24 @@ export function openAddStudentsToClass(className) {
 
     if (confirmBtn) confirmBtn.textContent = 'Add (0)';
 
-    renderAddStudentsList(className);
-
-    updateAddStudentsCounter();
+    // Show overlay immediately with loading state
     if (overlay) {
         showOverlay(overlay, false);
     }
+
+    // Render students list (async, with error handling)
+    try {
+        await renderAddStudentsList(className);
+    } catch (e) {
+        console.error('[openAddStudentsToClass] Failed to render students list:', className, e);
+        // Ensure list container shows error state
+        const listEl = getAddStudentsListEl();
+        if (listEl) {
+            listEl.innerHTML = '<p class="muted" style="text-align:center; padding:20px;">Unable to load students. Please try again.</p>';
+        }
+    }
+
+    updateAddStudentsCounter();
     searchInput?.focus();
 }
 
@@ -921,15 +933,15 @@ async function renderAddStudentsList(className) {
     }
 
     // Show empty state message if class has no assigned students
-    if (!classStudents || classStudents.length === 0) {
-        const emptyStateMsg = document.createElement('p');
-        emptyStateMsg.className = 'muted';
-        emptyStateMsg.style.textAlign = 'center';
-        emptyStateMsg.style.padding = '10px 0';
-        emptyStateMsg.style.marginBottom = '10px';
-        emptyStateMsg.textContent = 'No students assigned to this class yet. Select students below to add them.';
-        listEl.appendChild(emptyStateMsg);
-    }
+    const emptyStateMsg = (!classStudents || classStudents.length === 0) ? (() => {
+        const msg = document.createElement('p');
+        msg.className = 'muted';
+        msg.style.textAlign = 'center';
+        msg.style.padding = '10px 0';
+        msg.style.marginBottom = '10px';
+        msg.textContent = 'No students assigned to this class yet. Select students below to add them.';
+        return msg;
+    })() : null;
 
     // Render the list of all students
     const ul = document.createElement('ul');
@@ -1007,7 +1019,10 @@ async function renderAddStudentsList(className) {
         ul.appendChild(li);
     });
 
-    listEl.innerHTML = '';
+    // Append empty state message (if present) and student list
+    if (emptyStateMsg) {
+        listEl.appendChild(emptyStateMsg);
+    }
     listEl.appendChild(ul);
 }
 
