@@ -33,6 +33,10 @@ export async function createClass(name, studentIds, teacherEmail) {
  * @returns {Promise<{classes: Array<{id: number, name: string}>}>} Classes data
  */
 export async function fetchClasses(teacherEmail) {
+    if (!teacherEmail) {
+        throw new Error('Teacher email is required');
+    }
+    
     const result = await fetch(
         `${SERVER_BASE_URL + ENDPOINTS.createClass}?teacherEmail=${encodeURIComponent(teacherEmail)}`,
         {
@@ -40,6 +44,11 @@ export async function fetchClasses(teacherEmail) {
             headers: { 'Accept': 'application/json' }
         }
     );
+    
+    if (!result.ok) {
+        throw new Error(`Failed to fetch classes: ${result.status} ${result.statusText}`);
+    }
+    
     const data = await result.json();
     return data;
 }

@@ -207,7 +207,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadClasses() {
         try {
-            const classes = await fetchClasses();
+            const teacherEmail = getTeacherEmail();
+            if (!teacherEmail) {
+                console.error('Cannot load classes: teacher email not found');
+                return;
+            }
+            
+            const data = await fetchClasses(teacherEmail);
+            const classes = data.classes || [];
             const classesMap = new Map();
             
             classes.forEach(_class => {
