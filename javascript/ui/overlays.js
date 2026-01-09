@@ -1,0 +1,160 @@
+/**
+ * Overlay Management Module
+ * 
+ * Handles overlay DOM element management (show/hide/visibility).
+ * Provides utilities for overlay operations.
+ */
+
+// Cache of overlay elements
+const overlayCache = new Map();
+
+/**
+ * Get overlay element by ID, with caching
+ * @param {string} id - Overlay element ID
+ * @returns {HTMLElement|null} Overlay element or null
+ */
+export function getOverlay(id) {
+    if (overlayCache.has(id)) {
+        return overlayCache.get(id);
+    }
+    const element = document.getElementById(id);
+    if (element) {
+        overlayCache.set(id, element);
+    }
+    return element;
+}
+
+/**
+ * Show an overlay (set visibility to visible)
+ * @param {HTMLElement|string} overlay - Overlay element or ID
+ * @param {boolean} hideBodyOverflow - Whether to hide body overflow (default: true)
+ */
+export function showOverlay(overlay, hideBodyOverflow = true) {
+    const element = typeof overlay === 'string' ? getOverlay(overlay) : overlay;
+    if (element) {
+        element.style.visibility = 'visible';
+        if (hideBodyOverflow) {
+            document.body.style.overflow = 'hidden';
+        }
+    }
+}
+
+/**
+ * Hide an overlay (set visibility to hidden)
+ * @param {HTMLElement|string} overlay - Overlay element or ID
+ * @param {boolean} restoreBodyOverflow - Whether to restore body overflow (default: true)
+ */
+export function hideOverlay(overlay, restoreBodyOverflow = true) {
+    const element = typeof overlay === 'string' ? getOverlay(overlay) : overlay;
+    if (element) {
+        element.style.visibility = 'hidden';
+        if (restoreBodyOverflow) {
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+/**
+ * Check if overlay is visible
+ * @param {HTMLElement|string} overlay - Overlay element or ID
+ * @returns {boolean} True if visible
+ */
+export function isOverlayVisible(overlay) {
+    const element = typeof overlay === 'string' ? getOverlay(overlay) : overlay;
+    if (!element) return false;
+    return element.style.visibility === 'visible';
+}
+
+/**
+ * Ensure overlay exists, create if missing
+ * @param {string} id - Overlay element ID
+ * @param {Function} createFn - Function to create overlay if missing
+ * @returns {HTMLElement} Overlay element
+ */
+export function ensureOverlay(id, createFn) {
+    let element = getOverlay(id);
+    if (!element && createFn) {
+        element = createFn();
+        if (element) {
+            overlayCache.set(id, element);
+        }
+    }
+    return element;
+}
+
+/**
+ * Reusable confirmation overlay
+ */
+let confirmOverlay = null;
+
+/**
+ * Ensure confirmation overlay exists
+ * @returns {HTMLElement} Confirmation overlay element
+ */
+export function ensureConfirmOverlay() {
+    if (confirmOverlay) return confirmOverlay;
+    confirmOverlay = document.createElement('div');
+    confirmOverlay.id = 'confirmOverlay';
+    confirmOverlay.className = 'overlay';
+    confirmOverlay.style.visibility = 'hidden';
+    confirmOverlay.innerHTML = `
+        <div class="confirm-popup" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <h3 id="confirmTitle" class="confirm-title">Confirm</h3>
+            <p id="confirmMessage" class="confirm-message"></p>
+            <div class="confirm-actions">
+                <button type="button" id="confirmCancelBtn" class="role-button">Cancel</button>
+                <button type="button" id="confirmOkBtn" class="role-button danger">Confirm</button>
+            </div>
+        </div>`;
+    document.body.appendChild(confirmOverlay);
+    return confirmOverlay;
+}
+
+/**
+ * Open confirmation overlay
+ * @param {string} message - Confirmation message
+ * @param {Function} onConfirm - Callback on confirm
+ * @param {Function} onCancel - Callback on cancel
+ */
+export function openConfirmOverlay(message, onConfirm, onCancel) {
+    ensureConfirmOverlay();
+    const msgEl = confirmOverlay.querySelector('#confirmMessage');
+    if (msgEl) msgEl.textContent = message || 'Are you sure?';
+    const cancelBtn = confirmOverlay.querySelector('#confirmCancelBtn');
+    const okBtn = confirmOverlay.querySelector('#confirmOkBtn');
+    const cleanup = () => {
+        cancelBtn?.replaceWith(cancelBtn.cloneNode(true));
+        okBtn?.replaceWith(okBtn.cloneNode(true));
+    };
+    // Re-query after cloning
+    let newCancel = null, newOk = null;
+    const wire = () => {
+        newCancel = confirmOverlay.querySelector('#confirmCancelBtn');
+        newOk = confirmOverlay.querySelector('#confirmOkBtn');
+        newCancel?.addEventListener('click', () => {
+            closeConfirmOverlay();
+            if (onCancel) onCancel();
+        });
+        newOk?.addEventListener('click', () => {
+            closeConfirmOverlay();
+            if (onConfirm) onConfirm();
+        });
+    };
+    cleanup();
+    wire();
+    confirmOverlay.style.visibility = 'visible';
+    // Prevent backdrop click from propagating; treat as cancel
+    confirmOverlay.addEventListener('click', (e) => {
+        if (e.target === confirmOverlay) {
+            closeConfirmOverlay();
+            if (onCancel) onCancel();
+        }
+    }, { once: true });
+}
+
+/**
+ * Close confirmation overlay
+ */
+export function closeConfirmOverlay() {
+    if (confirmOverlay) confirmOverlay.style.visibility = 'hidden';
+}

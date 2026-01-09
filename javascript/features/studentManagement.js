@@ -1,0 +1,1006 @@
+/**
+ * Student Management Feature Module
+ * 
+ * Handles student add/remove/info/history management.
+ * Manages manage students overlay, student info overlay, attendance history, and add students overlay.
+ */
+
+import { removeStudentFromClass as apiRemoveStudentFromClass, addStudentsToClass } from '../api/classApi.js';
+import { fetchAllStudents } from '../api/studentApi.js';
+import { fetchClassStudents } from '../api/classApi.js';
+import { getStudentAttendanceCountForClass } from './attendance.js';
+import {
+    getCurrentClass,
+    setCurrentClass,
+    getClassStudentAssignments,
+    ensureClassStudentAssignments,
+    removeStudentFromClassAssignments,
+    setClassReady,
+    getClassIdByName
+} from '../state/appState.js';
+import { loadClassStudentsFromStorage, addNewStudentsToStorage, getStudentInfoForFacultyNumber } from '../storage/studentStorage.js';
+import { getClassIdByNameFromStorage } from '../storage/classStorage.js';
+import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from '../ui/overlays.js';
+import { updateClassStatusUI } from '../ui/classUI.js';
+import { renderAttendanceForClass } from '../ui/attendanceUI.js';
+import { getTeacherEmail } from '../config/api.js';
+
+// Module state
+let studentIndex = new Map(); // id -> full student object
+let studentInfoOverlay = null;
+let manageStudentsScrollPos = 0;
+let manageStudentsOverlayInitialized = false;
+let attendanceHistoryOverlayInitialized = false;
+let addStudentsOverlayInitialized = false;
+let addStudentsSelections = new Set();
+
+// DOM helpers
+function getManageStudentsOverlay() { return getOverlay('manageStudentsOverlay'); }
+function getManageStudentsListEl() { return document.getElementById('manageStudentsList'); }
+function getAddStudentsClassOverlay() { return getOverlay('addStudentsClassOverlay'); }
+function getAddStudentsListEl() { return document.getElementById('addStudentsList'); }
+function getAttendanceHistoryOverlay() { return getOverlay('attendanceHistoryOverlay'); }
+
+/**
+ * Load attendance log for a student (stub - returns empty array)
+ * @param {string} className - Class name
+ * @param {string} studentId - Student ID
+ * @returns {Array} Empty array (attendance logs not implemented)
+ */
+function loadAttendanceLog(className, studentId) {
+    // TODO: Implement attendance log loading from server/storage
+    return [];
+}
+
+/**
+ * Render manage students list for a class
+ * @param {string} className - Class name
+ */
+export function renderManageStudentsForClass(className) {
+    const listEl = getManageStudentsListEl();
+    if (!listEl) return;
+
+    listEl.innerHTML = '';
+
+    // Prefer per-class stored student objects
+    const students = loadClassStudentsFromStorage(className);
+
+    if (students && students.length > 0) {
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.padding = '0';
+        ul.style.margin = '0';
+
+        students.forEach(student => {
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            const studentId = student.faculty_number || student.facultyNumber;
+            li.dataset.studentId = studentId;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'student-card-text';
+
+            const nameEl = document.createElement('span');
+            nameEl.className = 'student-name';
+            nameEl.textContent = student.full_name || student.fullName;
+
+            const facEl = document.createElement('span');
+            facEl.className = 'student-fac';
+            facEl.textContent = student.faculty_number || student.facultyNumber;
+
+            wrap.appendChild(nameEl);
+            wrap.appendChild(facEl);
+            li.appendChild(wrap);
+            li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
+
+            ul.appendChild(li);
+        });
+
+        listEl.appendChild(ul);
+        return;
+    }
+
+    // Fallback to in-memory id set
+    const assignments = getClassStudentAssignments(className);
+    if (!assignments || assignments.size === 0) {
+        const p = document.createElement('p');
+        p.className = 'muted';
+        p.textContent = 'No students assigned to this class.';
+        listEl.appendChild(p);
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.style.listStyle = 'none';
+    ul.style.padding = '0';
+    ul.style.margin = '0';
+
+    Array.from(assignments).forEach((id) => {
+        const info = studentIndex.get(id) || { fullName: id, faculty_number: '' };
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        li.dataset.studentId = id;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'student-card-text';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'student-name';
+        nameEl.textContent = info.fullName || '';
+
+        const facEl = document.createElement('span');
+        facEl.className = 'student-fac';
+        facEl.textContent = info.faculty_number || '';
+
+        wrap.appendChild(nameEl);
+        wrap.appendChild(facEl);
+        li.appendChild(wrap);
+        li.addEventListener('click', () => openStudentInfoOverlay(id, className));
+
+        ul.appendChild(li);
+    });
+
+    listEl.appendChild(ul);
+}
+
+/**
+ * Ensure manage students overlay is initialized (idempotent)
+ */
+function ensureManageStudentsOverlayInitialized() {
+    if (manageStudentsOverlayInitialized) return;
+    manageStudentsOverlayInitialized = true;
+
+    const overlay = getManageStudentsOverlay();
+    if (!overlay) return;
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            const current = getCurrentClass();
+            returnToReadyClassPopup(current.name);
+        }
+    });
+
+    const backBtn = overlay.querySelector('#backToReadyBtn');
+    const closeBtn = overlay.querySelector('#closeManageOverlayBtn');
+    const addBtn = overlay.querySelector('#addStudentManageBtn');
+
+    backBtn?.addEventListener('click', () => {
+        const current = getCurrentClass();
+        returnToReadyClassPopup(current.name);
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeAllClassOverlays();
+    });
+
+    addBtn?.addEventListener('click', () => {
+        const current = getCurrentClass();
+        openAddStudentsToClass(current.name);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOverlayVisible(overlay)) {
+            const current = getCurrentClass();
+            returnToReadyClassPopup(current.name);
+        }
+    });
+}
+
+/**
+ * Open manage students overlay
+ * @param {string} className - Class name
+ */
+export function openManageStudentsOverlay(className) {
+    ensureManageStudentsOverlayInitialized();
+
+    const current = getCurrentClass();
+    setCurrentClass(className, current.id, current.button);
+
+    // Hide ready overlay to avoid stacking
+    const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
+    if (readyPopupOverlay) hideOverlay(readyPopupOverlay);
+
+    const classStudents = loadClassStudentsFromStorage(className);
+
+    // Title reflect class name
+    const overlay = getManageStudentsOverlay();
+    const titleEl = overlay?.querySelector('#manageStudentsTitle');
+    if (titleEl) titleEl.textContent = `Manage Students — ${className}`;
+
+    renderManageStudentsForClass(className);
+
+    if (overlay) {
+        showOverlay(overlay);
+    }
+}
+
+/**
+ * Close manage students overlay
+ */
+function closeManageStudentsOverlay() {
+    const overlay = getManageStudentsOverlay();
+    if (overlay) {
+        hideOverlay(overlay);
+    }
+}
+
+/**
+ * Return to ready class popup from manage students
+ * @param {string} className - Class name
+ */
+function returnToReadyClassPopup(className) {
+    closeManageStudentsOverlay();
+    // This will be handled by the main file's ready popup handler
+    const event = new CustomEvent('openReadyClassPopup', { detail: { className } });
+    document.dispatchEvent(event);
+}
+
+/**
+ * Ensure student info overlay exists
+ * @returns {HTMLElement} Overlay element
+ */
+function ensureStudentInfoOverlay() {
+    if (studentInfoOverlay) return studentInfoOverlay;
+    studentInfoOverlay = document.createElement('div');
+    studentInfoOverlay.id = 'studentInfoOverlay';
+    studentInfoOverlay.className = 'overlay';
+    studentInfoOverlay.style.visibility = 'hidden';
+    document.body.appendChild(studentInfoOverlay);
+    
+    studentInfoOverlay.addEventListener('click', (e) => {
+        if (e.target === studentInfoOverlay) {
+            closeStudentInfoOverlay();
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOverlayVisible(studentInfoOverlay)) {
+            closeStudentInfoOverlay();
+        }
+    });
+    
+    return studentInfoOverlay;
+}
+
+/**
+ * Build student info content HTML
+ * @param {Object} studentObj - Student object
+ * @param {string} studentId - Student ID
+ * @param {string} className - Class name
+ * @returns {HTMLElement} Content wrapper element
+ */
+function buildStudentInfoContent(studentObj, studentId, className) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ready-class-popup student-info-popup';
+    wrapper.setAttribute('role', 'dialog');
+    wrapper.setAttribute('aria-modal', 'true');
+    wrapper.innerHTML = '';
+
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Student Info';
+    wrapper.appendChild(h2);
+
+    // Get student data from storage if available
+    const classStudents = loadClassStudentsFromStorage(className);
+    let studentData = studentObj;
+    if (classStudents && Array.isArray(classStudents)) {
+        const found = classStudents.find(s => (s.faculty_number || s.id) === String(studentId));
+        if (found) studentData = found;
+    }
+
+    const nameP = document.createElement('p');
+    nameP.textContent = `Full Name: ${studentData.fullName || studentData.full_name || ''}`;
+    nameP.style.margin = '0 0 8px 0';
+    wrapper.appendChild(nameP);
+
+    const facultyP = document.createElement('p');
+    facultyP.textContent = `Faculty Number: ${studentData.faculty_number || studentData.facultyNumber || ''}`;
+    facultyP.style.margin = '0 0 12px 0';
+    wrapper.appendChild(facultyP);
+
+    if (studentData.email) {
+        const emailP = document.createElement('p');
+        emailP.textContent = `Email: ${studentData.email}`;
+        emailP.style.margin = '0 0 10px 0';
+        wrapper.appendChild(emailP);
+    }
+
+    // Attended classes counter (per-class, live)
+    const current = getCurrentClass();
+    const attended = getStudentAttendanceCountForClass(className || current.name, studentId, null);
+    const attendedP = document.createElement('p');
+    attendedP.setAttribute('data-attendance-counter', '');
+    attendedP.textContent = `Attended Classes: ${attended}`;
+    attendedP.style.margin = '10px 0 0 0';
+    attendedP.style.fontWeight = '700';
+    attendedP.style.fontSize = '1.15rem';
+    attendedP.style.letterSpacing = '.5px';
+    wrapper.appendChild(attendedP);
+
+    // Attendance History button
+    const historyBtn = document.createElement('button');
+    historyBtn.type = 'button';
+    historyBtn.className = 'role-button attendance-history-btn';
+    historyBtn.textContent = 'Attendance History';
+    historyBtn.style.marginTop = '16px';
+    historyBtn.style.width = '100%';
+    historyBtn.addEventListener('click', () => {
+        openAttendanceHistoryOverlay(className || current.name, studentId);
+    });
+    wrapper.appendChild(historyBtn);
+
+    // Remove from class button
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'role-button danger';
+    removeBtn.textContent = 'Remove from Class';
+    removeBtn.style.marginTop = '12px';
+    removeBtn.style.width = '100%';
+    removeBtn.style.backgroundColor = '#dc2626';
+    removeBtn.style.color = 'white';
+    removeBtn.style.border = 'none';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.addEventListener('mouseover', () => {
+        removeBtn.style.backgroundColor = '#991b1b';
+    });
+    removeBtn.addEventListener('mouseout', () => {
+        removeBtn.style.backgroundColor = '#dc2626';
+    });
+    removeBtn.addEventListener('click', () => {
+        openConfirmOverlay(
+            `Are you sure you want to remove ${studentData.fullName || studentData.full_name || 'this student'} from the class?`,
+            () => removeStudentFromClass(studentId, className || current.name),
+            () => { /* cancelled */ }
+        );
+    });
+    wrapper.appendChild(removeBtn);
+
+    return wrapper;
+}
+
+/**
+ * Open student info overlay
+ * @param {string} studentId - Student ID
+ * @param {string} className - Class name
+ */
+export function openStudentInfoOverlay(studentId, className) {
+    ensureStudentInfoOverlay();
+
+    // Preserve scroll of manage overlay
+    const listEl = getManageStudentsListEl();
+    if (listEl) manageStudentsScrollPos = listEl.scrollTop;
+
+    // Hide manage overlay without destroying it
+    const manageOverlay = getManageStudentsOverlay();
+    if (manageOverlay) hideOverlay(manageOverlay, false);
+
+    const info = studentIndex.get(studentId) || { fullName: studentId };
+    studentInfoOverlay.innerHTML = '';
+    const content = buildStudentInfoContent(info, studentId, className);
+    studentInfoOverlay.appendChild(content);
+    studentInfoOverlay.dataset.studentId = String(studentId);
+    studentInfoOverlay.dataset.className = String(className || getCurrentClass().name || '');
+    showOverlay(studentInfoOverlay, false);
+}
+
+/**
+ * Close student info overlay
+ */
+function closeStudentInfoOverlay() {
+    if (!studentInfoOverlay) return;
+    hideOverlay(studentInfoOverlay, false);
+    
+    // Restore manage overlay
+    const manageOverlay = getManageStudentsOverlay();
+    if (manageOverlay) {
+        showOverlay(manageOverlay, false);
+        const listEl = getManageStudentsListEl();
+        if (listEl) listEl.scrollTop = manageStudentsScrollPos;
+    }
+}
+
+/**
+ * Remove student from class
+ * @param {string} facultyNumber - Faculty number
+ * @param {string} className - Class name
+ */
+export async function removeStudentFromClass(facultyNumber, className) {
+    const classId = getClassIdByName(className);
+    if (!classId) {
+        console.error('[removeStudentFromClass] Unable to get class ID for class:', className);
+        alert('Error: Class ID not found.');
+        return;
+    }
+
+    const teacherEmail = getTeacherEmail();
+
+    try {
+        await apiRemoveStudentFromClass(classId, facultyNumber, teacherEmail);
+
+        // Update UI: remove from storage
+        const classStudents = loadClassStudentsFromStorage(className);
+        if (classStudents && Array.isArray(classStudents)) {
+            const filtered = classStudents.filter(s => 
+                s.faculty_number !== String(facultyNumber) && s.id !== String(facultyNumber)
+            );
+            addNewStudentsToStorage(className, filtered);
+        }
+
+        // Update in-memory assignments
+        removeStudentFromClassAssignments(className, String(facultyNumber));
+
+        // Close overlays and refresh
+        closeStudentInfoOverlay();
+        const manageOverlay = getManageStudentsOverlay();
+        if (manageOverlay && isOverlayVisible(manageOverlay)) {
+            renderManageStudentsForClass(className);
+        }
+
+        alert('Student removed from class successfully.');
+    } catch (error) {
+        console.error('[removeStudentFromClass] Error:', error.message);
+        alert('Failed to remove student: ' + error.message);
+    }
+}
+
+/**
+ * Render attendance history list
+ * @param {string} className - Class name
+ * @param {string} studentId - Student ID
+ */
+function renderAttendanceHistoryList(className, studentId) {
+    const container = document.getElementById('attendanceHistoryList');
+    if (!container) return;
+
+    const sessions = loadAttendanceLog(className, studentId);
+
+    container.innerHTML = '';
+    if (!Array.isArray(sessions) || sessions.length === 0) {
+        const p = document.createElement('p');
+        p.className = 'muted';
+        p.textContent = 'No attendance records.';
+        container.appendChild(p);
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'attendance-history-ul';
+    sessions.slice().reverse().forEach((sess) => {
+        const li = document.createElement('li');
+        li.className = 'attendance-history-item';
+        const joined = new Date(sess.joinAt || sess.leaveAt || Date.now());
+        const left = new Date(sess.leaveAt || sess.joinAt || Date.now());
+        const timeOpts = { hour: 'numeric', minute: '2-digit' };
+        const dateOpts = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+        const joinTime = joined.toLocaleTimeString([], timeOpts);
+        const leaveTime = left.toLocaleTimeString([], timeOpts);
+        const joinDate = joined.toLocaleDateString([], dateOpts);
+        const leaveDate = left.toLocaleDateString([], dateOpts);
+
+        const row1 = document.createElement('div');
+        row1.className = 'att-row';
+        const joinLabel = document.createElement('span');
+        joinLabel.className = 'att-label att-label-joined';
+        joinLabel.textContent = 'Joined';
+        const joinVal = document.createElement('span');
+        joinVal.className = 'att-value';
+        joinVal.textContent = `${joinTime} — ${joinDate}`;
+        row1.appendChild(joinLabel);
+        row1.appendChild(joinVal);
+
+        const row2 = document.createElement('div');
+        row2.className = 'att-row';
+        const leaveLabel = document.createElement('span');
+        leaveLabel.className = 'att-label att-label-left';
+        leaveLabel.textContent = 'Left';
+        const leaveVal = document.createElement('span');
+        leaveVal.className = 'att-value';
+        leaveVal.textContent = `${leaveTime} — ${leaveDate}`;
+        row2.appendChild(leaveLabel);
+        row2.appendChild(leaveVal);
+
+        li.appendChild(row1);
+        li.appendChild(row2);
+        ul.appendChild(li);
+    });
+    container.appendChild(ul);
+}
+
+/**
+ * Ensure attendance history overlay is initialized (idempotent)
+ */
+function ensureAttendanceHistoryOverlayInitialized() {
+    if (attendanceHistoryOverlayInitialized) return;
+    attendanceHistoryOverlayInitialized = true;
+
+    const overlay = getAttendanceHistoryOverlay();
+    if (!overlay) return;
+
+    const closeBtn = overlay.querySelector('#closeAttendanceHistoryBtn');
+    const backBtn = overlay.querySelector('#attendanceHistoryBackBtn');
+
+    closeBtn?.addEventListener('click', () => returnToManageStudentsFromHistory());
+    backBtn?.addEventListener('click', () => returnToStudentInfoOverlay());
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) returnToManageStudentsFromHistory();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOverlayVisible(overlay)) {
+            returnToManageStudentsFromHistory();
+        }
+    });
+}
+
+/**
+ * Open attendance history overlay
+ * @param {string} className - Class name
+ * @param {string} studentId - Student ID
+ */
+export function openAttendanceHistoryOverlay(className, studentId) {
+    ensureAttendanceHistoryOverlayInitialized();
+
+    // Hide student info overlay
+    if (studentInfoOverlay) hideOverlay(studentInfoOverlay, false);
+
+    const overlay = getAttendanceHistoryOverlay();
+    const titleEl = overlay?.querySelector('#attendanceHistoryTitle');
+    if (titleEl) titleEl.textContent = 'Attendance History';
+
+    renderAttendanceHistoryList(className, studentId);
+
+    if (overlay) {
+        showOverlay(overlay, false);
+        overlay.dataset.studentId = String(studentId);
+        overlay.dataset.className = String(className || getCurrentClass().name || '');
+    }
+}
+
+/**
+ * Return to student info overlay from history
+ */
+function returnToStudentInfoOverlay() {
+    const overlay = getAttendanceHistoryOverlay();
+    if (overlay) hideOverlay(overlay, false);
+    if (studentInfoOverlay) showOverlay(studentInfoOverlay, false);
+}
+
+/**
+ * Close attendance history overlay
+ */
+function closeAttendanceHistoryOverlay() {
+    const overlay = getAttendanceHistoryOverlay();
+    if (overlay) hideOverlay(overlay, false);
+}
+
+/**
+ * Return to manage students from history
+ */
+function returnToManageStudentsFromHistory() {
+    closeAttendanceHistoryOverlay();
+    if (studentInfoOverlay) hideOverlay(studentInfoOverlay, false);
+    const manageOverlay = getManageStudentsOverlay();
+    if (manageOverlay) {
+        showOverlay(manageOverlay, false);
+        const listEl = getManageStudentsListEl();
+        if (listEl) listEl.scrollTop = manageStudentsScrollPos;
+    }
+}
+
+/**
+ * Filter add students list by query
+ * @param {string} query - Search query
+ */
+function filterAddStudentsList(query) {
+    const listEl = getAddStudentsListEl();
+    if (!listEl) return;
+
+    const q = (query || '').trim().toLowerCase();
+    const items = listEl.querySelectorAll('li.list-item');
+
+    if (!q) {
+        items.forEach(li => li.style.display = '');
+        return;
+    }
+
+    const tokens = q.split(/\s+/).filter(Boolean);
+    items.forEach(li => {
+        const text = li.textContent.toLowerCase();
+        const matches = tokens.every(t => text.includes(t));
+        li.style.display = matches ? '' : 'none';
+    });
+}
+
+/**
+ * Filter by dropdown selects (stub - only uses search)
+ */
+function filterAddStudentsListBySelects(levelValue, facultyValue, specializationValue, groupValue, searchInputValue) {
+    filterAddStudentsList(searchInputValue);
+}
+
+/**
+ * Reset add students filters
+ */
+function resetAddStudentsFilters() {
+    const levelSelect = document.getElementById('addStudentsFilterLevel');
+    const facultySelect = document.getElementById('addStudentsFilterFaculty');
+    const specializationSelect = document.getElementById('addStudentsFilterSpecialization');
+    const groupSelect = document.getElementById('addStudentsFilterGroup');
+    const searchInput = document.getElementById('addStudentsSearchInput');
+
+    if (levelSelect) levelSelect.value = '';
+    if (facultySelect) facultySelect.value = '';
+    if (specializationSelect) specializationSelect.value = '';
+    if (groupSelect) groupSelect.value = '';
+    if (searchInput) searchInput.value = '';
+
+    const listEl = getAddStudentsListEl();
+    if (listEl) {
+        const items = listEl.querySelectorAll('li.list-item');
+        items.forEach(li => li.style.display = '');
+    }
+}
+
+/**
+ * Update add students counter
+ */
+function updateAddStudentsCounter() {
+    const overlay = getAddStudentsClassOverlay();
+    const confirmBtn = overlay?.querySelector('#addStudentsOverlayBtn');
+    if (confirmBtn) {
+        confirmBtn.textContent = `Add (${addStudentsSelections.size})`;
+    }
+}
+
+/**
+ * Ensure add students overlay is initialized (idempotent)
+ */
+function ensureAddStudentsOverlayInitialized() {
+    if (addStudentsOverlayInitialized) return;
+    addStudentsOverlayInitialized = true;
+
+    const overlay = getAddStudentsClassOverlay();
+    if (!overlay) return;
+
+    const closeBtn = overlay.querySelector('#closeAddStudentsClassBtn');
+    const searchInput = overlay.querySelector('#addStudentsSearchInput');
+    const confirmBtn = overlay.querySelector('#addStudentsOverlayBtn');
+    const resetBtn = overlay.querySelector('#addStudentsResetFiltersBtn');
+    const levelSelect = overlay.querySelector('#addStudentsFilterLevel');
+    const facultySelect = overlay.querySelector('#addStudentsFilterFaculty');
+    const specializationSelect = overlay.querySelector('#addStudentsFilterSpecialization');
+    const groupSelect = overlay.querySelector('#addStudentsFilterGroup');
+
+    closeBtn?.addEventListener('click', () => {
+        closeAddStudentsToClass();
+        const current = getCurrentClass();
+        openManageStudentsOverlay(current.name);
+    });
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            const current = getCurrentClass();
+            finalizeAddStudentsToClass(current.name);
+        });
+    }
+
+    searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
+
+    levelSelect?.addEventListener('change', () => {
+        filterAddStudentsListBySelects(
+            levelSelect.value,
+            facultySelect?.value || '',
+            specializationSelect?.value || '',
+            groupSelect?.value || '',
+            searchInput?.value || ''
+        );
+    });
+
+    facultySelect?.addEventListener('change', () => {
+        filterAddStudentsListBySelects(
+            levelSelect?.value || '',
+            facultySelect.value,
+            specializationSelect?.value || '',
+            groupSelect?.value || '',
+            searchInput?.value || ''
+        );
+    });
+
+    specializationSelect?.addEventListener('change', () => {
+        filterAddStudentsListBySelects(
+            levelSelect?.value || '',
+            facultySelect?.value || '',
+            specializationSelect.value,
+            groupSelect?.value || '',
+            searchInput?.value || ''
+        );
+    });
+
+    groupSelect?.addEventListener('change', () => {
+        filterAddStudentsListBySelects(
+            levelSelect?.value || '',
+            facultySelect?.value || '',
+            specializationSelect?.value || '',
+            groupSelect.value,
+            searchInput?.value || ''
+        );
+    });
+
+    resetBtn?.addEventListener('click', resetAddStudentsFilters);
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeAddStudentsToClass();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOverlayVisible(overlay)) {
+            closeAddStudentsToClass();
+        }
+    });
+}
+
+/**
+ * Open add students to class overlay
+ * @param {string} className - Class name
+ */
+export function openAddStudentsToClass(className) {
+    closeManageStudentsOverlay();
+
+    if (!className) return;
+
+    ensureAddStudentsOverlayInitialized();
+
+    const overlay = getAddStudentsClassOverlay();
+    const confirmBtn = overlay?.querySelector('#addStudentsOverlayBtn');
+    const searchInput = overlay?.querySelector('#addStudentsSearchInput');
+
+    addStudentsSelections.clear();
+
+    if (confirmBtn) confirmBtn.textContent = 'Add (0)';
+
+    renderAddStudentsList(className);
+
+    updateAddStudentsCounter();
+    if (overlay) {
+        showOverlay(overlay, false);
+    }
+    searchInput?.focus();
+}
+
+/**
+ * Close add students to class overlay
+ */
+function closeAddStudentsToClass() {
+    const overlay = getAddStudentsClassOverlay();
+    if (overlay) hideOverlay(overlay, false);
+    const manageOverlay = getManageStudentsOverlay();
+    if (!manageOverlay || !isOverlayVisible(manageOverlay)) {
+        document.body.style.overflow = '';
+    }
+}
+
+/**
+ * Render add students list
+ * @param {string} className - Class name
+ */
+async function renderAddStudentsList(className) {
+    const classId = getClassIdByName(className);
+    if (!classId) {
+        console.error('[Render Add Students] No class ID found for class:', className);
+        return;
+    }
+
+    const listEl = getAddStudentsListEl();
+    if (!listEl) return;
+
+    // Build existing set from assignments map and stored students
+    const assignments = getClassStudentAssignments(className);
+    const existingSet = new Set([...(assignments || new Set())]);
+
+    let classStudents, allStudents;
+
+    try {
+        classStudents = await fetchClassStudents(classId, className);
+        allStudents = await fetchAllStudents();
+
+        if (classStudents) {
+            classStudents.forEach(student => {
+                const id = (student.faculty_number || '').trim();
+                if (id) {
+                    existingSet.add(id);
+                }
+            });
+        }
+    } catch (_) {
+        console.error('[Render Add Students] Failed to load students for class:', className);
+    }
+
+    if (!classStudents) {
+        console.error('[Render Add Students] No stored students found for class:', className);
+        return;
+    }
+
+    // Fixed: Changed !classStudents.length === 0 to classStudents.length === 0
+    if (classStudents.length === 0) {
+        listEl.innerHTML = '<p class="muted" style="text-align:center;">No students available.</p>';
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.style.listStyle = 'none';
+    ul.style.margin = '0';
+    ul.style.padding = '0';
+
+    allStudents.forEach((student, idx) => {
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        const parts = (window.Students?.splitNames || (() => ({ fullName: '' })))(student);
+        const facultyNumber = student.faculty_number;
+        const studentId = (window.Students?.idForStudent
+            ? window.Students.idForStudent(student, 'add', idx)
+            : (facultyNumber || parts.fullName || `add_${idx}`));
+
+        if (existingSet.has(studentId)) {
+            // Render without checkbox, with 'Already in' badge
+            li.classList.add('already-in');
+            const textWrap = document.createElement('div');
+            textWrap.className = 'student-card-text';
+            const nameEl = document.createElement('span');
+            nameEl.className = 'student-name';
+            nameEl.textContent = parts.fullName;
+            const facEl = document.createElement('span');
+            facEl.className = 'student-fac';
+            facEl.textContent = facultyNumber || '';
+            textWrap.appendChild(nameEl);
+            textWrap.appendChild(facEl);
+            const badge = document.createElement('span');
+            badge.className = 'already-in-badge';
+            badge.textContent = 'Already in';
+            li.appendChild(textWrap);
+            li.appendChild(badge);
+            ul.appendChild(li);
+            return;
+        }
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `addStudent_${idx}`;
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        const wrap = document.createElement('div');
+        wrap.className = 'student-card-text';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'student-name';
+        nameEl.textContent = parts.fullName;
+        const facEl = document.createElement('span');
+        facEl.className = 'student-fac';
+        facEl.textContent = facultyNumber || '';
+        wrap.appendChild(nameEl);
+        wrap.appendChild(facEl);
+        label.appendChild(wrap);
+
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                addStudentsSelections.add(studentId);
+                li.classList.add('selected');
+            } else {
+                addStudentsSelections.delete(studentId);
+                li.classList.remove('selected');
+            }
+            updateAddStudentsCounter();
+        });
+
+        li.addEventListener('click', (e) => {
+            if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(label);
+        ul.appendChild(li);
+    });
+
+    listEl.innerHTML = '';
+    listEl.appendChild(ul);
+}
+
+/**
+ * Finalize adding students to class
+ * @param {string} className - Class name
+ */
+export async function finalizeAddStudentsToClass(className) {
+    if (!className || addStudentsSelections.size === 0) {
+        closeAddStudentsToClass();
+        return;
+    }
+
+    const assignSet = ensureClassStudentAssignments(className);
+
+    const newlyAdded = [];
+    addStudentsSelections.forEach(id => {
+        if (!assignSet.has(id)) {
+            assignSet.add(id);
+            newlyAdded.push(id);
+        }
+    });
+
+    const studentsFromDatabase = await fetchAllStudents();
+
+    // Update per-class student objects list
+    const existingStudentsInClass = loadClassStudentsFromStorage(className) || [];
+    const newlyAddedStudents = [];
+
+    newlyAdded.forEach(facultyNumber => {
+        const studentInfo = getStudentInfoForFacultyNumber(facultyNumber, studentsFromDatabase);
+
+        // Prevent duplicates
+        const duplicate = existingStudentsInClass.some(student => {
+            const existingStudentFacultyNum = student.faculty_number;
+            if (studentInfo && existingStudentFacultyNum && existingStudentFacultyNum === studentInfo.faculty_number) {
+                return true;
+            }
+            return student.full_name === studentInfo.full_name;
+        });
+
+        if (!duplicate && studentInfo) {
+            newlyAddedStudents.push(studentInfo);
+        }
+    });
+
+    addNewStudentsToStorage(className, [...existingStudentsInClass, ...newlyAddedStudents]);
+
+    const classId = getClassIdByName(className);
+    if (classId && newlyAddedStudents.length > 0) {
+        await addStudentsToClass(classId, newlyAddedStudents);
+    }
+
+    // Ensure class marked ready
+    setClassReady(className, true);
+    const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => {
+        const btnName = (b.dataset.className || b.dataset.originalLabel || b.textContent || '').trim();
+        return btnName === className;
+    });
+    if (btn) updateClassStatusUI(btn);
+
+    // Re-render manage list
+    const manageOverlay = getManageStudentsOverlay();
+    if (manageOverlay && isOverlayVisible(manageOverlay)) {
+        renderManageStudentsForClass(className);
+    }
+
+    // Refresh attendance overlay if open
+    const attendanceOverlay = getOverlay('attendanceOverlay');
+    if (attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
+        renderAttendanceForClass(className, document.getElementById('attendanceList'));
+    }
+
+    closeAddStudentsToClass();
+}
+
+/**
+ * Check if overlay is visible
+ */
+function isOverlayVisible(overlay) {
+    return overlay && overlay.style.visibility === 'visible';
+}
+
+/**
+ * Close all class overlays (helper for main file)
+ */
+function closeAllClassOverlays() {
+    const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
+    const manageOverlay = getManageStudentsOverlay();
+    const studentInfo = studentInfoOverlay;
+    const scannerOverlay = getOverlay('scannerOverlay');
+
+    if (readyPopupOverlay) hideOverlay(readyPopupOverlay);
+    if (manageOverlay) hideOverlay(manageOverlay);
+    if (studentInfo) hideOverlay(studentInfo);
+    // Scanner has its own close function
+    document.body.style.overflow = '';
+}
+
+// Export closeAllClassOverlays for main file
+export { closeAllClassOverlays };
