@@ -169,7 +169,10 @@ function ensureManageStudentsOverlayInitialized() {
         returnToReadyClassPopup(current.name);
     });
 
-    closeBtn?.addEventListener('click', () => {
+    closeBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         closeAllClassOverlays();
     });
 
@@ -672,10 +675,11 @@ function ensureAddStudentsOverlayInitialized() {
     const specializationSelect = overlay.querySelector('#addStudentsFilterSpecialization');
     const groupSelect = overlay.querySelector('#addStudentsFilterGroup');
 
-    closeBtn?.addEventListener('click', () => {
+    closeBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         closeAddStudentsToClass();
-        const current = getCurrentClass();
-        openManageStudentsOverlay(current.name);
     });
 
     if (confirmBtn) {
