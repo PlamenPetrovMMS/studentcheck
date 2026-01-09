@@ -7,7 +7,7 @@
 
 import { SERVER_BASE_URL, ENDPOINTS, getTeacherEmail } from '../config/api.js';
 import { saveClassesMap } from '../storage/classStorage.js';
-import { saveClassStudents } from '../storage/studentStorage.js';
+import { saveClassStudents, loadClassStudentsFromStorage } from '../storage/studentStorage.js';
 
 /**
  * Create a new class
@@ -59,15 +59,26 @@ export async function fetchClasses(teacherEmail) {
  * @param {string} className - Class name (for storage)
  * @returns {Promise<Array<Object>>} Array of student objects
  */
-export async function fetchClassStudents(classId, className) {
+export async function fetchClassStudents(classId, className, retryCount = 0) {
+    // Validate classId
+    if (!classId) {
+        throw new Error('classId is required');
+    }
+    
+    const numericClassId = Number(classId);
+    if (isNaN(numericClassId)) {
+        throw new Error(`Invalid classId: "${classId}" cannot be converted to a number`);
+    }
+    
     console.log('[fetchClassStudents] Fetching students for class', {
-        classId,
-        classIdType: typeof classId,
-        className
+        classId: numericClassId,
+        classIdType: typeof numericClassId,
+        className,
+        retryAttempt: retryCount
     });
     
     const result = await fetch(
-        `${SERVER_BASE_URL + ENDPOINTS.class_students}?class_id=${encodeURIComponent(classId)}`,
+        `${SERVER_BASE_URL + ENDPOINTS.class_students}?class_id=${encodeURIComponent(numericClassId)}`,
         {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -75,36 +86,79 @@ export async function fetchClassStudents(classId, className) {
     );
 
     if (result.ok) {
-        const data = await result.json();
+        let data;
+        try {
+            data = await result.json();
+        } catch (e) {
+            console.error('[fetchClassStudents] Failed to parse JSON response', {
+                classId: numericClassId,
+                className,
+                error: e.message
+            });
+            // Return empty array if response is not valid JSON
+            return [];
+        }
+        
         console.log('[fetchClassStudents] RAW response:', data);
         
-        const students = data.students;
+        const students = data.students || data || [];
         console.log('[fetchClassStudents] Parsed students:', students);
         console.log('[fetchClassStudents] Students count:', students?.length);
+        
+        // Ensure students is an array
+        let studentsArray = Array.isArray(students) ? students : [];
+        
+        // WORKAROUND: If we just added students and got empty result, retry once after a delay
+        // This handles cases where server inserts are still processing (server may not await inserts)
+        if (studentsArray.length === 0 && retryCount === 0 && className) {
+            const storedStudents = loadClassStudentsFromStorage(className);
+            // If we have students in localStorage but server returned empty, server may still be processing
+            if (storedStudents && storedStudents.length > 0) {
+                console.log('[fetchClassStudents] Empty result but localStorage has students, retrying after delay', {
+                    classId: numericClassId,
+                    className,
+                    storedCount: storedStudents.length
+                });
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return fetchClassStudents(classId, className, 1); // Retry once
+            }
+        }
         
         // Save to localStorage
         if (className) {
             console.log('[fetchClassStudents] Writing students to localStorage', {
                 target: `localStorage["${className}:students"]`,
-                count: students?.length
+                count: studentsArray.length
             });
-            saveClassStudents(className, students);
+            saveClassStudents(className, studentsArray);
         }
         
         console.log('[fetchClassStudents] Returning students array', {
-            count: students?.length,
-            sampleStudent: students?.[0] || null
+            count: studentsArray.length,
+            sampleStudent: studentsArray[0] || null,
+            classId: numericClassId,
+            retryUsed: retryCount > 0
         });
         
-        return students;
+        return studentsArray;
     } else {
+        let errorMessage = `HTTP ${result.status}`;
+        try {
+            const errorData = await result.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch (e) {
+            // Ignore parse errors
+        }
+        
         console.error('[fetchClassStudents] Failed to fetch class students', {
             status: result.status,
             statusText: result.statusText,
-            classId,
+            errorMessage,
+            classId: numericClassId,
             className
         });
-        return null;
+        
+        throw new Error(`Failed to fetch class students: ${errorMessage}`);
     }
 }
 
@@ -113,23 +167,84 @@ export async function fetchClassStudents(classId, className) {
  * @param {number} classId - Class ID
  * @param {Array<Object>} students - Array of student objects
  * @returns {Promise<Response>} Fetch response
+ * @throws {Error} If the request fails
  */
 export async function addStudentsToClass(classId, students) {
+    // Validate inputs
+    if (!classId || (typeof classId !== 'number' && typeof classId !== 'string')) {
+        throw new Error('Invalid classId: must be a number or numeric string');
+    }
+    
+    if (!Array.isArray(students) || students.length === 0) {
+        throw new Error('Invalid students: must be a non-empty array');
+    }
+    
+    // Ensure classId is a number
+    const numericClassId = Number(classId);
+    if (isNaN(numericClassId)) {
+        throw new Error(`Invalid classId: "${classId}" cannot be converted to a number`);
+    }
+    
+    // Validate students have faculty_number
+    const validStudents = students.filter(s => s.faculty_number || s.facultyNumber);
+    if (validStudents.length === 0) {
+        throw new Error('Invalid students: no students with faculty_number found');
+    }
+    
+    console.log('[addStudentsToClass] Sending request', {
+        classId: numericClassId,
+        classIdType: typeof numericClassId,
+        studentsCount: validStudents.length,
+        sampleStudent: validStudents[0]
+    });
+    
     const response = await fetch(`${SERVER_BASE_URL + ENDPOINTS.class_students}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            classId: classId,
-            students: students
+            classId: numericClassId,
+            students: validStudents
         })
     });
 
-    if (response.ok) {
-        console.log(`[addStudentsToClass] Successfully added students to class in the database.`);
-    } else {
-        console.error(`[addStudentsToClass] Failed to add students. Status:`, response.status);
+    // WORKAROUND: Server may return 200 even on errors, so check response body
+    let responseData = null;
+    try {
+        responseData = await response.json();
+    } catch (e) {
+        // If response is not JSON, treat as error if status is not OK
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
     }
     
+    // Check if server returned an error message in the response body (even with 200 status)
+    if (responseData && (responseData.error || responseData.message)) {
+        const errorMsg = responseData.error || responseData.message;
+        if (errorMsg.toLowerCase().includes('error') || errorMsg.toLowerCase().includes('fail')) {
+            console.error('[addStudentsToClass] Server returned error in response body', {
+                status: response.status,
+                error: errorMsg,
+                classId: numericClassId
+            });
+            throw new Error(errorMsg);
+        }
+    }
+    
+    if (!response.ok) {
+        const errorMessage = responseData?.error || responseData?.message || `HTTP ${response.status}`;
+        throw new Error(errorMessage);
+    }
+    
+    console.log('[addStudentsToClass] Request completed', {
+        status: response.status,
+        responseData,
+        classId: numericClassId
+    });
+    
+    // WORKAROUND: Server may not await inserts properly, so we need to wait
+    // a bit before verifying the insert was successful. The caller should
+    // wait and then verify by fetching the class students again.
     return response;
 }
 

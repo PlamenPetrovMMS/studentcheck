@@ -126,11 +126,57 @@ export async function renderManageStudentsForClass(className) {
                         sampleStudent: students[0] || null
                     });
                     
+                    // WORKAROUND: If fetch returned empty but we have students in localStorage,
+                    // the server inserts may still be processing. Wait and retry once.
+                    if (students.length === 0) {
+                        const storedStudents = loadClassStudentsFromStorage(className);
+                        if (storedStudents && storedStudents.length > 0) {
+                            console.log('[Class Overlay Render] Empty fetch but localStorage has students, retrying after delay', {
+                                className,
+                                classId,
+                                storedCount: storedStudents.length
+                            });
+                            await new Promise(resolve => setTimeout(resolve, 1500));
+                            
+                            try {
+                                const retryFetched = await fetchClassStudents(classId, className, 1);
+                                if (retryFetched && retryFetched.length > 0) {
+                                    students = retryFetched;
+                                    console.log('[Class Overlay Render] Retry successful', {
+                                        className,
+                                        studentsCount: students.length
+                                    });
+                                }
+                            } catch (retryError) {
+                                console.warn('[Class Overlay Render] Retry failed, using localStorage fallback', {
+                                    className,
+                                    error: retryError.message
+                                });
+                                // Use localStorage as fallback if retry fails
+                                students = storedStudents;
+                            }
+                        }
+                    }
+                    
                     console.log(`[${module}] Fetched ${students.length} students from API for class:`, className);
                 } catch (e) {
-                    console.error(`[${module}] Failed to fetch class students from API:`, className, e);
-                    // Continue with empty array - will show empty state below
-                    students = [];
+                    console.error(`[${module}] Failed to fetch class students from API:`, {
+                        className,
+                        classId,
+                        error: e.message,
+                        status: e.status || 'unknown'
+                    });
+                    // Fallback to localStorage if fetch fails
+                    const storedStudents = loadClassStudentsFromStorage(className);
+                    if (storedStudents && storedStudents.length > 0) {
+                        console.log(`[${module}] Using localStorage fallback after fetch failure`, {
+                            className,
+                            storedCount: storedStudents.length
+                        });
+                        students = storedStudents;
+                    } else {
+                        students = [];
+                    }
                 }
             } else {
                 console.warn(`[${module}] No classId found for "${className}", cannot fetch from API`);
@@ -1246,7 +1292,64 @@ export async function finalizeAddStudentsToClass(className) {
 
     const classId = getClassIdByName(className);
     if (classId && newlyAddedStudents.length > 0) {
-        await addStudentsToClass(classId, newlyAddedStudents);
+        try {
+            const response = await addStudentsToClass(classId, newlyAddedStudents);
+            console.log('[finalizeAddStudentsToClass] Students added to class (request sent)', {
+                className,
+                classId,
+                status: response.status,
+                studentsCount: newlyAddedStudents.length
+            });
+            
+            // WORKAROUND: Server may not await inserts, so wait a bit then verify
+            // This ensures inserts complete before we try to fetch the updated list
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verify by fetching the class students again
+            try {
+                const verifyTimeout = setTimeout(() => {
+                    console.warn('[finalizeAddStudentsToClass] Verification fetch timed out, proceeding anyway');
+                }, 2000);
+                
+                const verifiedStudents = await fetchClassStudents(classId, className);
+                clearTimeout(verifyTimeout);
+                
+                console.log('[finalizeAddStudentsToClass] Verified students after insert', {
+                    className,
+                    classId,
+                    verifiedCount: verifiedStudents?.length || 0,
+                    expectedCount: newlyAddedStudents.length
+                });
+                
+                // If verification shows fewer students than expected, log warning but continue
+                if (verifiedStudents && verifiedStudents.length < newlyAddedStudents.length) {
+                    console.warn('[finalizeAddStudentsToClass] Verification shows fewer students than added', {
+                        className,
+                        classId,
+                        addedCount: newlyAddedStudents.length,
+                        verifiedCount: verifiedStudents.length,
+                        note: 'Server inserts may still be processing'
+                    });
+                }
+            } catch (verifyError) {
+                console.warn('[finalizeAddStudentsToClass] Verification fetch failed, proceeding anyway', {
+                    className,
+                    classId,
+                    error: verifyError.message
+                });
+                // Continue even if verification fails - server may still be processing
+            }
+            
+        } catch (error) {
+            console.error('[finalizeAddStudentsToClass] Failed to add students to class', {
+                className,
+                classId,
+                error: error.message,
+                status: error.status
+            });
+            alert(`Failed to add students to class: ${error.message}`);
+            // Continue with UI update even if server call fails (optimistic update)
+        }
     }
 
     // Ensure class marked ready
