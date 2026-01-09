@@ -62,7 +62,7 @@ export async function saveAttendanceData(classId, studentIds) {
 }
 
 /**
- * Save student timestamps to database
+ * Save student timestamps to database (single student)
  * @param {number} classId - Class ID
  * @param {string} facultyNumber - Faculty number
  * @param {number|null} joinedAt - Join timestamp (ms)
@@ -70,7 +70,6 @@ export async function saveAttendanceData(classId, studentIds) {
  * @returns {Promise<Response>} Fetch response
  */
 export async function saveStudentTimestamp(classId, facultyNumber, joinedAt, leftAt) {
-    // Fixed: Added await keyword
     const response = await fetch(SERVER_BASE_URL + ENDPOINTS.saveStudentTimestamps, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,6 +81,29 @@ export async function saveStudentTimestamp(classId, facultyNumber, joinedAt, lef
         })
     });
     return response;
+}
+
+/**
+ * Save multiple student timestamps to database
+ * @param {number} classId - Class ID
+ * @param {Map<string, {joined_at: number|null, left_at: number|null}>} timestampsMap - Map of faculty_number to timestamp objects
+ * @returns {Promise<void>}
+ */
+export async function saveStudentTimestamps(classId, timestampsMap) {
+    console.log('[saveStudentTimestamps] Saving student timestamps for class:', classId, timestampsMap);
+    const promises = [];
+    timestampsMap.forEach((timestamp, facultyNumber) => {
+        console.log('[saveStudentTimestamps] Processing student:', facultyNumber, 'timestamps:', timestamp);
+        promises.push(
+            saveStudentTimestamp(
+                classId,
+                facultyNumber,
+                timestamp.joined_at || null,
+                timestamp.left_at || null
+            )
+        );
+    });
+    await Promise.all(promises);
 }
 
 /**
