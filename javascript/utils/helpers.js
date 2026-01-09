@@ -99,3 +99,39 @@ export function isCameraError(error) {
            message.includes('notallowed') ||
            message.includes('notreadable');
 }
+
+/**
+ * Serializes a timestamp to ISO 8601 string format for API requests.
+ * Converts numbers (milliseconds) to ISO strings, handles null/undefined by returning undefined.
+ * @param {number|Date|string|null|undefined} timestamp - Timestamp as number (ms), Date object, ISO string, or null/undefined
+ * @returns {string|undefined} ISO 8601 string or undefined (never null)
+ */
+export function serializeTimestamp(timestamp) {
+    if (timestamp === null || timestamp === undefined) {
+        return undefined; // Return undefined instead of null to allow field omission
+    }
+    
+    // If already a string, assume it's valid ISO format
+    if (typeof timestamp === 'string') {
+        return timestamp;
+    }
+    
+    // If it's a number (milliseconds), convert to Date then ISO string
+    if (typeof timestamp === 'number') {
+        return new Date(timestamp).toISOString();
+    }
+    
+    // If it's a Date object, convert to ISO string
+    if (timestamp instanceof Date) {
+        return timestamp.toISOString();
+    }
+    
+    // Fallback: try to convert to number then to ISO
+    const num = Number(timestamp);
+    if (!isNaN(num)) {
+        return new Date(num).toISOString();
+    }
+    
+    // If we can't serialize, return undefined
+    return undefined;
+}

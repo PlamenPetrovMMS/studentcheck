@@ -243,7 +243,15 @@ export async function openCloseScannerConfirm(className, onClosed) {
                     const timestamps = getStudentTimestamps();
                     if (timestamps && timestamps.size > 0) {
                         try {
-                            await saveStudentTimestamps(classId, timestamps);
+                            const result = await saveStudentTimestamps(classId, timestamps);
+                            if (result.failed > 0) {
+                                logError('closeScannerConfirm', new Error(`Failed to save timestamps for ${result.failed} student(s)`), {
+                                    className,
+                                    classId,
+                                    action: 'saveStudentTimestamps',
+                                    result
+                                });
+                            }
                         } catch (e) {
                             logError('closeScannerConfirm', e, { className, classId, action: 'saveStudentTimestamps' });
                             // Continue with cleanup even if save fails
