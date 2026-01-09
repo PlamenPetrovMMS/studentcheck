@@ -62,6 +62,16 @@ export async function renderManageStudentsForClass(className) {
     const module = 'STUDENT_MANAGEMENT';
     const functionName = 'renderManageStudentsForClass';
     
+    const current = getCurrentClass();
+    const selectedClassId = current.id;
+    
+    console.log('[Class Overlay Render] Invoked', {
+        className,
+        selectedClassId,
+        selectedClassIdType: typeof selectedClassId,
+        timestamp: new Date().toISOString()
+    });
+    
     const listEl = getManageStudentsListEl();
     if (!listEl) {
         console.error(`[${module}] List element not found for class:`, className);
@@ -75,6 +85,13 @@ export async function renderManageStudentsForClass(className) {
         // First, try to load from localStorage (fast path)
         let students = loadClassStudentsFromStorage(className);
         
+        console.log('[Class Overlay Render] Initial localStorage check', {
+            className,
+            studentsFromStorage: students,
+            studentsCount: students?.length || 0,
+            studentsSource: 'localStorage'
+        });
+        
         // If localStorage is empty, fetch from API
         if (!students || students.length === 0) {
             console.log(`[${module}] No students in localStorage for "${className}", fetching from API...`);
@@ -82,10 +99,31 @@ export async function renderManageStudentsForClass(className) {
             // Resolve classId to fetch from API
             const classId = await resolveClassId(className);
             
+            console.log('[Class Overlay Render] Resolved classId for API fetch', {
+                className,
+                resolvedClassId: classId,
+                resolvedClassIdType: typeof classId,
+                selectedClassId,
+                selectedClassIdType: typeof selectedClassId
+            });
+            
             if (classId) {
                 try {
+                    console.log('[Class Overlay Render] Calling fetchClassStudents', {
+                        classId,
+                        className
+                    });
+                    
                     const fetched = await fetchClassStudents(classId, className);
                     students = fetched || [];
+                    
+                    console.log('[Class Overlay Render] After fetchClassStudents', {
+                        className,
+                        fetchedStudents: fetched,
+                        studentsCount: students.length,
+                        sampleStudent: students[0] || null
+                    });
+                    
                     console.log(`[${module}] Fetched ${students.length} students from API for class:`, className);
                 } catch (e) {
                     console.error(`[${module}] Failed to fetch class students from API:`, className, e);
@@ -102,6 +140,14 @@ export async function renderManageStudentsForClass(className) {
 
         // Clear loading state
         listEl.innerHTML = '';
+
+        console.log('[Class Overlay Render] Computed class students', {
+            className,
+            selectedClassId,
+            resultCount: students?.length || 0,
+            classStudents: students,
+            studentsSource: students?.length > 0 ? (students[0] ? 'localStorage or API' : 'unknown') : 'none'
+        });
 
         // Render students if we have any
         if (students && students.length > 0) {
@@ -141,6 +187,14 @@ export async function renderManageStudentsForClass(className) {
 
         // Fallback to in-memory id set if no students from storage/API
         const assignments = getClassStudentAssignments(className);
+        
+        console.log('[Class Overlay Render] Checking in-memory assignments fallback', {
+            className,
+            assignments,
+            assignmentsSize: assignments?.size || 0,
+            assignmentsType: assignments?.constructor?.name
+        });
+        
         if (assignments && assignments.size > 0) {
             const ul = document.createElement('ul');
             ul.style.listStyle = 'none';
@@ -177,6 +231,15 @@ export async function renderManageStudentsForClass(className) {
         }
 
         // Show empty state if no students found
+        console.warn('[Class Overlay Render] Early exit - showing empty state', {
+            reason: 'no students found from any source',
+            className,
+            selectedClassId,
+            checkedLocalStorage: true,
+            checkedAPI: true,
+            checkedAssignments: true
+        });
+        
         const p = document.createElement('p');
         p.className = 'muted';
         p.style.textAlign = 'center';
@@ -185,7 +248,12 @@ export async function renderManageStudentsForClass(className) {
         listEl.appendChild(p);
         
     } catch (error) {
-        console.error(`[${module}] Error rendering manage students list:`, className, error);
+        console.error(`[${module}] Error rendering manage students list:`, {
+            className,
+            selectedClassId,
+            error: error.message,
+            stack: error.stack
+        });
         listEl.innerHTML = '<p class="muted" style="text-align:center; padding:20px; color:red;">Error loading students. Please try again.</p>';
     }
 }
@@ -241,10 +309,28 @@ function ensureManageStudentsOverlayInitialized() {
  * @param {string} className - Class name
  */
 export async function openManageStudentsOverlay(className) {
+    console.log('[Class Overlay Open] Opening manage students overlay', {
+        className,
+        timestamp: new Date().toISOString()
+    });
+    
     ensureManageStudentsOverlayInitialized();
 
     const current = getCurrentClass();
+    console.log('[Class Overlay Open] Current class before set', {
+        name: current.name,
+        id: current.id,
+        idType: typeof current.id
+    });
+    
     setCurrentClass(className, current.id, current.button);
+    
+    const currentAfterSet = getCurrentClass();
+    console.log('[Class Overlay Open] Current class after set', {
+        name: currentAfterSet.name,
+        id: currentAfterSet.id,
+        idType: typeof currentAfterSet.id
+    });
 
     // Hide ready overlay to avoid stacking
     const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
@@ -257,6 +343,7 @@ export async function openManageStudentsOverlay(className) {
 
     // Show overlay immediately (renderManageStudentsForClass will show loading state)
     if (overlay) {
+        console.log('[Class Overlay Open] Showing overlay, will render students list');
         showOverlay(overlay);
     }
 
@@ -953,9 +1040,25 @@ async function renderAddStudentsList(className) {
     }
 
     // Always fetch all students for selection
+    console.log('[Render Add Students] Preparing to fetch all students', {
+        className,
+        classId,
+        classStudentsCount: classStudents?.length || 0
+    });
+    
     try {
         allStudents = await fetchAllStudents();
-        console.log('[Render Add Students] All students fetched:', allStudents);
+        console.log('[Render Add Students] All students fetched:', {
+            allStudents,
+            count: allStudents?.length || 0,
+            sampleStudent: allStudents?.[0] || null,
+            sampleStudentKeys: allStudents?.[0] ? Object.keys(allStudents[0]) : []
+        });
+        
+        // Note: fetchAllStudents returns data but does not store in global state
+        // This data is only used locally in renderAddStudentsList
+        console.log('[Render Add Students] fetchAllStudents result stored in local variable only (not global state)');
+        
         if (!Array.isArray(allStudents)) {
             allStudents = [];
         }

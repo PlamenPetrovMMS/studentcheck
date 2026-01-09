@@ -253,15 +253,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         const className = getRawClassNameFromButton(buttonEl);
         const classId = buttonEl.dataset.classId || getClassIdByName(className);
         
+        console.log('[Class Open] Clicked class', {
+            className,
+            classId,
+            classIdType: typeof classId,
+            classIdFromDataset: buttonEl.dataset.classId,
+            classIdFromState: getClassIdByName(className),
+            buttonElement: buttonEl
+        });
+        
         setCurrentClass(className, classId, buttonEl);
+        
+        const currentAfterSet = getCurrentClass();
+        console.log('[Class Open] selectedClassId set', {
+            selectedClassId: currentAfterSet.id,
+            selectedClassName: currentAfterSet.name,
+            type: typeof currentAfterSet.id
+        });
         
         if (!buttonEl.dataset.className) buttonEl.dataset.className = className;
         if (!buttonEl.dataset.originalLabel) buttonEl.dataset.originalLabel = className;
         if (classId && !buttonEl.dataset.classId) buttonEl.dataset.classId = classId;
 
         if (isClassReady(className)) {
+            console.log('[Class Open] Class is ready, opening ready popup');
             openReadyClassPopup(className);
         } else {
+            console.log('[Class Open] Class is not ready, opening add students overlay');
             await openAddStudentsToClass(className);
         }
     }

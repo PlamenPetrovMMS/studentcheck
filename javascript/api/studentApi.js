@@ -21,9 +21,24 @@ export async function fetchAllStudents() {
 
         if (result.ok) {
             const data = await result.json();
+            console.log('[fetchAllStudents] RAW response:', data);
+            
             const students = data.students || data || [];
-            console.log('[fetchAllStudents] Students fetched from server:', students);
-            return Array.isArray(students) ? students : [];
+            console.log('[fetchAllStudents] Parsed students:', students);
+            console.log('[fetchAllStudents] Students count:', students?.length);
+            
+            const finalStudents = Array.isArray(students) ? students : [];
+            console.log('[fetchAllStudents] Final students array:', {
+                count: finalStudents.length,
+                sampleStudent: finalStudents[0] || null,
+                sampleStudentKeys: finalStudents[0] ? Object.keys(finalStudents[0]) : []
+            });
+            
+            // Note: fetchAllStudents returns data but does not write to global state
+            // Callers are responsible for storing the returned array
+            console.log('[fetchAllStudents] Returning students array (not stored in global state)');
+            
+            return finalStudents;
         } else {
             console.error('[fetchAllStudents] Server returned error:', result.status, result.statusText);
             throw new Error(`Failed to fetch students: ${result.status} ${result.statusText}`);

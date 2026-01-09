@@ -60,6 +60,12 @@ export async function fetchClasses(teacherEmail) {
  * @returns {Promise<Array<Object>>} Array of student objects
  */
 export async function fetchClassStudents(classId, className) {
+    console.log('[fetchClassStudents] Fetching students for class', {
+        classId,
+        classIdType: typeof classId,
+        className
+    });
+    
     const result = await fetch(
         `${SERVER_BASE_URL + ENDPOINTS.class_students}?class_id=${encodeURIComponent(classId)}`,
         {
@@ -70,14 +76,34 @@ export async function fetchClassStudents(classId, className) {
 
     if (result.ok) {
         const data = await result.json();
+        console.log('[fetchClassStudents] RAW response:', data);
+        
         const students = data.students;
+        console.log('[fetchClassStudents] Parsed students:', students);
+        console.log('[fetchClassStudents] Students count:', students?.length);
+        
         // Save to localStorage
         if (className) {
+            console.log('[fetchClassStudents] Writing students to localStorage', {
+                target: `localStorage["${className}:students"]`,
+                count: students?.length
+            });
             saveClassStudents(className, students);
         }
+        
+        console.log('[fetchClassStudents] Returning students array', {
+            count: students?.length,
+            sampleStudent: students?.[0] || null
+        });
+        
         return students;
     } else {
-        console.error('Failed to fetch class students', result.status);
+        console.error('[fetchClassStudents] Failed to fetch class students', {
+            status: result.status,
+            statusText: result.statusText,
+            classId,
+            className
+        });
         return null;
     }
 }
