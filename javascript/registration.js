@@ -223,7 +223,6 @@
     function updateUI() {
     // Activate current slide; hide others
     slides.forEach((sl,i)=> sl.classList.toggle('active', i===step));
-    dbg('updateUI step=', step);
         const progress = ((step + 1) / TOTAL_STEPS) * 100;
         progressBar.style.width = progress + '%';
 
@@ -314,8 +313,7 @@
     // Slide 2 (index 1): Contact (email + faculty number)
     let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
     function validateSlide3() {
-        const { valid, message, normalized, debug } = getContactState();
-        dbg('validateContact state=', debug);
+        const { valid, message, normalized } = getContactState();
         if (!valid) {
             contactErrorActivated = true; // user attempted to proceed
             errorSlide3.textContent = message;
@@ -379,8 +377,7 @@
             }
         }
         if (!contactErrorActivated) return; // user hasn't clicked Continue yet; stay silent
-        const { valid, message, debug } = getContactState();
-        dbg('liveContactValidation state=', debug);
+        const { valid, message } = getContactState();
         if (valid) {
             errorSlide3.textContent = '';
             errorSlide3.style.display = 'none';
@@ -433,30 +430,23 @@
 
 
     function next() {
-        dbg('next() invoked at step', step);
-
         if (step === 0 && !validateSlide1()) { 
-            dbg('Slide 1 validation failed'); 
             return; 
         }
 
         if(step === 1 && !validateSlide2()) {
-            dbg('Slide 2 validation failed'); 
             return; 
         }
 
         if (step === 2 && !validateSlide3()) { 
-            dbg('Slide 3 validation failed'); 
             return; 
         }
 
         if (step < TOTAL_STEPS - 1) {
             step++;
-            dbg('Advancing to step', step);
             updateUI();
             focusFirstInput();
         } else {
-            dbg('Already at last step; next() ignored');
         }
     }
 
@@ -505,7 +495,6 @@
             specialization: selectSpecialization.options[selectSpecialization.selectedIndex].text,
             group: selectGroup.options[selectGroup.selectedIndex].text,
         };
-        dbg('Submitting registration payload', payload);
 
         try {
             submitting = true;
@@ -521,7 +510,6 @@
             });
 
             let data;
-            dbg('Response status:', resp.status, resp.statusText);
             if (!resp.ok) {
                 // Try to parse JSON error payload for more detail (e.g. duplicate email)
                 try { data = await resp.json(); } catch(_) { data = null; }
@@ -543,7 +531,6 @@
             } else {
                 data = await resp.json();
             }
-            dbg('Server response', data);
             if (data && (data.registrationSuccess || data.success)) {
                 // Optionally store token if provided
                 if (data.token) {
