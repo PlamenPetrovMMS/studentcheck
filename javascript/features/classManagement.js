@@ -7,7 +7,7 @@
 
 import { getClassIdByNameFromStorage, classItemKey, removeClassFromStoredMap } from '../storage/classStorage.js';
 import { loadClassStudentsFromStorage, saveClassStudents } from '../storage/studentStorage.js';
-import { fetchClassStudents, deleteClassById } from '../api/classApi.js';
+import { fetchClassStudents, deleteClassById, renameClassById } from '../api/classApi.js';
 import {
     getCurrentClass,
     setCurrentClass,
@@ -327,7 +327,7 @@ export async function deleteClass(name) {
 /**
  * Handle save class options (rename)
  */
-function onSaveClassOptions() {
+async function onSaveClassOptions() {
     const input = classOptionsOverlay?.querySelector('#classOptionsNameInput');
     if (!input) return;
     
@@ -344,7 +344,18 @@ function onSaveClassOptions() {
         closeClassOptionsOverlay();
         return;
     }
-    
+
+    const classId = getClassIdByName(oldName) || getClassIdByNameFromStorage(oldName);
+    const teacherEmail = getTeacherEmail();
+    try {
+        if (classId && teacherEmail) {
+            await renameClassById(classId, proposed, teacherEmail);
+        }
+    } catch (e) {
+        alert('Failed to update class name on server: ' + e.message);
+        return;
+    }
+
     const ok = renameClass(oldName, proposed);
     if (ok) {
         closeClassOptionsOverlay();
