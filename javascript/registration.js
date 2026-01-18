@@ -39,7 +39,7 @@
                 resetFaculty();
                 resetLevel();
                 resetSpecializations();
-                alert("Error: Specializations are not available for the selected faculty and level.");
+                alert(t('err_specializations_unavailable'));
                 return;
             }
         }
@@ -62,7 +62,7 @@
                 resetFaculty();
                 resetLevel();
                 resetSpecializations();
-                alert("Error: Specializations are not available for the selected faculty and level.");
+                alert(t('err_specializations_unavailable'));
                 return;
             }
         }
@@ -71,6 +71,15 @@
 
 
 
+
+    function t(key, fallback) {
+        try {
+            if (window.i18n && typeof window.i18n.t === 'function') {
+                return window.i18n.t(key);
+            }
+        } catch (_) {}
+        return fallback || key;
+    }
 
     const selectSpecialization = document.getElementById('specialization');
     selectSpecialization.addEventListener('change', () => {
@@ -262,7 +271,7 @@
         setInvalid(middleName, !b);
         setInvalid(lastName, !c);
         if (!a || !b || !c) {
-            errorSlide1.textContent = 'Please fill out every field.';
+            errorSlide1.textContent = t('err_fill_all_fields');
             return false;
         }
         errorSlide1.textContent = '';
@@ -286,7 +295,7 @@
         const facultyInvalid = (selectFaculty.value === "" || selectFaculty.selectedIndex === 0);
         setInvalid(selectFaculty, facultyInvalid);
         if(facultyInvalid){
-            errorSlide2_faculty.textContent = "Please, select your faculty.";
+            errorSlide2_faculty.textContent = t('err_select_faculty');
             return false;
         }
 
@@ -295,7 +304,7 @@
         const levelInvalid = (selectLevel.value === "" || selectLevel.selectedIndex === 0);
         setInvalid(selectLevel, levelInvalid);
         if(levelInvalid){
-            errorSlide2_level.textContent = "Please, select your level.";
+            errorSlide2_level.textContent = t('err_select_level');
             return false;
         }
 
@@ -304,7 +313,7 @@
         const specializationInvalid = (selectSpecialization.value === "" || selectSpecialization.selectedIndex === 0);
         setInvalid(selectSpecialization, specializationInvalid);
         if(specializationInvalid){
-            errorSlide2_specialization.textContent = "Please, select your specialization.";
+            errorSlide2_specialization.textContent = t('err_select_specialization');
             return false;
         }
 
@@ -313,7 +322,7 @@
         const groupInvalid = (selectGroup.value === "" || selectGroup.selectedIndex === 0);
         setInvalid(selectGroup, groupInvalid);
         if(groupInvalid){
-            errorSlide2_group.textContent = "Please, select your group.";
+            errorSlide2_group.textContent = t('err_select_group');
             return false;
         }
 
@@ -360,19 +369,19 @@
         const f = fRaw.replace(/\s+/g,'');
         const g = selectGroup ? (selectGroup.value || '') : '';
         const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f, groupValue: g };
-        if (!e) return { valid:false, message:'Email is required.', normalized:f, debug };
-        if (!validateEmailFormat(e)) return { valid:false, message:'Enter a valid email address.', normalized:f, debug };
-        if (!f) return { valid:false, message:'Faculty number is required.', normalized:f, debug };
-        if (f.length !== 9) return { valid:false, message:'Faculty number must be exactly 9 characters.', normalized:f, debug };
+        if (!e) return { valid:false, message:t('err_email_required'), normalized:f, debug };
+        if (!validateEmailFormat(e)) return { valid:false, message:t('err_email_invalid'), normalized:f, debug };
+        if (!f) return { valid:false, message:t('err_faculty_required'), normalized:f, debug };
+        if (f.length !== 9) return { valid:false, message:t('err_faculty_length'), normalized:f, debug };
         // Minimal rule: must contain at least one alphanumeric; allow any printable except spaces.
-        if (!/[A-Za-z0-9]/.test(f)) return { valid:false, message:'Faculty number needs a letter or digit.', normalized:f, debug };
-        if (f.length > 50) return { valid:false, message:'Faculty number too long (max 50).', normalized:f, debug };
+        if (!/[A-Za-z0-9]/.test(f)) return { valid:false, message:t('err_faculty_letter_digit'), normalized:f, debug };
+        if (f.length > 50) return { valid:false, message:t('err_faculty_too_long'), normalized:f, debug };
         // If it contains disallowed characters, attempt auto-sanitization (keep letters/digits and - _ . /)
         const sanitized = f.replace(/[^A-Za-z0-9\-_.\/]/g,'');
-        if (sanitized.length === 0) return { valid:false, message:'Faculty number invalid characters only.', normalized:f, debug };
+        if (sanitized.length === 0) return { valid:false, message:t('err_faculty_invalid_chars'), normalized:f, debug };
         // Group selection required; only allow 37-42
         const allowedGroups = ['37','38','39','40','41','42'];
-        if (!g || !allowedGroups.includes(g)) return { valid:false, message:'Please select your group (37–42).', normalized:f, debug };
+        if (!g || !allowedGroups.includes(g)) return { valid:false, message:t('err_group_invalid'), normalized:f, debug };
         debug.sanitized = sanitized;
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
     }
@@ -404,7 +413,7 @@
             });
 
             if (!result.ok) {
-                errorSlide3.textContent = 'Unable to verify email right now. Please try again.';
+                errorSlide3.textContent = t('err_email_verify');
                 errorSlide3.style.display = 'block';
                 contactErrorActivated = true;
                 return false;
@@ -422,14 +431,14 @@
                 lastDuplicateEmail = emailValue;
                 email.classList.add('invalid');
                 contactErrorActivated = true;
-                errorSlide3.textContent = 'This email is already registered. Please, try again with a different one.';
+                errorSlide3.textContent = t('err_email_exists');
                 errorSlide3.style.display = 'block';
                 return false;
             }
 
             return true;
         } catch (_) {
-            errorSlide3.textContent = 'Unable to verify email right now. Please try again.';
+            errorSlide3.textContent = t('err_email_verify');
             errorSlide3.style.display = 'block';
             contactErrorActivated = true;
             return false;
@@ -571,7 +580,7 @@
     async function finish() {
         if (submitting) return; // guard against double click
         // Re-validate contact & password on final step
-        if (!validatePassword()) { alert('Please meet all password requirements before finishing.'); return; }
+        if (!validatePassword()) { alert(t('err_password_requirements')); return; }
 
         const payload = {
             firstName: firstName.value.trim(),
@@ -609,14 +618,14 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide3.textContent = 'This email is already registered. Please, try again with a different one.';
+                    errorSlide3.textContent = t('err_email_exists');
                     errorSlide3.style.display = 'block';
                     step = 2; // ensure email slide visible
                     updateUI();
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                     return;
                 }
-                alert('Registration failed: ' + serverMsg);
+                alert(t('err_registration_failed_prefix') + serverMsg);
                 return;
             } else {
                 data = await resp.json();
@@ -659,17 +668,17 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide3.textContent = 'This email is already registered.';
+                    errorSlide3.textContent = t('err_email_exists');
                     errorSlide3.style.display = 'block';
                     step = 2; updateUI();
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                 } else {
-                    alert('Registration failed: ' + (data.message || 'Unknown error'));
+                    alert(t('err_registration_failed_prefix') + (data.message || t('err_registration_failed_unknown')));
                 }
             }
         } catch (e) {
             console.error('Registration request failed:', e);
-            alert('Network error or server unavailable.');
+            alert(t('err_network_unavailable'));
         } finally {
             submitting = false;
             finishBtn.disabled = false;
