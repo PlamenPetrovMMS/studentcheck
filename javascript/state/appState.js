@@ -428,9 +428,6 @@ export function getAllStudents() {
  */
 export function setAllStudents(students) {
     allStudents = students;
-        count: students?.length || 0,
-        sampleStudent: students?.[0] || null
-    });
 }
 
 /**
