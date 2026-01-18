@@ -145,6 +145,22 @@ export async function renderManageStudentsForClass(className) {
 
         // Render students if we have any
         if (students && students.length > 0) {
+            let nameLookup = null;
+            const needsNames = students.some(s => !(s.full_name || s.fullName));
+            if (needsNames) {
+                try {
+                    const all = await fetchAllStudents({ forceRefresh: true });
+                    nameLookup = new Map(
+                        (all || []).map(s => [
+                            String(s.faculty_number || s.facultyNumber || '').trim(),
+                            s.full_name || s.fullName || ''
+                        ])
+                    );
+                } catch (_) {
+                    nameLookup = null;
+                }
+            }
+
             const ul = document.createElement('ul');
             ul.style.listStyle = 'none';
             ul.style.padding = '0';
@@ -155,13 +171,14 @@ export async function renderManageStudentsForClass(className) {
                 li.className = 'list-item';
                 const studentId = student.faculty_number || student.facultyNumber;
                 li.dataset.studentId = studentId;
+                const fullName = student.full_name || student.fullName || (nameLookup ? nameLookup.get(String(studentId || '').trim()) : '') || '';
 
                 const wrap = document.createElement('div');
                 wrap.className = 'student-card-text';
 
                 const nameEl = document.createElement('span');
                 nameEl.className = 'student-name';
-                nameEl.textContent = student.full_name || student.fullName;
+                nameEl.textContent = fullName;
 
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
@@ -171,6 +188,13 @@ export async function renderManageStudentsForClass(className) {
                 wrap.appendChild(facEl);
                 li.appendChild(wrap);
                 li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
+
+                if (studentId) {
+                    studentIndex.set(String(studentId), {
+                        fullName,
+                        faculty_number: student.faculty_number || student.facultyNumber || ''
+                    });
+                }
 
                 ul.appendChild(li);
             });
