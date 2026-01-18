@@ -105,6 +105,9 @@ form#teacherLoginForm .field:first-child { margin-top: 12px; }
 }
 
 /* Use shared .error style from registration.css; optional animation if needed */
+#error-message {
+	color: red;
+}
 
 /* Password toggle */
 .password-wrapper {
