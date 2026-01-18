@@ -1153,6 +1153,14 @@ body {
     padding-right: 4px; /* small gutter for scrollbar */
 }
 
+#createClassStudentsBody ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
     .add-class-btn,
