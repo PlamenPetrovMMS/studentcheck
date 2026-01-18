@@ -113,6 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
 	const overlayBackground = document.querySelector('.overlay-background');
 	if (overlayBackground) {
 		overlayBackground.addEventListener('click', () => {
+			const classDetailsOverlay = document.getElementById('class-details-overlay');
+			if (classDetailsOverlay && classDetailsOverlay.style.display === 'block') {
+				closeClassDetailsOverlay();
+				return;
+			}
 			if (viewClassesOverlay && viewClassesOverlay.style.display === 'block') {
 				closeViewClassesOverlay();
 			}
