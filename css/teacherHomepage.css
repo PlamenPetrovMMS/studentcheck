@@ -1161,6 +1161,12 @@ body {
     list-style: none;
 }
 
+#createClassStudentsBody {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
     .add-class-btn,
