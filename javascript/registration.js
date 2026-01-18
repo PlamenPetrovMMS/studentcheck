@@ -344,6 +344,7 @@
         if (!e) return { valid:false, message:'Email is required.', normalized:f, debug };
         if (!validateEmailFormat(e)) return { valid:false, message:'Enter a valid email address.', normalized:f, debug };
         if (!f) return { valid:false, message:'Faculty number is required.', normalized:f, debug };
+        if (f.length !== 9) return { valid:false, message:'Faculty number must be exactly 9 characters.', normalized:f, debug };
         // Minimal rule: must contain at least one alphanumeric; allow any printable except spaces.
         if (!/[A-Za-z0-9]/.test(f)) return { valid:false, message:'Faculty number needs a letter or digit.', normalized:f, debug };
         if (f.length > 50) return { valid:false, message:'Faculty number too long (max 50).', normalized:f, debug };
