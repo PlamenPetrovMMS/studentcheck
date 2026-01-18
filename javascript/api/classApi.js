@@ -242,3 +242,44 @@ export async function removeStudentFromClass(classId, facultyNumber, teacherEmai
 
     return await response.json();
 }
+
+/**
+ * Delete a class by ID
+ * @param {number} classId - Class ID
+ * @param {string} teacherEmail - Teacher email
+ * @returns {Promise<{success: boolean}>} Response data
+ */
+export async function deleteClassById(classId, teacherEmail) {
+    if (!classId) {
+        throw new Error('classId is required');
+    }
+    if (!teacherEmail) {
+        throw new Error('teacherEmail is required');
+    }
+
+    const response = await fetch(`${SERVER_BASE_URL + ENDPOINTS.deleteClass}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            classId: Number(classId),
+            teacherEmail
+        })
+    });
+
+    if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+            // Ignore parse errors
+        }
+        throw new Error(errorMessage);
+    }
+
+    try {
+        return await response.json();
+    } catch (e) {
+        return { success: true };
+    }
+}

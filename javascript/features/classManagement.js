@@ -5,9 +5,9 @@
  * Manages class storage migration and UI updates.
  */
 
-import { getClassIdByNameFromStorage, classItemKey } from '../storage/classStorage.js';
+import { getClassIdByNameFromStorage, classItemKey, removeClassFromStoredMap } from '../storage/classStorage.js';
 import { loadClassStudentsFromStorage, saveClassStudents } from '../storage/studentStorage.js';
-import { fetchClassStudents } from '../api/classApi.js';
+import { fetchClassStudents, deleteClassById } from '../api/classApi.js';
 import {
     getCurrentClass,
     setCurrentClass,
@@ -250,11 +250,20 @@ export function renameClass(oldName, newName) {
  * Delete a class completely
  * @param {string} name - Class name
  */
-export function deleteClass(name) {
+export async function deleteClass(name) {
     const n = (name || '').trim();
     if (!n) return;
     
     const teacherEmail = getTeacherEmail();
+    const classId = getClassIdByName(n) || getClassIdByNameFromStorage(n);
+
+    try {
+        if (classId && teacherEmail) {
+            await deleteClassById(classId, teacherEmail);
+        }
+    } catch (e) {
+        alert('Failed to delete class from server: ' + e.message);
+    }
     
     // Remove per-class item
     try {
@@ -275,6 +284,9 @@ export function deleteClass(name) {
     
     // Remove class ID
     setClassId(n, null);
+
+    // Remove from stored classes map
+    removeClassFromStoredMap(n);
     
     // Remove attendance logs
     try {

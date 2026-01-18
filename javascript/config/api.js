@@ -11,6 +11,7 @@ export const SERVER_BASE_URL = 'https://studentcheck-server.onrender.com';
 // API endpoint paths
 export const ENDPOINTS = {
     createClass: '/classes',
+    deleteClass: '/classes',
     attendance: '/attendance',
     class_students: '/class_students',
     students: '/students',

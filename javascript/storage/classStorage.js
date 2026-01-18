@@ -69,3 +69,32 @@ export function getClassIdByNameFromStorage(className) {
     console.error('Class ID not found for class name:', className);
     return null;
 }
+
+/**
+ * Remove a class from the stored classes map by name
+ * @param {string} className - Class name
+ */
+export function removeClassFromStoredMap(className) {
+    const storedClassesMap = getStoredClassesMap();
+    if (!storedClassesMap) return;
+
+    const target = (className || '').trim();
+    if (!target) return;
+
+    let removed = false;
+    for (const [id, name] of storedClassesMap.entries()) {
+        if ((name || '').trim() === target) {
+            storedClassesMap.delete(id);
+            removed = true;
+            break;
+        }
+    }
+
+    if (removed) {
+        if (storedClassesMap.size === 0) {
+            localStorage.removeItem('classesMap');
+        } else {
+            saveClassesMap(storedClassesMap);
+        }
+    }
+}
