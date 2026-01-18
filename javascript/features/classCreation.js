@@ -24,6 +24,7 @@ import { showOverlay, hideOverlay, getOverlay } from '../ui/overlays.js';
 import { renderClassItem, updateClassStatusUI, flashReadyBadge, attachNewClassButtonBehavior } from '../ui/classUI.js';
 import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
 import { saveClassStudents } from '../storage/studentStorage.js';
+import { getStoredClassesMap, saveClassesMap } from '../storage/classStorage.js';
 
 const WIZARD_TOTAL_SLIDES = 2;
 let createClassSlideIndex = 0;
@@ -157,7 +158,7 @@ async function submitNewClass() {
         
         // Update state
         setClassId(className, newClassId);
-        setClassReady(className, true);
+        setClassReady(className, selectedIds.length > 0);
         setClassStudentAssignments(className, new Set(selectedIds));
         
         // Persist selected students for readiness on reload
@@ -174,6 +175,13 @@ async function submitNewClass() {
                 })
                 .filter(Boolean);
             saveClassStudents(className, selectedStudents);
+        } catch (_) {}
+
+        // Persist class in local storage map so readiness is restored on refresh
+        try {
+            const storedMap = getStoredClassesMap() || new Map();
+            storedMap.set(newClassId, className);
+            saveClassesMap(storedMap);
         } catch (_) {}
         
         // Render class button
