@@ -116,6 +116,13 @@
 	position: relative;
 	width: 100%;
 	padding-left: 20px;
+	flex-direction: column;
+}
+
+.class-details-name{
+	margin: 4px 0 0 0;
+	font-style: italic;
+	color: #4b5563;
 }
 
 
@@ -276,7 +283,7 @@
 	#class-details-overlay .overlay-bottom-section {
 		position: static;
 		width: 100%;
-		margin-top: 12px;
+		margin-top: 20px;
 	}
 
 	#view-classes-overlay .overlay-middle-section,

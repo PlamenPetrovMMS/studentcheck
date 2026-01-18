@@ -284,7 +284,9 @@ function openClassDetailsOverlay(className, studentId) {
 	background.style.visibility = 'visible';
 	
 	const classTitle = document.getElementById('classDetailsOverlayTitle');
-	classTitle.textContent = `Class Details: ${className}`;
+	if (classTitle) classTitle.textContent = 'Class Details';
+	const classNameEl = document.getElementById('classDetailsOverlayClassName');
+	if (classNameEl) classNameEl.textContent = className || '';
 
 	loadAttendedClassesCount(className, studentId);
 
