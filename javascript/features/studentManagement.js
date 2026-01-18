@@ -27,7 +27,7 @@ import { fetchClasses } from '../api/classApi.js';
 import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from '../ui/overlays.js';
 import { updateClassStatusUI } from '../ui/classUI.js';
 import { renderAttendanceForClass } from '../ui/attendanceUI.js';
-import { getTeacherEmail } from '../config/api.js';
+import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
 
 // Module state
 let studentIndex = new Map(); // id -> full student object
@@ -37,6 +37,7 @@ let manageStudentsOverlayInitialized = false;
 let attendanceHistoryOverlayInitialized = false;
 let addStudentsOverlayInitialized = false;
 let addStudentsSelections = new Set();
+let addStudentsRequestId = 0;
 
 // DOM helpers
 function getManageStudentsOverlay() { return getOverlay('manageStudentsOverlay'); }
@@ -705,22 +706,8 @@ function returnToManageStudentsFromHistory() {
  * @param {string} query - Search query
  */
 function filterAddStudentsList(query) {
-    const listEl = getAddStudentsListEl();
-    if (!listEl) return;
-
-    const q = (query || '').trim().toLowerCase();
-    const items = listEl.querySelectorAll('li.list-item');
-
-    if (!q) {
-        items.forEach(li => li.style.display = '');
-        return;
-    }
-
-    const tokens = q.split(/\s+/).filter(Boolean);
-    items.forEach(li => {
-        const text = li.textContent.toLowerCase();
-        const matches = tokens.every(t => text.includes(t));
-        li.style.display = matches ? '' : 'none';
+    requestAddStudentsWithFilters({
+        search: query || ''
     });
 }
 
@@ -728,7 +715,13 @@ function filterAddStudentsList(query) {
  * Filter by dropdown selects (stub - only uses search)
  */
 function filterAddStudentsListBySelects(levelValue, facultyValue, specializationValue, groupValue, searchInputValue) {
-    filterAddStudentsList(searchInputValue);
+    requestAddStudentsWithFilters({
+        level: levelValue,
+        faculty: facultyValue,
+        specialization: specializationValue,
+        group: groupValue,
+        search: searchInputValue
+    });
 }
 
 /**
@@ -747,11 +740,7 @@ function resetAddStudentsFilters() {
     if (groupSelect) groupSelect.value = '';
     if (searchInput) searchInput.value = '';
 
-    const listEl = getAddStudentsListEl();
-    if (listEl) {
-        const items = listEl.querySelectorAll('li.list-item');
-        items.forEach(li => li.style.display = '');
-    }
+    requestAddStudentsWithFilters();
 }
 
 /**
@@ -798,7 +787,18 @@ function ensureAddStudentsOverlayInitialized() {
         });
     }
 
-    searchInput?.addEventListener('input', (e) => filterAddStudentsList(e.target.value));
+    if (searchInput) {
+        if (window.Utils && typeof window.Utils.debounce === 'function') {
+            const debounced = window.Utils.debounce((value) => filterAddStudentsList(value), 250);
+            searchInput.addEventListener('input', (e) => debounced(e.target.value));
+        } else {
+            let debounceTimer = null;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => filterAddStudentsList(e.target.value), 250);
+            });
+        }
+    }
 
     levelSelect?.addEventListener('change', () => {
         filterAddStudentsListBySelects(
@@ -851,6 +851,66 @@ function ensureAddStudentsOverlayInitialized() {
             closeAddStudentsToClass();
         }
     });
+}
+
+function collectAddStudentsFilters(overrides = {}) {
+    const levelSelect = document.getElementById('addStudentsFilterLevel');
+    const facultySelect = document.getElementById('addStudentsFilterFaculty');
+    const specializationSelect = document.getElementById('addStudentsFilterSpecialization');
+    const groupSelect = document.getElementById('addStudentsFilterGroup');
+    const searchInput = document.getElementById('addStudentsSearchInput');
+
+    return {
+        level: overrides.level ?? (levelSelect?.value || ''),
+        faculty: overrides.faculty ?? (facultySelect?.value || ''),
+        specialization: overrides.specialization ?? (specializationSelect?.value || ''),
+        group: overrides.group ?? (groupSelect?.value || ''),
+        search: overrides.search ?? (searchInput?.value || '')
+    };
+}
+
+async function requestAddStudentsWithFilters(overrides = {}) {
+    const current = getCurrentClass();
+    const className = current?.name || '';
+    if (!className) return;
+
+    const listEl = getAddStudentsListEl();
+    if (listEl) {
+        listEl.innerHTML = '<p class="muted" style="text-align:center;">Loading students...</p>';
+    }
+
+    const requestId = ++addStudentsRequestId;
+    const filters = collectAddStudentsFilters(overrides);
+    const params = new URLSearchParams();
+
+    if (filters.level) params.append('level', filters.level);
+    if (filters.faculty) params.append('faculty', filters.faculty);
+    if (filters.specialization) params.append('specialization', filters.specialization);
+    if (filters.group) params.append('group', filters.group);
+    if (filters.search) params.append('search', filters.search);
+
+    try {
+        const url = `${SERVER_BASE_URL + ENDPOINTS.students}${params.toString() ? `?${params.toString()}` : ''}`;
+        const result = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (!result.ok) {
+            throw new Error(`HTTP ${result.status}`);
+        }
+        const data = await result.json();
+        const students = Array.isArray(data?.students) ? data.students : (Array.isArray(data) ? data : []);
+
+        if (requestId !== addStudentsRequestId) return;
+        await renderAddStudentsList(className, { studentsOverride: students });
+    } catch (e) {
+        if (requestId !== addStudentsRequestId) return;
+        try {
+            const fallback = await fetchAllStudents({ forceRefresh: true });
+            await renderAddStudentsList(className, { studentsOverride: fallback });
+        } catch (_) {
+            if (listEl) {
+                listEl.innerHTML = '<p class="muted" style="text-align:center; padding:20px;">Unable to load students.</p>';
+            }
+        }
+    }
 }
 
 /**
@@ -952,7 +1012,7 @@ async function resolveClassId(className) {
  * Render add students list
  * @param {string} className - Class name
  */
-async function renderAddStudentsList(className) {
+async function renderAddStudentsList(className, options = {}) {
     const listEl = getAddStudentsListEl();
     if (!listEl) {
         console.error('[Render Add Students] List element not found');
@@ -1009,17 +1069,21 @@ async function renderAddStudentsList(className) {
         }
     }
 
-    // Always refresh from API when opening Add Students
-    allStudents = getAllStudents();
-    const currentClass = getCurrentClass();
-    
-    try {
-        allStudents = await fetchAllStudents({ forceRefresh: true });
-    } catch (e) {
-        console.error('[Render Add Students] Failed to fetch all students:', e);
-        fetchError = true;
-        // Fallback to cached data if available
-        allStudents = getAllStudents() || [];
+    const { studentsOverride = null } = options;
+    if (Array.isArray(studentsOverride)) {
+        allStudents = studentsOverride;
+    } else {
+        // Always refresh from API when opening Add Students
+        allStudents = getAllStudents();
+        
+        try {
+            allStudents = await fetchAllStudents({ forceRefresh: true });
+        } catch (e) {
+            console.error('[Render Add Students] Failed to fetch all students:', e);
+            fetchError = true;
+            // Fallback to cached data if available
+            allStudents = getAllStudents() || [];
+        }
     }
     
     // Ensure allStudents is an array
