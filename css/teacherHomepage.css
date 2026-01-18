@@ -504,6 +504,10 @@ body {
     justify-content: center;
     z-index: 1002; /* above other overlays on this page */
 }
+
+#confirmOverlay {
+    z-index: 1003;
+}
 .class-options-popup .class-options-row {
     display: flex;
     gap: 10px;
