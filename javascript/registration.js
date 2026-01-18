@@ -519,7 +519,7 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide3.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide3.textContent = 'This email is already registered. Please, try again with a different one.';
                     errorSlide3.style.display = 'block';
                     step = 2; // ensure email slide visible
                     updateUI();
@@ -569,7 +569,7 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide3.textContent = 'This email is already registered. You were returned to the email step to change it.';
+                    errorSlide3.textContent = 'This email is already registered.';
                     errorSlide3.style.display = 'block';
                     step = 2; updateUI();
                     email.focus();
