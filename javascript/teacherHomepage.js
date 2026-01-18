@@ -257,15 +257,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const className = btn.dataset.className || getRawClassNameFromButton(btn);
         const classIdFromDataset = btn.dataset.classId;
         
-            className,
-            classIdFromDataset,
-            classIdFromDatasetType: typeof classIdFromDataset,
-            classIdFromState: getClassIdByName(className),
-            buttonElement: btn,
-            hasDatasetClassId: !!classIdFromDataset,
-            hasDatasetClassName: !!btn.dataset.className
-        });
-        
         // CRITICAL: Require dataset.classId - do not proceed without it
         if (!classIdFromDataset) {
             const errorContext = {
@@ -300,10 +291,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         setCurrentClass(className, classId, btn);
         
         const currentAfterSet = getCurrentClass();
-            selectedClassId: currentAfterSet.id,
-            selectedClassName: currentAfterSet.name,
-            type: typeof currentAfterSet.id
-        });
         
         // Ensure dataset is complete (defensive)
         if (!btn.dataset.className) btn.dataset.className = className;
