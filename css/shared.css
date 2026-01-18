@@ -117,8 +117,16 @@ body[aria-busy="true"] .navbar-logo {
   background: #f3f4f6;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .lang-popup .lang-btn:hover { background: #e5e7eb; }
+.lang-popup .lang-flag {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
 
 @media (max-width: 480px) {
   .lang-toggle-btn {

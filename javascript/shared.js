@@ -445,8 +445,8 @@
       if (titleEl) titleEl.textContent = t('language_change_title');
       const enBtn = overlay.querySelector('[data-lang="en"]');
       const bgBtn = overlay.querySelector('[data-lang="bg"]');
-      if (enBtn) enBtn.textContent = `🇬🇧 ${t('language_en')}`;
-      if (bgBtn) bgBtn.textContent = `🇧🇬 ${t('language_bg')}`;
+      if (enBtn) enBtn.innerHTML = `<img src="icons/united-kingdom.svg" alt="" class="lang-flag" /> ${t('language_en')}`;
+      if (bgBtn) bgBtn.innerHTML = `<img src="icons/bulgaria.svg" alt="" class="lang-flag" /> ${t('language_bg')}`;
     };
 
     btn.addEventListener('click', () => {
