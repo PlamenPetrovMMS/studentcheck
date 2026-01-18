@@ -1153,17 +1153,6 @@ async function renderAddStudentsList(className) {
         return;
     }
 
-    // Show empty state message if class has no assigned students
-    const emptyStateMsg = (!classStudents || classStudents.length === 0) ? (() => {
-        const msg = document.createElement('p');
-        msg.className = 'muted';
-        msg.style.textAlign = 'center';
-        msg.style.padding = '10px 0';
-        msg.style.marginBottom = '10px';
-        msg.textContent = 'No students assigned to this class yet. Select students below to add them.';
-        return msg;
-    })() : null;
-
     // Render the list of all students
     const ul = document.createElement('ul');
     ul.style.listStyle = 'none';
@@ -1240,10 +1229,6 @@ async function renderAddStudentsList(className) {
         ul.appendChild(li);
     });
 
-    // Append empty state message (if present) and student list
-    if (emptyStateMsg) {
-        listEl.appendChild(emptyStateMsg);
-    }
     listEl.appendChild(ul);
 }
 
