@@ -22,7 +22,7 @@ html, body {
   margin: 4px;         /* keep slight outer margin */
   border: none;
   cursor: pointer;
-  box-shadow: none; /* keep flat by default */
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
   z-index: 10000;
   -webkit-user-select: none;
   user-select: none;
