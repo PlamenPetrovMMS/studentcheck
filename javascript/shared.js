@@ -422,7 +422,7 @@
     btn.className = 'lang-toggle-btn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Change language');
-    btn.textContent = '🌍';
+    btn.innerHTML = '<img src="icons/globe-earth.svg" alt="" class="lang-toggle-icon" />';
 
     const overlay = document.createElement('div');
     overlay.id = 'langOverlay';
