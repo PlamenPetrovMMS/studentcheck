@@ -264,6 +264,12 @@ body {
     border-radius: 8px;
 }
 
+/* Create Class overlay: wider to fit filters and list */
+#createClassOverlay .card {
+    width: min(96vw, 720px);
+    max-width: 720px;
+}
+
 
 
 
