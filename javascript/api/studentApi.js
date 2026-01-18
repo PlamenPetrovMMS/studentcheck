@@ -16,9 +16,6 @@ export async function fetchAllStudents() {
     // Check shared state cache first
     const cached = getAllStudents();
     if (cached && Array.isArray(cached) && cached.length > 0) {
-            count: cached.length,
-            source: 'shared state cache'
-        });
         return cached;
     }
     
@@ -28,9 +25,6 @@ export async function fetchAllStudents() {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                    count: parsed.length,
-                    source: 'localStorage'
-                });
                 setAllStudents(parsed);
                 return parsed;
             }
@@ -51,10 +45,6 @@ export async function fetchAllStudents() {
             const students = data.students || data || [];
             
             const finalStudents = Array.isArray(students) ? students : [];
-                count: finalStudents.length,
-                sampleStudent: finalStudents[0] || null,
-                sampleStudentKeys: finalStudents[0] ? Object.keys(finalStudents[0]) : []
-            });
             
             // CRITICAL: Store in shared state for use across modules
             setAllStudents(finalStudents);
