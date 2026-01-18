@@ -162,13 +162,14 @@
       leaving: 'Leaving',
       show_attendance: 'Show Attendance',
       attendance: 'Attendance',
-      new_class: 'New Class',
+      new_class: '+ New Class',
       search_placeholder: 'Search...',
       search_students_placeholder: 'Search students...',
       any: 'Any',
       bachelor: 'Bachelor',
       master: 'Master',
       phd: 'PhD',
+      no_classes_found: 'No classes found.',
       err_specializations_unavailable: 'Error: Specializations are not available for the selected faculty and level.',
       err_fill_all_fields: 'Please fill out every field.',
       err_select_faculty: 'Please, select your faculty.',
@@ -188,7 +189,12 @@
       err_password_requirements: 'Please meet all password requirements before finishing.',
       err_registration_failed_prefix: 'Registration failed: ',
       err_registration_failed_unknown: 'Unknown error',
-      err_network_unavailable: 'Network error or server unavailable.'
+      err_network_unavailable: 'Network error or server unavailable.',
+      err_login_required: 'Faculty Number and Password are required.',
+      err_login_failed: 'Login failed',
+      err_invalid_credentials: 'Invalid credentials',
+      err_login_network: 'Login failed: Network error or unavailable server.',
+      err_login_failed_response: 'Login failed: response is not OK'
     },
     bg: {
       language_change_title: 'Промяна на езика',
@@ -251,13 +257,14 @@
       leaving: 'Излизане',
       show_attendance: 'Покажи присъствия',
       attendance: 'Присъствия',
-      new_class: 'Нова дисциплина',
+      new_class: '+ Нова дисциплина',
       search_placeholder: 'Търси...',
       search_students_placeholder: 'Търси студенти...',
       any: 'Всички',
       bachelor: 'Бакалавър',
       master: 'Магистър',
       phd: 'Докторант',
+      no_classes_found: 'Няма намерени дисциплини.',
       err_specializations_unavailable: 'Грешка: Няма налични специализации за избрания факултет и степен.',
       err_fill_all_fields: 'Моля, попълнете всички полета.',
       err_select_faculty: 'Моля, изберете факултет.',
@@ -277,7 +284,12 @@
       err_password_requirements: 'Моля, изпълнете всички изисквания за паролата.',
       err_registration_failed_prefix: 'Неуспешна регистрация: ',
       err_registration_failed_unknown: 'Неизвестна грешка',
-      err_network_unavailable: 'Мрежова грешка или сървърът е недостъпен.'
+      err_network_unavailable: 'Мрежова грешка или сървърът е недостъпен.',
+      err_login_required: 'Факултетният номер и паролата са задължителни.',
+      err_login_failed: 'Неуспешен вход',
+      err_invalid_credentials: 'Невалидни данни',
+      err_login_network: 'Неуспешен вход: Мрежова грешка или недостъпен сървър.',
+      err_login_failed_response: 'Неуспешен вход: неуспешен отговор от сървъра'
     }
   };
 
@@ -368,7 +380,8 @@
         { selector: 'label[for="facultyNumber"]', key: 'faculty_number' },
         { selector: 'label[for="password"]', key: 'password' },
         { selector: '#studentLoginForm .btn.btn-primary', key: 'log_in' },
-        { selector: '.muted', key: 'no_account_register_html', html: true }
+        { selector: '.muted', key: 'no_account_register_html', html: true },
+        { selector: '#error-message', key: 'err_login_failed' }
       ],
       'teacherlogin.html': [
         { selector: '#teacherLoginTitle', key: 'teacher_login_title' },
@@ -376,7 +389,8 @@
         { selector: '#email', key: 'enter_email', attr: 'placeholder' },
         { selector: 'label[for="password"]', key: 'password' },
         { selector: '#password', key: 'enter_password', attr: 'placeholder' },
-        { selector: '#teacherLoginForm .btn.btn-primary', key: 'log_in' }
+        { selector: '#teacherLoginForm .btn.btn-primary', key: 'log_in' },
+        { selector: '#error-message', key: 'err_login_failed' }
       ],
       'registration.html': [
         { selector: '#signupTitle', key: 'create_account_title' },
@@ -408,7 +422,8 @@
         { selector: '.total-classes-label', key: 'total_classes' },
         { selector: '#closeClassDetailsOverlayBtn', key: 'back' },
         { selector: '#viewClassesBtn', key: 'classes' },
-        { selector: '#logoutBtn', key: 'log_out' }
+        { selector: '#logoutBtn', key: 'log_out' },
+        { selector: '#classesList .no-classes-message', key: 'no_classes_found' }
       ],
       'teacherhomepage.html': [
         { selector: '#overlayTitle', key: 'students' },
@@ -451,6 +466,13 @@
 
     if (page === 'studenthomepage.html') {
       applyStudentHomepageText();
+    }
+    if (page === 'registration.html') {
+      const errorEls = document.querySelectorAll('[data-i18n-error-key]');
+      errorEls.forEach((el) => {
+        const key = el.getAttribute('data-i18n-error-key');
+        if (key) el.textContent = t(key);
+      });
     }
     updateSelectOptions();
     if (page === 'teacherhomepage.html') {

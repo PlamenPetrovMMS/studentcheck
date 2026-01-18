@@ -271,10 +271,10 @@
         setInvalid(middleName, !b);
         setInvalid(lastName, !c);
         if (!a || !b || !c) {
-            errorSlide1.textContent = t('err_fill_all_fields');
+            setError(errorSlide1, 'err_fill_all_fields');
             return false;
         }
-        errorSlide1.textContent = '';
+        clearError(errorSlide1);
         return true;
     }
 
@@ -289,44 +289,56 @@
         el.classList.toggle('invalid', !!isInvalid);
     }
 
+    function setError(el, key) {
+        if (!el) return;
+        el.textContent = t(key);
+        el.setAttribute('data-i18n-error-key', key);
+    }
+
+    function clearError(el) {
+        if (!el) return;
+        el.textContent = '';
+        el.removeAttribute('data-i18n-error-key');
+    }
+
 
 
     function validateSlide2(){
         const facultyInvalid = (selectFaculty.value === "" || selectFaculty.selectedIndex === 0);
         setInvalid(selectFaculty, facultyInvalid);
         if(facultyInvalid){
-            errorSlide2_faculty.textContent = t('err_select_faculty');
+            setError(errorSlide2_faculty, 'err_select_faculty');
             return false;
         }
 
-        errorSlide2_faculty.textContent = "";
+        clearError(errorSlide2_faculty);
 
         const levelInvalid = (selectLevel.value === "" || selectLevel.selectedIndex === 0);
         setInvalid(selectLevel, levelInvalid);
         if(levelInvalid){
-            errorSlide2_level.textContent = t('err_select_level');
+            setError(errorSlide2_level, 'err_select_level');
             return false;
         }
 
-        errorSlide2_level.textContent = "";
+        clearError(errorSlide2_level);
 
         const specializationInvalid = (selectSpecialization.value === "" || selectSpecialization.selectedIndex === 0);
         setInvalid(selectSpecialization, specializationInvalid);
         if(specializationInvalid){
-            errorSlide2_specialization.textContent = t('err_select_specialization');
+            setError(errorSlide2_specialization, 'err_select_specialization');
             return false;
         }
 
-        errorSlide2_specialization.textContent = "";
+        clearError(errorSlide2_specialization);
 
         const groupInvalid = (selectGroup.value === "" || selectGroup.selectedIndex === 0);
         setInvalid(selectGroup, groupInvalid);
         if(groupInvalid){
-            errorSlide2_group.textContent = t('err_select_group');
+            setError(errorSlide2_group, 'err_select_group');
             return false;
         }
 
-        errorSlide2_group.textContent = "";
+        clearError(errorSlide2_group);
 
         return true;
         
@@ -338,19 +350,23 @@
     let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
     function validateSlide3() {
         const state = getContactFieldState();
-        const { valid, message, normalized } = getContactState();
+        const { valid, message, normalized, key } = getContactState();
         setInvalid(email, state.emailInvalid);
         setInvalid(facultyNumber, state.facultyInvalid);
         setInvalid(selectGroup, state.groupInvalid);
         if (!valid) {
             contactErrorActivated = true; // user attempted to proceed
-            errorSlide3.textContent = message;
+            if (key) {
+                setError(errorSlide3, key);
+            } else {
+                errorSlide3.textContent = message;
+            }
             errorSlide3.style.display = 'block';
             return false;
         }
         facultyNumber.value = normalized; // commit normalized value
         if (contactErrorActivated) {
-            errorSlide3.textContent = '';
+            clearError(errorSlide3);
             errorSlide3.style.display = 'none';
         }
         return true;
@@ -369,21 +385,21 @@
         const f = fRaw.replace(/\s+/g,'');
         const g = selectGroup ? (selectGroup.value || '') : '';
         const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f, groupValue: g };
-        if (!e) return { valid:false, message:t('err_email_required'), normalized:f, debug };
-        if (!validateEmailFormat(e)) return { valid:false, message:t('err_email_invalid'), normalized:f, debug };
-        if (!f) return { valid:false, message:t('err_faculty_required'), normalized:f, debug };
-        if (f.length !== 9) return { valid:false, message:t('err_faculty_length'), normalized:f, debug };
+        if (!e) return { valid:false, message:t('err_email_required'), normalized:f, debug, key: 'err_email_required' };
+        if (!validateEmailFormat(e)) return { valid:false, message:t('err_email_invalid'), normalized:f, debug, key: 'err_email_invalid' };
+        if (!f) return { valid:false, message:t('err_faculty_required'), normalized:f, debug, key: 'err_faculty_required' };
+        if (f.length !== 9) return { valid:false, message:t('err_faculty_length'), normalized:f, debug, key: 'err_faculty_length' };
         // Minimal rule: must contain at least one alphanumeric; allow any printable except spaces.
-        if (!/[A-Za-z0-9]/.test(f)) return { valid:false, message:t('err_faculty_letter_digit'), normalized:f, debug };
-        if (f.length > 50) return { valid:false, message:t('err_faculty_too_long'), normalized:f, debug };
+        if (!/[A-Za-z0-9]/.test(f)) return { valid:false, message:t('err_faculty_letter_digit'), normalized:f, debug, key: 'err_faculty_letter_digit' };
+        if (f.length > 50) return { valid:false, message:t('err_faculty_too_long'), normalized:f, debug, key: 'err_faculty_too_long' };
         // If it contains disallowed characters, attempt auto-sanitization (keep letters/digits and - _ . /)
         const sanitized = f.replace(/[^A-Za-z0-9\-_.\/]/g,'');
-        if (sanitized.length === 0) return { valid:false, message:t('err_faculty_invalid_chars'), normalized:f, debug };
+        if (sanitized.length === 0) return { valid:false, message:t('err_faculty_invalid_chars'), normalized:f, debug, key: 'err_faculty_invalid_chars' };
         // Group selection required; only allow 37-42
         const allowedGroups = ['37','38','39','40','41','42'];
-        if (!g || !allowedGroups.includes(g)) return { valid:false, message:t('err_group_invalid'), normalized:f, debug };
+        if (!g || !allowedGroups.includes(g)) return { valid:false, message:t('err_group_invalid'), normalized:f, debug, key: 'err_group_invalid' };
         debug.sanitized = sanitized;
-        return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
+        return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug, key: '' };
     }
 
     function getContactFieldState() {
@@ -413,7 +429,7 @@
             });
 
             if (!result.ok) {
-                errorSlide3.textContent = t('err_email_verify');
+                setError(errorSlide3, 'err_email_verify');
                 errorSlide3.style.display = 'block';
                 contactErrorActivated = true;
                 return false;
@@ -431,14 +447,14 @@
                 lastDuplicateEmail = emailValue;
                 email.classList.add('invalid');
                 contactErrorActivated = true;
-                errorSlide3.textContent = t('err_email_exists');
+                setError(errorSlide3, 'err_email_exists');
                 errorSlide3.style.display = 'block';
                 return false;
             }
 
             return true;
         } catch (_) {
-            errorSlide3.textContent = t('err_email_verify');
+            setError(errorSlide3, 'err_email_verify');
             errorSlide3.style.display = 'block';
             contactErrorActivated = true;
             return false;
@@ -467,16 +483,20 @@
             }
         }
         if (!contactErrorActivated) return; // user hasn't clicked Continue yet; stay silent
-        const { valid, message } = getContactState();
+        const { valid, message, key } = getContactState();
         const state = getContactFieldState();
         setInvalid(email, state.emailInvalid);
         setInvalid(facultyNumber, state.facultyInvalid);
         setInvalid(selectGroup, state.groupInvalid);
         if (valid) {
-            errorSlide3.textContent = '';
+            clearError(errorSlide3);
             errorSlide3.style.display = 'none';
         } else {
-            errorSlide3.textContent = message;
+            if (key) {
+                setError(errorSlide3, key);
+            } else {
+                errorSlide3.textContent = message;
+            }
             errorSlide3.style.display = 'block';
         }
     }
@@ -618,7 +638,7 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide3.textContent = t('err_email_exists');
+                    setError(errorSlide3, 'err_email_exists');
                     errorSlide3.style.display = 'block';
                     step = 2; // ensure email slide visible
                     updateUI();
@@ -668,7 +688,7 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    errorSlide3.textContent = t('err_email_exists');
+                    setError(errorSlide3, 'err_email_exists');
                     errorSlide3.style.display = 'block';
                     step = 2; updateUI();
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly

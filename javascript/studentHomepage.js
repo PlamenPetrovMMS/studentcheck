@@ -260,7 +260,7 @@ async function loadClassesForStudent(studentData) {
 
 
 		}else{
-			classesList.innerHTML = '<p>No classes found.</p>';
+			classesList.innerHTML = '<p class="no-classes-message">No classes found.</p>';
 		}
 		
 	}else{
