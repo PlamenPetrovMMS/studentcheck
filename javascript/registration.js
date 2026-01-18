@@ -258,6 +258,9 @@
         const a = firstName.value.trim();
         const b = middleName.value.trim();
         const c = lastName.value.trim();
+        setInvalid(firstName, !a);
+        setInvalid(middleName, !b);
+        setInvalid(lastName, !c);
         if (!a || !b || !c) {
             errorSlide1.textContent = 'Please fill out every field.';
             return false;
@@ -272,32 +275,44 @@
 
     function validateEmailFormat(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
+    function setInvalid(el, isInvalid) {
+        if (!el) return;
+        el.classList.toggle('invalid', !!isInvalid);
+    }
+
 
 
     function validateSlide2(){
-
-        if(selectFaculty.value === "" || selectFaculty.selectedIndex === 0){
+        const facultyInvalid = (selectFaculty.value === "" || selectFaculty.selectedIndex === 0);
+        setInvalid(selectFaculty, facultyInvalid);
+        if(facultyInvalid){
             errorSlide2_faculty.textContent = "Please, select your faculty.";
             return false;
         }
 
         errorSlide2_faculty.textContent = "";
 
-        if(selectLevel.value === "" || selectLevel.selectedIndex === 0){
+        const levelInvalid = (selectLevel.value === "" || selectLevel.selectedIndex === 0);
+        setInvalid(selectLevel, levelInvalid);
+        if(levelInvalid){
             errorSlide2_level.textContent = "Please, select your level.";
             return false;
         }
 
         errorSlide2_level.textContent = "";
 
-        if(selectSpecialization.value === "" || selectSpecialization.selectedIndex === 0){
+        const specializationInvalid = (selectSpecialization.value === "" || selectSpecialization.selectedIndex === 0);
+        setInvalid(selectSpecialization, specializationInvalid);
+        if(specializationInvalid){
             errorSlide2_specialization.textContent = "Please, select your specialization.";
             return false;
         }
 
         errorSlide2_specialization.textContent = "";
 
-        if(selectGroup.value === "" || selectGroup.selectedIndex === 0){
+        const groupInvalid = (selectGroup.value === "" || selectGroup.selectedIndex === 0);
+        setInvalid(selectGroup, groupInvalid);
+        if(groupInvalid){
             errorSlide2_group.textContent = "Please, select your group.";
             return false;
         }
@@ -313,7 +328,11 @@
     // Slide 2 (index 1): Contact (email + faculty number)
     let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
     function validateSlide3() {
+        const state = getContactFieldState();
         const { valid, message, normalized } = getContactState();
+        setInvalid(email, state.emailInvalid);
+        setInvalid(facultyNumber, state.facultyInvalid);
+        setInvalid(selectGroup, state.groupInvalid);
         if (!valid) {
             contactErrorActivated = true; // user attempted to proceed
             errorSlide3.textContent = message;
@@ -356,6 +375,19 @@
         if (!g || !allowedGroups.includes(g)) return { valid:false, message:'Please select your group (37–42).', normalized:f, debug };
         debug.sanitized = sanitized;
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
+    }
+
+    function getContactFieldState() {
+        const e = email.value.trim();
+        const fRaw = facultyNumber.value.trim();
+        const f = fRaw.replace(/\s+/g,'');
+        const g = selectGroup ? (selectGroup.value || '') : '';
+        const allowedGroups = ['37','38','39','40','41','42'];
+        const sanitized = f.replace(/[^A-Za-z0-9\-_.\/]/g,'');
+        const emailInvalid = !e || !validateEmailFormat(e);
+        const facultyInvalid = (!f || f.length !== 9 || !/[A-Za-z0-9]/.test(f) || sanitized.length === 0);
+        const groupInvalid = (!g || !allowedGroups.includes(g));
+        return { emailInvalid, facultyInvalid, groupInvalid };
     }
 
     async function checkEmailAvailability() {
@@ -427,6 +459,10 @@
         }
         if (!contactErrorActivated) return; // user hasn't clicked Continue yet; stay silent
         const { valid, message } = getContactState();
+        const state = getContactFieldState();
+        setInvalid(email, state.emailInvalid);
+        setInvalid(facultyNumber, state.facultyInvalid);
+        setInvalid(selectGroup, state.groupInvalid);
         if (valid) {
             errorSlide3.textContent = '';
             errorSlide3.style.display = 'none';
@@ -449,6 +485,8 @@
         const letterOk = /[A-Za-z]/.test(p1);
         const numberOk = /\d/.test(p1);
         const matchOk = p1 === p2;
+        setInvalid(password, !(lengthOk && letterOk && numberOk));
+        setInvalid(repeatPassword, !matchOk);
         return lengthOk && letterOk && numberOk && matchOk;
     }
 
