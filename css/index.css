@@ -14,6 +14,12 @@ body {
 .card-header { border-bottom: 0; }
 .card-header .title { text-align: center; }
 
+/* Remove card background on the index page */
+.card {
+	background: transparent;
+	box-shadow: none;
+}
+
 /* Reuse actions bar but stack buttons in a column and remove the top divider line */
 .actions {
 	justify-content: center;
