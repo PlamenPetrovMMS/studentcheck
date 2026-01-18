@@ -21,8 +21,9 @@ import {
     ensureClassStudentAssignments
 } from '../state/appState.js';
 import { showOverlay, hideOverlay, getOverlay } from '../ui/overlays.js';
-import { renderClassItem, updateClassStatusUI, flashReadyBadge } from '../ui/classUI.js';
+import { renderClassItem, updateClassStatusUI, flashReadyBadge, attachNewClassButtonBehavior } from '../ui/classUI.js';
 import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
+import { saveClassStudents } from '../storage/studentStorage.js';
 
 const WIZARD_TOTAL_SLIDES = 2;
 let createClassSlideIndex = 0;
@@ -159,10 +160,32 @@ async function submitNewClass() {
         setClassReady(className, true);
         setClassStudentAssignments(className, new Set(selectedIds));
         
+        // Persist selected students for readiness on reload
+        try {
+            const wizardIndex = getWizardStudentIndex();
+            const selectedStudents = selectedIds
+                .map(id => {
+                    const info = wizardIndex.get(id);
+                    if (!info) return null;
+                    return {
+                        full_name: info.fullName || '',
+                        faculty_number: info.facultyNumber || id
+                    };
+                })
+                .filter(Boolean);
+            saveClassStudents(className, selectedStudents);
+        } catch (_) {}
+        
         // Render class button
         const classList = document.getElementById('classList');
         if (classList) {
-            renderClassItem(className, newClassId, classList, null, null);
+            const clickHandler = typeof window.handleClassButtonClickWrapper === 'function'
+                ? window.handleClassButtonClickWrapper
+                : null;
+            const loadStudentsFn = typeof window.loadClassStudents === 'function'
+                ? window.loadClassStudents
+                : null;
+            renderClassItem(className, newClassId, classList, clickHandler, loadStudentsFn);
         }
         
         // Update button UI
@@ -172,6 +195,9 @@ async function submitNewClass() {
         });
         if (btn) {
             btn.dataset.classId = newClassId;
+            if (typeof window.handleClassButtonClickWrapper === 'function') {
+                attachNewClassButtonBehavior(btn, window.handleClassButtonClickWrapper);
+            }
             updateClassStatusUI(btn);
             flashReadyBadge(btn);
         }

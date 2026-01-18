@@ -303,6 +303,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Expose handlers for class creation module to attach new buttons
+    window.handleClassButtonClickWrapper = handleClassButtonClickWrapper;
+    window.loadClassStudents = loadClassStudents;
+
     // ===== EVENT LISTENERS =====
     addBtn?.addEventListener('click', () => {
         openClassCreationWizard();
