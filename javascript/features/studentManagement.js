@@ -42,7 +42,11 @@ let addStudentsSelections = new Set();
 function getManageStudentsOverlay() { return getOverlay('manageStudentsOverlay'); }
 function getManageStudentsListEl() { return document.getElementById('manageStudentsList'); }
 function getAddStudentsClassOverlay() { return getOverlay('addStudentsClassOverlay'); }
-function getAddStudentsListEl() { return document.getElementById('addStudentsList'); }
+function getAddStudentsListEl() {
+    const overlay = getAddStudentsClassOverlay();
+    const scoped = overlay?.querySelector('#addStudentsList');
+    return scoped || document.getElementById('addStudentsList');
+}
 function getAttendanceHistoryOverlay() { return getOverlay('attendanceHistoryOverlay'); }
 
 /**
@@ -1087,33 +1091,32 @@ async function renderAddStudentsList(className) {
         }
     }
 
-    // Read all students from shared state first
-    console.log('[Render Add Students] Preparing to get all students', {
+    console.log('[Render Add Students] Preparing list data', {
         className,
         classId,
-        classStudentsCount: classStudents?.length || 0
+        classStudentsCount: classStudents?.length || 0,
+        assignmentsCount: existingSet.size
     });
     
     // Check shared state first
     allStudents = getAllStudents();
     const currentClass = getCurrentClass();
     
-    console.log('[Render Add Students] Checking shared state for all students', {
+    const cachedCount = Array.isArray(allStudents) ? allStudents.length : 0;
+    console.log('[Render Add Students] Shared state check', {
         className,
         selectedClassId: currentClass.id,
-        allStudentsInState: allStudents,
-        countInState: allStudents?.length || 0,
-        source: allStudents ? 'shared state' : 'not cached'
+        cachedCount,
+        source: cachedCount > 0 ? 'shared state' : 'not cached'
     });
     
     // If not in shared state, fetch and store
     if (!allStudents || !Array.isArray(allStudents) || allStudents.length === 0) {
-        console.log('[Render Add Students] All students not in shared state, fetching...');
+        console.log('[Render Add Students] Fetching all students from API');
         try {
             allStudents = await fetchAllStudents();
-            console.log('[Render Add Students] All students fetched and stored in shared state:', {
+            console.log('[Render Add Students] All students fetched', {
                 count: allStudents?.length || 0,
-                sampleStudent: allStudents?.[0] || null,
                 source: 'API -> shared state'
             });
         } catch (e) {
@@ -1122,9 +1125,8 @@ async function renderAddStudentsList(className) {
             allStudents = [];
         }
     } else {
-        console.log('[Render Add Students] Using all students from shared state cache:', {
-            count: allStudents.length,
-            source: 'shared state cache'
+        console.log('[Render Add Students] Using cached students', {
+            count: allStudents.length
         });
     }
     
