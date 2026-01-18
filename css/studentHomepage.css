@@ -1,5 +1,7 @@
 /* Center title in the header for this page */
 .card-header .title { text-align: center; width: 100%; }
+/* Remove header divider line on student homepage */
+.card-header { border-bottom: 0; }
 /* Keep the main container centered in the viewport */
 
 /* QR container and scalable sizing */
