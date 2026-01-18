@@ -334,6 +334,9 @@
   }
 
   function updateSelectOptions() {
+    if (document.body && document.body.classList.contains('registration-page')) {
+      return;
+    }
     const optionMap = {
       '': t('any') || 'Any',
       bachelor: t('bachelor') || 'Bachelor',
