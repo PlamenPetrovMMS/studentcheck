@@ -22,7 +22,7 @@ import {
 } from '../state/appState.js';
 import { showOverlay, hideOverlay, getOverlay } from '../ui/overlays.js';
 import { renderClassItem, updateClassStatusUI, flashReadyBadge } from '../ui/classUI.js';
-import { getTeacherEmail } from '../config/api.js';
+import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
 
 const WIZARD_TOTAL_SLIDES = 2;
 let createClassSlideIndex = 0;
@@ -200,9 +200,7 @@ async function loadStudentsIntoWizard() {
     container.innerHTML = '<p class="loading-hint">Loading...</p>';
     
     try {
-        const students = await fetchAllStudents();
-        container.innerHTML = '';
-        renderStudentsInWizard(students);
+        await fetchFilteredStudents();
         container.dataset.loaded = 'true';
         ensureCreateClassFiltersInitialized();
     } catch (e) {
@@ -330,8 +328,13 @@ function filterStudentsWizard(query) {
  * Filter students by dropdown selects (stub - only uses search for now)
  */
 function filterCreateClassStudentsBySelects(levelValue, facultyValue, specializationValue, groupValue, searchInputValue) {
-    // Currently only uses search input - dropdown filters not fully implemented
-    filterStudentsWizard(searchInputValue);
+    fetchFilteredStudents({
+        level: levelValue,
+        faculty: facultyValue,
+        specialization: specializationValue,
+        group: groupValue,
+        search: searchInputValue
+    });
 }
 
 /**
@@ -350,11 +353,7 @@ function resetCreateClassFilters() {
     if (groupSelect) groupSelect.value = '';
     if (searchInput) searchInput.value = '';
     
-    const container = getCreateClassStudentContainer();
-    if (container) {
-        const items = container.querySelectorAll('li.list-item');
-        items.forEach(li => li.style.display = '');
-    }
+    fetchFilteredStudents();
 }
 
 /**
@@ -373,13 +372,25 @@ function ensureCreateClassFiltersInitialized() {
     
     if (searchInput) {
         if (window.Utils && typeof window.Utils.debounce === 'function') {
-            const debounced = window.Utils.debounce((value) => filterStudentsWizard(value), 180);
+            const debounced = window.Utils.debounce((value) => filterCreateClassStudentsBySelects(
+                levelSelect?.value || '',
+                facultySelect?.value || '',
+                specializationSelect?.value || '',
+                groupSelect?.value || '',
+                value || ''
+            ), 250);
             searchInput.addEventListener('input', (e) => debounced(e.target.value));
         } else {
             let debounceTimer = null;
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => filterStudentsWizard(e.target.value), 180);
+                debounceTimer = setTimeout(() => filterCreateClassStudentsBySelects(
+                    levelSelect?.value || '',
+                    facultySelect?.value || '',
+                    specializationSelect?.value || '',
+                    groupSelect?.value || '',
+                    e.target.value || ''
+                ), 250);
             });
         }
     }
@@ -434,6 +445,46 @@ function ensureCreateClassFiltersInitialized() {
     
     if (resetBtn) {
         resetBtn.addEventListener('click', resetCreateClassFilters);
+    }
+}
+
+async function fetchFilteredStudents(filters = {}) {
+    const container = getCreateClassStudentContainer();
+    if (!container) return;
+
+    const {
+        level = '',
+        faculty = '',
+        specialization = '',
+        group = '',
+        search = ''
+    } = filters;
+
+    container.innerHTML = '<p class="loading-hint">Loading...</p>';
+
+    const params = new URLSearchParams();
+    if (level) params.append('level', level);
+    if (faculty) params.append('faculty', faculty);
+    if (specialization) params.append('specialization', specialization);
+    if (group) params.append('group', group);
+    if (search) params.append('search', search);
+
+    try {
+        const url = `${SERVER_BASE_URL + ENDPOINTS.students}${params.toString() ? `?${params.toString()}` : ''}`;
+        const result = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (!result.ok) {
+            throw new Error(`HTTP ${result.status}`);
+        }
+        const data = await result.json();
+        const students = Array.isArray(data?.students) ? data.students : (Array.isArray(data) ? data : []);
+        renderStudentsInWizard(students);
+    } catch (e) {
+        try {
+            const fallback = await fetchAllStudents();
+            renderStudentsInWizard(fallback);
+        } catch (_) {
+            container.innerHTML = '<p style="color:#b91c1c;">Unable to load students.</p>';
+        }
     }
 }
 
