@@ -1218,6 +1218,28 @@ body {
     border: 1px solid #d1d5db;
 }
 
+@media (max-width: 600px) {
+    .top-section-search-filters{
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .top-section-search-filters .filter-select{
+        flex: 1 1 calc(50% - 8px);
+        min-width: 140px;
+    }
+    .top-section-search-bar-reset-filters{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    #createClassSearchInput{
+        width: 100%;
+    }
+    #createClassResetFiltersBtn{
+        align-self: flex-end;
+    }
+}
+
 /* Search input responsive styles */
 #overlaySearchInput,
 #addStudentsSearchInput,
