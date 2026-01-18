@@ -39,6 +39,7 @@ function ensureClassOptionsOverlay() {
     classOptionsOverlay.innerHTML = `
         <div class="ready-class-popup class-options-popup" role="dialog" aria-modal="true" aria-labelledby="classOptionsTitle">
             <h2 id="classOptionsTitle">Class Options</h2>
+            <p id="classOptionsClassName" class="class-options-name"></p>
             <button type="button" id="closeClassOptionsBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
             <div class="class-options-row">
                 <input type="text" id="classOptionsNameInput" placeholder="Class name" />
@@ -81,7 +82,9 @@ export function openClassOptionsOverlay(className) {
     if (input) input.value = resolvedName;
     
     const titleEl = classOptionsOverlay.querySelector('#classOptionsTitle');
-    if (titleEl) titleEl.textContent = `Class Options — ${resolvedName || 'Class'}`;
+    if (titleEl) titleEl.textContent = 'Class Options';
+    const nameEl = classOptionsOverlay.querySelector('#classOptionsClassName');
+    if (nameEl) nameEl.textContent = resolvedName || 'Class';
     
     showOverlay(classOptionsOverlay);
 }
