@@ -6,7 +6,6 @@
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 7000); // fail fast if sleeping too long
         fetch(url, { mode: 'no-cors', cache: 'no-store', signal: controller.signal })
-            .then(() => console.log('Heartbeat ping sent.'))
             .catch((err) => console.debug('Heartbeat ping failed (likely fine):', err))
             .finally(() => clearTimeout(timeout));
     } catch (e) {

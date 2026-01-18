@@ -16,7 +16,6 @@ export async function fetchAllStudents() {
     // Check shared state cache first
     const cached = getAllStudents();
     if (cached && Array.isArray(cached) && cached.length > 0) {
-        console.log('[fetchAllStudents] Returning cached students', {
             count: cached.length,
             source: 'shared state cache'
         });
@@ -29,7 +28,6 @@ export async function fetchAllStudents() {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                console.log('[fetchAllStudents] Loading from localStorage', {
                     count: parsed.length,
                     source: 'localStorage'
                 });
@@ -41,7 +39,6 @@ export async function fetchAllStudents() {
         console.warn('[fetchAllStudents] Failed to load from localStorage:', e);
     }
     
-    console.log('[fetchAllStudents] Fetching all students from server...');
     try {
         const result = await fetch(`${SERVER_BASE_URL + ENDPOINTS.students}`, {
             method: 'GET',
@@ -50,14 +47,10 @@ export async function fetchAllStudents() {
 
         if (result.ok) {
             const data = await result.json();
-            console.log('[fetchAllStudents] RAW response:', data);
             
             const students = data.students || data || [];
-            console.log('[fetchAllStudents] Parsed students:', students);
-            console.log('[fetchAllStudents] Students count:', students?.length);
             
             const finalStudents = Array.isArray(students) ? students : [];
-            console.log('[fetchAllStudents] Final students array:', {
                 count: finalStudents.length,
                 sampleStudent: finalStudents[0] || null,
                 sampleStudentKeys: finalStudents[0] ? Object.keys(finalStudents[0]) : []
@@ -65,12 +58,10 @@ export async function fetchAllStudents() {
             
             // CRITICAL: Store in shared state for use across modules
             setAllStudents(finalStudents);
-            console.log('[fetchAllStudents] Students stored in shared state (appState.allStudents)');
             
             // Also cache in localStorage for persistence across page loads
             try {
                 localStorage.setItem('allStudents', JSON.stringify(finalStudents));
-                console.log('[fetchAllStudents] Students also cached in localStorage');
             } catch (e) {
                 console.warn('[fetchAllStudents] Failed to cache in localStorage:', e);
             }

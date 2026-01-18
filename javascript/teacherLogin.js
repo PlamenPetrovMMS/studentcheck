@@ -9,7 +9,6 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
 
     const normalizedEmail = (email || '').trim().toLowerCase();
     const teacherData = { email: normalizedEmail, password };
-    console.log('Teacher Login Attempt:', teacherData);
 
     if (!email || !password) {
         if (errorMessage) {
@@ -36,8 +35,6 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             body: JSON.stringify(teacherData)
         });
         const t1 = performance.now();
-        console.log(`Response received from server in ${Math.round(t1 - t0)} ms`);
-        console.log(response)
             if (response.ok) {
             const data = await response.json();
             if (data.loginSuccess) {

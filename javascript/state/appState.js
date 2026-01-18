@@ -428,7 +428,6 @@ export function getAllStudents() {
  */
 export function setAllStudents(students) {
     allStudents = students;
-    console.log('[appState] All students cached in shared state', {
         count: students?.length || 0,
         sampleStudent: students?.[0] || null
     });

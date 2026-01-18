@@ -17,7 +17,6 @@ import { saveClassStudents, loadClassStudentsFromStorage } from '../storage/stud
  * @returns {Promise<{class_id: number}>} Created class data
  */
 export async function createClass(name, studentIds, teacherEmail) {
-    console.log('[API] Creating class:', name, 'with students:', studentIds);
     const res = await fetch(SERVER_BASE_URL + ENDPOINTS.createClass, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,13 +69,6 @@ export async function fetchClassStudents(classId, className, retryCount = 0) {
         throw new Error(`Invalid classId: "${classId}" cannot be converted to a number`);
     }
     
-    console.log('[fetchClassStudents] Fetching students for class', {
-        classId: numericClassId,
-        classIdType: typeof numericClassId,
-        className,
-        retryAttempt: retryCount
-    });
-    
     const result = await fetch(
         `${SERVER_BASE_URL + ENDPOINTS.class_students}?class_id=${encodeURIComponent(numericClassId)}`,
         {
@@ -99,11 +91,8 @@ export async function fetchClassStudents(classId, className, retryCount = 0) {
             return [];
         }
         
-        console.log('[fetchClassStudents] RAW response:', data);
         
         const students = data.students || data || [];
-        console.log('[fetchClassStudents] Parsed students:', students);
-        console.log('[fetchClassStudents] Students count:', students?.length);
         
         // Ensure students is an array
         let studentsArray = Array.isArray(students) ? students : [];
@@ -114,11 +103,6 @@ export async function fetchClassStudents(classId, className, retryCount = 0) {
             const storedStudents = loadClassStudentsFromStorage(className);
             // If we have students in localStorage but server returned empty, server may still be processing
             if (storedStudents && storedStudents.length > 0) {
-                console.log('[fetchClassStudents] Empty result but localStorage has students, retrying after delay', {
-                    classId: numericClassId,
-                    className,
-                    storedCount: storedStudents.length
-                });
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 return fetchClassStudents(classId, className, 1); // Retry once
             }
@@ -126,19 +110,8 @@ export async function fetchClassStudents(classId, className, retryCount = 0) {
         
         // Save to localStorage
         if (className) {
-            console.log('[fetchClassStudents] Writing students to localStorage', {
-                target: `localStorage["${className}:students"]`,
-                count: studentsArray.length
-            });
             saveClassStudents(className, studentsArray);
         }
-        
-        console.log('[fetchClassStudents] Returning students array', {
-            count: studentsArray.length,
-            sampleStudent: studentsArray[0] || null,
-            classId: numericClassId,
-            retryUsed: retryCount > 0
-        });
         
         return studentsArray;
     } else {
@@ -191,13 +164,6 @@ export async function addStudentsToClass(classId, students) {
         throw new Error('Invalid students: no students with faculty_number found');
     }
     
-    console.log('[addStudentsToClass] Sending request', {
-        classId: numericClassId,
-        classIdType: typeof numericClassId,
-        studentsCount: validStudents.length,
-        sampleStudent: validStudents[0]
-    });
-    
     const response = await fetch(`${SERVER_BASE_URL + ENDPOINTS.class_students}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -235,12 +201,6 @@ export async function addStudentsToClass(classId, students) {
         const errorMessage = responseData?.error || responseData?.message || `HTTP ${response.status}`;
         throw new Error(errorMessage);
     }
-    
-    console.log('[addStudentsToClass] Request completed', {
-        status: response.status,
-        responseData,
-        classId: numericClassId
-    });
     
     // WORKAROUND: Server may not await inserts properly, so we need to wait
     // a bit before verifying the insert was successful. The caller should

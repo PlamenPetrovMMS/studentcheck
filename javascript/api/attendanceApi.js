@@ -55,7 +55,6 @@ export async function saveAttendanceData(classId, studentIds) {
     });
 
     if (response.ok) {
-        console.log('[saveAttendanceData] Attendance data saved successfully.');
     } else {
         console.error('[saveAttendanceData] Failed to save attendance data. Status:', response.status);
     }
@@ -127,10 +126,8 @@ export async function saveStudentTimestamps(classId, timestampsMap) {
     const functionName = 'saveStudentTimestamps';
     const endpoint = ENDPOINTS.saveStudentTimestamps;
     
-    console.log(`[${module}] Saving student timestamps for class:`, classId, 'students:', timestampsMap.size);
     
     if (!timestampsMap || timestampsMap.size === 0) {
-        console.log(`[${module}] No timestamps to save`);
         return { success: 0, failed: 0, errors: [] };
     }
     
@@ -144,14 +141,12 @@ export async function saveStudentTimestamps(classId, timestampsMap) {
         
         // Skip records where both timestamps are null (no attendance data to save)
         if (joinedAt === null && leftAt === null) {
-            console.log(`[${module}] Skipping student ${facultyNumber}: both timestamps are null`);
             continue;
         }
         
         try {
             await saveStudentTimestamp(classId, facultyNumber, joinedAt, leftAt);
             results.push({ facultyNumber, status: 'success' });
-            console.log(`[${module}] Successfully saved timestamps for student:`, facultyNumber);
         } catch (error) {
             const errorContext = {
                 module,
@@ -181,7 +176,6 @@ export async function saveStudentTimestamps(classId, timestampsMap) {
     const successCount = results.filter(r => r.status === 'success').length;
     const failedCount = errors.length;
     
-    console.log(`[${module}] Batch save complete. Success: ${successCount}, Failed: ${failedCount}`);
     
     if (failedCount > 0) {
         console.error(`[${module}] Failed to save timestamps for ${failedCount} student(s):`, errors.map(e => e.facultyNumber));

@@ -155,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k]; });
 
 		let qrData = JSON.stringify(payload);
-		console.log('QR (kjua) payload:', payload, 'length:', qrData.length);
 
 			let kjuaData = kjua({
 					render: 'svg',
@@ -195,7 +194,6 @@ function displayErrorInQRContainer(qrContainer, message) {
 
 function openViewClassesOverlay() {
 
-	//console.log("[openClassesOverlay] Opening classes overlay...");
 
 	const overlay = document.getElementById('view-classes-overlay');
 	const overlayBackground = document.querySelector('.overlay-background');
@@ -215,7 +213,6 @@ function closeViewClassesOverlay() {
 
 async function loadClassesForStudent(studentData) {
 
-	//console.log("[loadClassesForStudent] Loading classes for student:", studentData);
 
 	const classesList = document.getElementById('classesList');
 	classesList.innerHTML = ''; // Clear previous list
@@ -231,10 +228,8 @@ async function loadClassesForStudent(studentData) {
 
 
 	if (response.ok) {
-		//console.log("[loadClassesForStudent] Response received from server.");
 		const data = await response.json();
 
-		//console.log("[loadClassesForStudent] Response data:", data);
 
 		classNames = data.class_names;
 
@@ -259,7 +254,6 @@ async function loadClassesForStudent(studentData) {
 				classesList.appendChild(classItem);
 			});
 
-			//console.log("[loadClassesForStudent] Classes loaded into overlay.");
 
 		}else{
 			classesList.innerHTML = '<p>No classes found.</p>';
@@ -280,7 +274,6 @@ async function loadClassesForStudent(studentData) {
 
 function openClassDetailsOverlay(className, studentId) {
 
-	//console.log("[openClassDetailsOverlay] Opening details for class:", className);
 
 	closeViewClassesOverlay();
 
@@ -310,7 +303,6 @@ function closeClassDetailsOverlay(){
 
 async function loadAttendedClassesCount(className, studentId){
 
-	console.log("[loadAttendedClassesCount] Loading attended classes count for class:", className);
 
 	const classId = await getClassIdByName(className);
 
@@ -323,10 +315,8 @@ async function loadAttendedClassesCount(className, studentId){
 
 	if(response.ok){
 		
-		console.log("[loadAttendedClassesCount] Response received from server for attendance data.");
 		const data = await response.json();
 
-		console.log(data);
 		const attendance_count = data.attendance_count;
 		const total_completed_classes_count = data.total_completed_classes_count;
 
@@ -355,7 +345,6 @@ async function getClassIdByName(className){
 	if(response.ok){
 		const data = await response.json();
 		
-		console.log("[getClassIdByName] Class ID for", className, "is", data.class_id, " type of: ", typeof data.class_id);
 
 		return data.class_id;
 	}

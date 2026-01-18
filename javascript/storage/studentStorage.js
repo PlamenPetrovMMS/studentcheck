@@ -44,7 +44,6 @@ export function loadClassStudentsFromStorage(className) {
  */
 export function addNewStudentsToStorage(className, students) {
     saveClassStudents(className, students);
-    console.log(`[addNewStudentsToStorage] Stored new students list for class "${className}" in localStorage.`);
 }
 
 /**

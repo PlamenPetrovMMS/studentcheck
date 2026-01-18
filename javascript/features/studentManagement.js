@@ -71,13 +71,6 @@ export async function renderManageStudentsForClass(className) {
     const current = getCurrentClass();
     const selectedClassId = current.id;
     
-    console.log('[Class Overlay Render] Invoked', {
-        className,
-        selectedClassId,
-        selectedClassIdType: typeof selectedClassId,
-        timestamp: new Date().toISOString()
-    });
-    
     const listEl = getManageStudentsListEl();
     if (!listEl) {
         console.error(`[${module}] List element not found for class:`, className);
@@ -91,65 +84,28 @@ export async function renderManageStudentsForClass(className) {
         // First, try to load from localStorage (fast path)
         let students = loadClassStudentsFromStorage(className);
         
-        console.log('[Class Overlay Render] Initial localStorage check', {
-            className,
-            studentsFromStorage: students,
-            studentsCount: students?.length || 0,
-            studentsSource: 'localStorage'
-        });
-        
         // If localStorage is empty, fetch from API
         if (!students || students.length === 0) {
-            console.log(`[${module}] No students in localStorage for "${className}", fetching from API...`);
             
             // Resolve classId to fetch from API
             const classId = await resolveClassId(className);
             
-            console.log('[Class Overlay Render] Resolved classId for API fetch', {
-                className,
-                resolvedClassId: classId,
-                resolvedClassIdType: typeof classId,
-                selectedClassId,
-                selectedClassIdType: typeof selectedClassId
-            });
-            
             if (classId) {
                 try {
-                    console.log('[Class Overlay Render] Calling fetchClassStudents', {
-                        classId,
-                        className
-                    });
-                    
                     const fetched = await fetchClassStudents(classId, className);
                     students = fetched || [];
-                    
-                    console.log('[Class Overlay Render] After fetchClassStudents', {
-                        className,
-                        fetchedStudents: fetched,
-                        studentsCount: students.length,
-                        sampleStudent: students[0] || null
-                    });
                     
                     // WORKAROUND: If fetch returned empty but we have students in localStorage,
                     // the server inserts may still be processing. Wait and retry once.
                     if (students.length === 0) {
                         const storedStudents = loadClassStudentsFromStorage(className);
                         if (storedStudents && storedStudents.length > 0) {
-                            console.log('[Class Overlay Render] Empty fetch but localStorage has students, retrying after delay', {
-                                className,
-                                classId,
-                                storedCount: storedStudents.length
-                            });
                             await new Promise(resolve => setTimeout(resolve, 1500));
                             
                             try {
                                 const retryFetched = await fetchClassStudents(classId, className, 1);
                                 if (retryFetched && retryFetched.length > 0) {
                                     students = retryFetched;
-                                    console.log('[Class Overlay Render] Retry successful', {
-                                        className,
-                                        studentsCount: students.length
-                                    });
                                 }
                             } catch (retryError) {
                                 console.warn('[Class Overlay Render] Retry failed, using localStorage fallback', {
@@ -162,7 +118,6 @@ export async function renderManageStudentsForClass(className) {
                         }
                     }
                     
-                    console.log(`[${module}] Fetched ${students.length} students from API for class:`, className);
                 } catch (e) {
                     console.error(`[${module}] Failed to fetch class students from API:`, {
                         className,
@@ -173,10 +128,6 @@ export async function renderManageStudentsForClass(className) {
                     // Fallback to localStorage if fetch fails
                     const storedStudents = loadClassStudentsFromStorage(className);
                     if (storedStudents && storedStudents.length > 0) {
-                        console.log(`[${module}] Using localStorage fallback after fetch failure`, {
-                            className,
-                            storedCount: storedStudents.length
-                        });
                         students = storedStudents;
                     } else {
                         students = [];
@@ -186,20 +137,10 @@ export async function renderManageStudentsForClass(className) {
                 console.warn(`[${module}] No classId found for "${className}", cannot fetch from API`);
                 students = [];
             }
-        } else {
-            console.log(`[${module}] Loaded ${students.length} students from localStorage for class:`, className);
         }
 
         // Clear loading state
         listEl.innerHTML = '';
-
-        console.log('[Class Overlay Render] Computed class students', {
-            className,
-            selectedClassId,
-            resultCount: students?.length || 0,
-            classStudents: students,
-            studentsSource: students?.length > 0 ? (students[0] ? 'localStorage or API' : 'unknown') : 'none'
-        });
 
         // Render students if we have any
         if (students && students.length > 0) {
@@ -239,13 +180,6 @@ export async function renderManageStudentsForClass(className) {
 
         // Fallback to in-memory id set if no students from storage/API
         const assignments = getClassStudentAssignments(className);
-        
-        console.log('[Class Overlay Render] Checking in-memory assignments fallback', {
-            className,
-            assignments,
-            assignmentsSize: assignments?.size || 0,
-            assignmentsType: assignments?.constructor?.name
-        });
         
         if (assignments && assignments.size > 0) {
             const ul = document.createElement('ul');
@@ -361,28 +295,13 @@ function ensureManageStudentsOverlayInitialized() {
  * @param {string} className - Class name
  */
 export async function openManageStudentsOverlay(className) {
-    console.log('[Class Overlay Open] Opening manage students overlay', {
-        className,
-        timestamp: new Date().toISOString()
-    });
-    
     ensureManageStudentsOverlayInitialized();
 
     const current = getCurrentClass();
-    console.log('[Class Overlay Open] Current class before set', {
-        name: current.name,
-        id: current.id,
-        idType: typeof current.id
-    });
     
     setCurrentClass(className, current.id, current.button);
     
     const currentAfterSet = getCurrentClass();
-    console.log('[Class Overlay Open] Current class after set', {
-        name: currentAfterSet.name,
-        id: currentAfterSet.id,
-        idType: typeof currentAfterSet.id
-    });
 
     // Hide ready overlay to avoid stacking
     const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
@@ -395,7 +314,6 @@ export async function openManageStudentsOverlay(className) {
 
     // Show overlay immediately (renderManageStudentsForClass will show loading state)
     if (overlay) {
-        console.log('[Class Overlay Open] Showing overlay, will render students list');
         showOverlay(overlay);
     }
 
@@ -1091,43 +1009,21 @@ async function renderAddStudentsList(className) {
         }
     }
 
-    console.log('[Render Add Students] Preparing list data', {
-        className,
-        classId,
-        classStudentsCount: classStudents?.length || 0,
-        assignmentsCount: existingSet.size
-    });
-    
     // Check shared state first
     allStudents = getAllStudents();
     const currentClass = getCurrentClass();
     
     const cachedCount = Array.isArray(allStudents) ? allStudents.length : 0;
-    console.log('[Render Add Students] Shared state check', {
-        className,
-        selectedClassId: currentClass.id,
-        cachedCount,
-        source: cachedCount > 0 ? 'shared state' : 'not cached'
-    });
     
     // If not in shared state, fetch and store
     if (!allStudents || !Array.isArray(allStudents) || allStudents.length === 0) {
-        console.log('[Render Add Students] Fetching all students from API');
         try {
             allStudents = await fetchAllStudents();
-            console.log('[Render Add Students] All students fetched', {
-                count: allStudents?.length || 0,
-                source: 'API -> shared state'
-            });
         } catch (e) {
             console.error('[Render Add Students] Failed to fetch all students:', e);
             fetchError = true;
             allStudents = [];
         }
-    } else {
-        console.log('[Render Add Students] Using cached students', {
-            count: allStudents.length
-        });
     }
     
     // Ensure allStudents is an array
@@ -1281,12 +1177,6 @@ export async function finalizeAddStudentsToClass(className) {
     if (classId && newlyAddedStudents.length > 0) {
         try {
             const response = await addStudentsToClass(classId, newlyAddedStudents);
-            console.log('[finalizeAddStudentsToClass] Students added to class (request sent)', {
-                className,
-                classId,
-                status: response.status,
-                studentsCount: newlyAddedStudents.length
-            });
             
             // WORKAROUND: Server may not await inserts, so wait a bit then verify
             // This ensures inserts complete before we try to fetch the updated list
@@ -1300,13 +1190,6 @@ export async function finalizeAddStudentsToClass(className) {
                 
                 const verifiedStudents = await fetchClassStudents(classId, className);
                 clearTimeout(verifyTimeout);
-                
-                console.log('[finalizeAddStudentsToClass] Verified students after insert', {
-                    className,
-                    classId,
-                    verifiedCount: verifiedStudents?.length || 0,
-                    expectedCount: newlyAddedStudents.length
-                });
                 
                 // If verification shows fewer students than expected, log warning but continue
                 if (verifiedStudents && verifiedStudents.length < newlyAddedStudents.length) {

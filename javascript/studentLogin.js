@@ -14,7 +14,6 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
 
     if(studentData.facultyNumber != "" && studentData.password != "") {
         errorMessage.textContent = "";
-        console.log('Student Login Attempt:', studentData);
     }else{
         errorMessage.style.color = "red";
         errorMessage.textContent = "Faculty Number and Password are required."
@@ -34,7 +33,6 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
             body: JSON.stringify(studentData)
         });
         const t1 = performance.now();
-        console.log(`Response received from server in ${Math.round(t1 - t0)} ms`);
         if (response.ok) {
             const data = await response.json();
             if(data.loginSuccess) {
@@ -43,15 +41,12 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
                     sessionStorage.setItem('studentData', JSON.stringify({
                         data
                     }));
-                    console.log("Session data persisted successfully.");
-                    console.log(data);
                 } catch (e) {
                     console.warn('Failed to persist session data:', e);
                 }
                 LoadingOverlay.hide();
                 window.location.href = 'studentHomepage.html';
             } else {
-                console.log("data.loginSuccess = false")
                 errorMessage.style.color = "red";
                 errorMessage.textContent = 'Login failed';
                 LoadingOverlay.hide();

@@ -6,7 +6,6 @@
 
     // Debug toggle: set to false to silence internal diagnostic messages.
     const DEBUG = true;
-    const dbg = (...args) => { if (DEBUG) console.log('[Registration]', ...args); };
     const track = document.getElementById('slidesTrack');
     const progressBar = document.getElementById('progressBar');
 
