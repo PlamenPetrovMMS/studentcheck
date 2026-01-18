@@ -84,7 +84,6 @@ export function openClassOptionsOverlay(className) {
     if (titleEl) titleEl.textContent = `Class Options — ${resolvedName || 'Class'}`;
     
     showOverlay(classOptionsOverlay);
-    input?.focus();
 }
 
 /**
@@ -334,7 +333,7 @@ function onSaveClassOptions() {
     
     if (!proposed) {
         alert('Name cannot be empty.');
-        input.focus();
+        // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
     

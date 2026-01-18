@@ -974,7 +974,7 @@ export async function openAddStudentsToClass(className) {
     }
 
     updateAddStudentsCounter();
-    searchInput?.focus();
+    // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
 }
 
 /**

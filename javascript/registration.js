@@ -560,11 +560,7 @@
 
 
     function focusFirstInput() {
-        requestAnimationFrame(() => {
-            if (step === 0) firstName.focus();
-            else if (step === 1) email.focus();
-            else if (step === 2) password.focus();
-        });
+        // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
     }
 
 
@@ -617,7 +613,7 @@
                     errorSlide3.style.display = 'block';
                     step = 2; // ensure email slide visible
                     updateUI();
-                    email.focus();
+                    // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                     return;
                 }
                 alert('Registration failed: ' + serverMsg);
@@ -666,7 +662,7 @@
                     errorSlide3.textContent = 'This email is already registered.';
                     errorSlide3.style.display = 'block';
                     step = 2; updateUI();
-                    email.focus();
+                    // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                 } else {
                     alert('Registration failed: ' + (data.message || 'Unknown error'));
                 }

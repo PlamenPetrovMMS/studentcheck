@@ -85,9 +85,9 @@ function goToSlide(index) {
     // Focus appropriate input
     requestAnimationFrame(() => {
         if (index === 0) {
-            getCreateClassNameInput()?.focus();
+        // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         } else if (index === 1) {
-            getCreateClassSearchInput()?.focus();
+            // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         }
     });
 }
@@ -104,7 +104,7 @@ function handleWizardNext() {
     const name = nameInput.value.trim();
     if (!name) {
         errorEl.textContent = 'Name is required.';
-        nameInput.focus();
+        // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
     errorEl.textContent = '';
@@ -574,7 +574,7 @@ export function openClassCreationWizard() {
     
     showOverlay(overlay);
     goToSlide(0);
-    getCreateClassNameInput()?.focus();
+    // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
 }
 
 /**
