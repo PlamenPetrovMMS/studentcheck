@@ -139,3 +139,14 @@ main.card {
 	background: transparent;
 	box-shadow: none;
 }
+
+/* Remove divider lines in login card */
+.card-header {
+	border-bottom: 0;
+}
+.card-header .title {
+	text-align: center;
+}
+.actions {
+	border-top: 0;
+}

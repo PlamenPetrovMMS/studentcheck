@@ -27,6 +27,17 @@ form#teacherLoginForm .field:first-child { margin-top: 12px; }
 	box-shadow: none;
 }
 
+/* Remove divider lines in login card */
+.card-header {
+	border-bottom: 0;
+}
+.card-header .title {
+	text-align: center;
+}
+.actions {
+	border-top: 0;
+}
+
 /* Make the primary Log in button larger to match student login CTA sizing */
 .actions .btn.btn-primary {
     font-size: 1.15rem;
