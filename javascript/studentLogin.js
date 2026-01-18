@@ -14,9 +14,11 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
 
     if(studentData.facultyNumber != "" && studentData.password != "") {
         errorMessage.textContent = "";
+        errorMessage.style.display = "none";
     }else{
         errorMessage.style.color = "red";
         errorMessage.textContent = "Faculty Number and Password are required."
+        errorMessage.style.display = "block";
         return;
     }
 
@@ -49,18 +51,21 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
             } else {
                 errorMessage.style.color = "red";
                 errorMessage.textContent = 'Login failed';
+                errorMessage.style.display = "block";
                 LoadingOverlay.hide();
             }
         } else {
             console.error('Login failed: response is not OK', response.statusText);
             errorMessage.style.color = "red";
             errorMessage.textContent = 'Invalid credentials';
+            errorMessage.style.display = "block";
             LoadingOverlay.hide();
         }
     } catch (err) {
         console.error('Login request failed:', err);
         errorMessage.style.color = "red";
         errorMessage.textContent = 'Login failed: Network error or unavailable server.';
+        errorMessage.style.display = "block";
         LoadingOverlay.hide();
     }
 
