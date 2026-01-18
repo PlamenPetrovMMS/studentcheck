@@ -1129,6 +1129,15 @@ body {
     }
 }
 
+@media (max-width: 480px) {
+    #studentInfoOverlay .role-button,
+    #classOptionsOverlay .role-button {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 0.95rem;
+    }
+}
+
 /* Scanner footer buttons: match attendance overlay height on mobile */
 @media (max-width: 480px) {
     #scannerOverlay .scanner-footer-actions .role-button {
