@@ -1237,6 +1237,10 @@ body {
     border: 1px solid #d1d5db;
     width: auto;
     min-width: 16ch;
+    max-width: 22ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 @media (max-width: 600px) {
@@ -1246,6 +1250,7 @@ body {
     }
     .top-section-search-filters .filter-select{
         flex: 0 0 auto;
+        max-width: 46vw;
     }
     .top-section-search-bar-reset-filters{
         flex-direction: column;
