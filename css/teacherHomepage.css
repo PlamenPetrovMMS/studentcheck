@@ -297,10 +297,13 @@ body {
     padding: 0 20px 10px 20px; /* Provide spacing; previously empty rule */
 }
 #overlayMainSectionBody ul { 
+    display: grid;
+    gap: 10px;
     padding:0;
     margin:0;
     max-height: 300px; 
     overflow-y: auto; 
+    list-style: none;
 }
 /* Student list items styling */
 .list-item {
@@ -613,7 +616,13 @@ body {
     overflow-y: auto;
     padding-right: 4px; /* allow slight space from scrollbar */
 }
-#addStudentsClassOverlay .add-students-list ul { margin:0; padding:0; }
+#addStudentsClassOverlay .add-students-list ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
 /* Improve list items in Add Students overlay */
 #addStudentsClassOverlay .add-students-list .list-item {
