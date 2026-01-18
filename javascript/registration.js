@@ -358,6 +358,54 @@
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug };
     }
 
+    async function checkEmailAvailability() {
+        const emailValue = (email.value || '').trim();
+        if (!emailValue) return false;
+
+        const normalized = emailValue.toLowerCase();
+        nextBtn.disabled = true;
+
+        try {
+            const result = await fetch('https://studentcheck-server.onrender.com/students', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!result.ok) {
+                errorSlide3.textContent = 'Unable to verify email right now. Please try again.';
+                errorSlide3.style.display = 'block';
+                contactErrorActivated = true;
+                return false;
+            }
+
+            const data = await result.json();
+            const students = Array.isArray(data?.students) ? data.students : (Array.isArray(data) ? data : []);
+
+            const exists = students.some((student) => {
+                const candidate = (student?.email || student?.student_email || student?.email_address || '').toString().trim().toLowerCase();
+                return candidate && candidate === normalized;
+            });
+
+            if (exists) {
+                lastDuplicateEmail = emailValue;
+                email.classList.add('invalid');
+                contactErrorActivated = true;
+                errorSlide3.textContent = 'This email is already registered. Please, try again with a different one.';
+                errorSlide3.style.display = 'block';
+                return false;
+            }
+
+            return true;
+        } catch (_) {
+            errorSlide3.textContent = 'Unable to verify email right now. Please try again.';
+            errorSlide3.style.display = 'block';
+            contactErrorActivated = true;
+            return false;
+        } finally {
+            nextBtn.disabled = false;
+        }
+    }
+
 
 
 
@@ -430,7 +478,7 @@
 
 
 
-    function next() {
+    async function next() {
         if (step === 0 && !validateSlide1()) { 
             return; 
         }
@@ -439,8 +487,14 @@
             return; 
         }
 
-        if (step === 2 && !validateSlide3()) { 
-            return; 
+        if (step === 2) {
+            if (!validateSlide3()) {
+                return;
+            }
+            const available = await checkEmailAvailability();
+            if (!available) {
+                return;
+            }
         }
 
         if (step < TOTAL_STEPS - 1) {
