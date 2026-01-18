@@ -107,6 +107,10 @@ function handleWizardNext() {
         // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
+    if (name.length > 50) {
+        errorEl.textContent = 'Name must be 50 characters or less.';
+        return;
+    }
     errorEl.textContent = '';
     setWizardClassName(name);
     goToSlide(1);
@@ -135,6 +139,11 @@ async function submitNewClass() {
     const className = collectClassName();
     if (!className) {
         alert('Class name missing.');
+        goToSlide(0);
+        return;
+    }
+    if (className.length > 50) {
+        alert('Class name must be 50 characters or less.');
         goToSlide(0);
         return;
     }

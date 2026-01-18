@@ -339,6 +339,10 @@ async function onSaveClassOptions() {
         // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
+    if (proposed.length > 50) {
+        alert('Name must be 50 characters or less.');
+        return;
+    }
     
     if (proposed === oldName) {
         closeClassOptionsOverlay();
