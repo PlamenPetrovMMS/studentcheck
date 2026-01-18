@@ -265,6 +265,24 @@
 		max-width: 520px;
 		height: auto;
 		max-height: calc(100dvh - 32px);
+		padding-bottom: 16px;
+	}
+
+	#view-classes-overlay, #class-details-overlay {
+		overflow: hidden;
+	}
+
+	#view-classes-overlay .overlay-bottom-section,
+	#class-details-overlay .overlay-bottom-section {
+		position: static;
+		width: 100%;
+		margin-top: 12px;
+	}
+
+	#view-classes-overlay .overlay-middle-section,
+	#class-details-overlay .overlay-middle-section {
+		max-height: calc(100dvh - 240px);
+		overflow-y: auto;
 	}
 }
 
