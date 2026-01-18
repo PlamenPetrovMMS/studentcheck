@@ -120,6 +120,12 @@ body {
   .field select { max-width: 100%; }
 }
 
+@media (max-width: 520px) {
+  .registration-page .card {
+    margin-top: 72px;
+  }
+}
+
 /* Full-page loading overlay (shared look with login pages) */
 .loading-overlay {
   position: fixed;

@@ -175,7 +175,7 @@
     function resetSpecializations() {
 
         selectSpecialization.innerHTML = "";
-        selectSpecialization.appendChild(new Option("Select your specialization", "", true, true));
+        selectSpecialization.appendChild(new Option("", "", true, true));
         selectSpecialization.firstChild.disabled = true;
         selectSpecialization.disabled = true;
 
@@ -208,7 +208,7 @@
             return;
         }
 
-        selectSpecialization.appendChild(new Option('Select your specialization', '', true, true));
+        selectSpecialization.appendChild(new Option('', '', true, true));
         selectSpecialization.firstChild.disabled = true;
 
         for(const specialization of list){
