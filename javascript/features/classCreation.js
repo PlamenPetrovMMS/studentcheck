@@ -596,6 +596,11 @@ export function closeClassCreationWizard() {
     }
     clearWizardSelections();
     setWizardClassName('');
+    const nameInput = getCreateClassNameInput();
+    if (nameInput) nameInput.value = '';
+    const errorEl = getCreateClassErrorName();
+    if (errorEl) errorEl.textContent = '';
+    resetCreateClassFilters();
 }
 
 /**
