@@ -21,6 +21,12 @@ form#teacherLoginForm .field:first-child { margin-top: 12px; }
 	z-index: 9000; /* overlay uses 9999 */
 }
 
+/* Remove card background on login page */
+.card {
+	background: transparent;
+	box-shadow: none;
+}
+
 /* Make the primary Log in button larger to match student login CTA sizing */
 .actions .btn.btn-primary {
     font-size: 1.15rem;

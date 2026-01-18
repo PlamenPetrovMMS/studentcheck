@@ -133,3 +133,9 @@ main.card {
 		.navbar-logo {
 			z-index: 9000; /* overlay uses 9999 */
 		}
+
+/* Remove card background on login page */
+.card {
+	background: transparent;
+	box-shadow: none;
+}
