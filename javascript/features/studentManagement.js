@@ -1009,21 +1009,17 @@ async function renderAddStudentsList(className) {
         }
     }
 
-    // Check shared state first
+    // Always refresh from API when opening Add Students
     allStudents = getAllStudents();
     const currentClass = getCurrentClass();
     
-    const cachedCount = Array.isArray(allStudents) ? allStudents.length : 0;
-    
-    // If not in shared state, fetch and store
-    if (!allStudents || !Array.isArray(allStudents) || allStudents.length === 0) {
-        try {
-            allStudents = await fetchAllStudents();
-        } catch (e) {
-            console.error('[Render Add Students] Failed to fetch all students:', e);
-            fetchError = true;
-            allStudents = [];
-        }
+    try {
+        allStudents = await fetchAllStudents({ forceRefresh: true });
+    } catch (e) {
+        console.error('[Render Add Students] Failed to fetch all students:', e);
+        fetchError = true;
+        // Fallback to cached data if available
+        allStudents = getAllStudents() || [];
     }
     
     // Ensure allStudents is an array

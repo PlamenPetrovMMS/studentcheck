@@ -12,27 +12,30 @@ import { setAllStudents, getAllStudents } from '../state/appState.js';
  * Fetch all students from the database
  * @returns {Promise<Array<Object>>} Array of student objects
  */
-export async function fetchAllStudents() {
-    // Check shared state cache first
-    const cached = getAllStudents();
-    if (cached && Array.isArray(cached) && cached.length > 0) {
-        return cached;
-    }
-    
-    // Check localStorage as fallback before fetching
-    try {
-        const stored = localStorage.getItem('allStudents');
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                setAllStudents(parsed);
-                return parsed;
-            }
+export async function fetchAllStudents(options = {}) {
+    const { forceRefresh = false } = options;
+    if (!forceRefresh) {
+        // Check shared state cache first
+        const cached = getAllStudents();
+        if (cached && Array.isArray(cached) && cached.length > 0) {
+            return cached;
         }
-    } catch (e) {
-        console.warn('[fetchAllStudents] Failed to load from localStorage:', e);
+        
+        // Check localStorage as fallback before fetching
+        try {
+            const stored = localStorage.getItem('allStudents');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setAllStudents(parsed);
+                    return parsed;
+                }
+            }
+        } catch (e) {
+            console.warn('[fetchAllStudents] Failed to load from localStorage:', e);
+        }
     }
-    
+
     try {
         const result = await fetch(`${SERVER_BASE_URL + ENDPOINTS.students}`, {
             method: 'GET',
