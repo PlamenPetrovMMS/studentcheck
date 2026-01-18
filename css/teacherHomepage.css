@@ -1235,6 +1235,8 @@ body {
     padding: 5px;
     border-radius: 10px;
     border: 1px solid #d1d5db;
+    width: auto;
+    min-width: 16ch;
 }
 
 @media (max-width: 600px) {
@@ -1243,8 +1245,7 @@ body {
         gap: 8px;
     }
     .top-section-search-filters .filter-select{
-        flex: 1 1 calc(50% - 8px);
-        min-width: 140px;
+        flex: 0 0 auto;
     }
     .top-section-search-bar-reset-filters{
         flex-direction: column;
