@@ -259,6 +259,15 @@
 	z-index: 1000;
 }
 
+@media (max-width: 600px) {
+	#view-classes-overlay, #class-details-overlay {
+		width: calc(100% - 32px);
+		max-width: 520px;
+		height: auto;
+		max-height: calc(100dvh - 32px);
+	}
+}
+
 
 
 
