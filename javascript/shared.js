@@ -94,3 +94,389 @@
 
   window.LoadingOverlay = { show, hide };
 })();
+
+// Language switcher + translations
+(function(){
+  const LANGUAGE_KEY = 'language';
+  const DEFAULT_LANG = 'en';
+
+  const translations = {
+    en: {
+      language_change_title: 'Change Language',
+      language_en: 'English',
+      language_bg: 'Bulgarian',
+      home_title: 'Welcome',
+      role_student: 'Student',
+      role_teacher: 'Teacher',
+      student_login_title: 'Student Log in',
+      teacher_login_title: 'Teacher Log in',
+      faculty_number: 'Faculty Number',
+      password: 'Password',
+      log_in: 'Log in',
+      no_account_register_html: 'Don’t have an account? <a href="registration.html">Register here</a>',
+      email: 'Email',
+      enter_email: 'Enter your email',
+      enter_password: 'Enter your password',
+      create_account_title: 'Create your account',
+      first_name: 'First name',
+      middle_name: 'Middle name',
+      last_name: 'Last name',
+      faculty: 'Faculty',
+      level: 'Level',
+      specialization: 'Specialization',
+      group: 'Group',
+      faculty_number_label: 'Faculty number',
+      repeat_password: 'Repeat password',
+      password_req_length: 'At least 8 characters',
+      password_req_letter: 'Contains a letter',
+      password_req_number: 'Contains a number',
+      password_req_match: 'Passwords match',
+      already_have_account_html: 'Already have an account? <a href="studentLogin.html">Log in</a>',
+      back: 'Back',
+      continue: 'Continue',
+      finish: 'Finish',
+      student_home_title: 'Student Home',
+      welcome_prefix: 'Welcome, ',
+      faculty_number_prefix: 'Faculty Number: ',
+      classes: 'Classes',
+      details: 'Details',
+      class_details: 'Class Details',
+      attended_classes: 'Attended classes:',
+      total_classes: 'Total classes:',
+      log_out: 'Log out',
+      students: 'Students',
+      reset: 'Reset',
+      add_students: 'Add Students',
+      close: 'Close',
+      attendance_history: 'Attendance History',
+      create_class: 'Create Class',
+      name: 'Name',
+      add: 'Add',
+      class_ready: 'Class Ready',
+      manage_students: 'Manage Students',
+      start_scanner: 'Start Scanner',
+      download_attendance_table: 'Download Attendance Table',
+      options: 'Options',
+      start_scanning: 'Start Scanning',
+      joining: 'Joining',
+      leaving: 'Leaving',
+      show_attendance: 'Show Attendance',
+      attendance: 'Attendance',
+      new_class: 'New Class',
+      search_placeholder: 'Search...',
+      search_students_placeholder: 'Search students...',
+      any: 'Any',
+      bachelor: 'Bachelor',
+      master: 'Master',
+      phd: 'PhD'
+    },
+    bg: {
+      language_change_title: 'Смяна на езика',
+      language_en: 'Английски',
+      language_bg: 'Български',
+      home_title: 'Добре дошли',
+      role_student: 'Студент',
+      role_teacher: 'Преподавател',
+      student_login_title: 'Вход за студент',
+      teacher_login_title: 'Вход за преподавател',
+      faculty_number: 'Факултетен номер',
+      password: 'Парола',
+      log_in: 'Вход',
+      no_account_register_html: 'Нямате акаунт? <a href="registration.html">Регистрация</a>',
+      email: 'Имейл',
+      enter_email: 'Въведете имейл',
+      enter_password: 'Въведете парола',
+      create_account_title: 'Създай акаунт',
+      first_name: 'Име',
+      middle_name: 'Бащино име',
+      last_name: 'Фамилия',
+      faculty: 'Факултет',
+      level: 'Степен',
+      specialization: 'Специалност',
+      group: 'Група',
+      faculty_number_label: 'Факултетен номер',
+      repeat_password: 'Повтори паролата',
+      password_req_length: 'Поне 8 символа',
+      password_req_letter: 'Съдържа буква',
+      password_req_number: 'Съдържа число',
+      password_req_match: 'Паролите съвпадат',
+      already_have_account_html: 'Вече имате акаунт? <a href="studentLogin.html">Вход</a>',
+      back: 'Назад',
+      continue: 'Продължи',
+      finish: 'Завърши',
+      student_home_title: 'Начало - студент',
+      welcome_prefix: 'Добре дошли, ',
+      faculty_number_prefix: 'Факултетен номер: ',
+      classes: 'Класове',
+      details: 'Детайли',
+      class_details: 'Детайли за класа',
+      attended_classes: 'Посетени занятия:',
+      total_classes: 'Общо занятия:',
+      log_out: 'Изход',
+      students: 'Студенти',
+      reset: 'Нулирай',
+      add_students: 'Добави студенти',
+      close: 'Затвори',
+      attendance_history: 'История на присъствие',
+      create_class: 'Създай клас',
+      name: 'Име',
+      add: 'Добави',
+      class_ready: 'Класът е готов',
+      manage_students: 'Управление на студенти',
+      start_scanner: 'Стартирай скенер',
+      download_attendance_table: 'Изтегли таблица за присъствие',
+      options: 'Опции',
+      start_scanning: 'Стартирай сканиране',
+      joining: 'Влизане',
+      leaving: 'Излизане',
+      show_attendance: 'Покажи присъствие',
+      attendance: 'Присъствие',
+      new_class: 'Нов клас',
+      search_placeholder: 'Търси...',
+      search_students_placeholder: 'Търси студенти...',
+      any: 'Всички',
+      bachelor: 'Бакалавър',
+      master: 'Магистър',
+      phd: 'Докторант'
+    }
+  };
+
+  function getLanguage() {
+    return localStorage.getItem(LANGUAGE_KEY) || DEFAULT_LANG;
+  }
+
+  function setLanguage(lang) {
+    localStorage.setItem(LANGUAGE_KEY, lang);
+    applyTranslations();
+  }
+
+  function t(key) {
+    const lang = getLanguage();
+    return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+  }
+
+  function applyEntry(entry) {
+    const nodes = document.querySelectorAll(entry.selector);
+    if (!nodes || nodes.length === 0) return;
+    const value = t(entry.key);
+    nodes.forEach((el) => {
+      if (entry.html) {
+        el.innerHTML = value;
+        return;
+      }
+      if (entry.attr) {
+        el.setAttribute(entry.attr, value);
+        return;
+      }
+      el.textContent = value;
+    });
+  }
+
+  function applyStudentHomepageText() {
+    const welcomeP = document.querySelector('.muted-left');
+    const nameEl = document.getElementById('studentDisplayName');
+    if (welcomeP && nameEl && welcomeP.firstChild) {
+      welcomeP.firstChild.textContent = t('welcome_prefix');
+    }
+    const facP = document.querySelector('.muted-left-spaced');
+    const facEl = document.getElementById('studentFacultyNumber');
+    if (facP && facEl && facP.firstChild) {
+      facP.firstChild.textContent = t('faculty_number_prefix');
+    }
+  }
+
+  function updateModeLabels() {
+    const labels = document.querySelectorAll('#scannerOverlay .mode-label');
+    if (labels.length >= 2) {
+      labels[0].textContent = t('joining');
+      labels[1].textContent = t('leaving');
+    }
+  }
+
+  function updateSelectOptions() {
+    const optionMap = {
+      '': t('any') || 'Any',
+      bachelor: t('bachelor') || 'Bachelor',
+      master: t('master') || 'Master',
+      phd: t('phd') || 'PhD'
+    };
+    document.querySelectorAll('select').forEach(select => {
+      Array.from(select.options).forEach(opt => {
+        if (optionMap.hasOwnProperty(opt.value)) {
+          opt.textContent = optionMap[opt.value];
+        }
+      });
+    });
+  }
+
+  function applyTranslations() {
+    const lang = getLanguage();
+    document.documentElement.lang = lang;
+    const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+
+    const pages = {
+      'index.html': [
+        { selector: '#homeTitle', key: 'home_title' },
+        { selector: '#studentBtn', key: 'role_student' },
+        { selector: '#teacherBtn', key: 'role_teacher' }
+      ],
+      'studentlogin.html': [
+        { selector: '#loginTitle', key: 'student_login_title' },
+        { selector: 'label[for="facultyNumber"]', key: 'faculty_number' },
+        { selector: 'label[for="password"]', key: 'password' },
+        { selector: '#studentLoginForm .btn.btn-primary', key: 'log_in' },
+        { selector: '.muted', key: 'no_account_register_html', html: true }
+      ],
+      'teacherlogin.html': [
+        { selector: '#teacherLoginTitle', key: 'teacher_login_title' },
+        { selector: 'label[for="email"]', key: 'email' },
+        { selector: '#email', key: 'enter_email', attr: 'placeholder' },
+        { selector: 'label[for="password"]', key: 'password' },
+        { selector: '#password', key: 'enter_password', attr: 'placeholder' },
+        { selector: '#teacherLoginForm .btn.btn-primary', key: 'log_in' }
+      ],
+      'registration.html': [
+        { selector: '#signupTitle', key: 'create_account_title' },
+        { selector: 'label[for="firstName"]', key: 'first_name' },
+        { selector: 'label[for="middleName"]', key: 'middle_name' },
+        { selector: 'label[for="lastName"]', key: 'last_name' },
+        { selector: 'label[for="faculty"]', key: 'faculty' },
+        { selector: 'label[for="level"]', key: 'level' },
+        { selector: 'label[for="specialization"]', key: 'specialization' },
+        { selector: 'label[for="group"]', key: 'group' },
+        { selector: 'label[for="email"]', key: 'email' },
+        { selector: 'label[for="facultyNumber"]', key: 'faculty_number_label' },
+        { selector: 'label[for="password"]', key: 'password' },
+        { selector: 'label[for="repeatPassword"]', key: 'repeat_password' },
+        { selector: '#reqLength', key: 'password_req_length' },
+        { selector: '#reqLetter', key: 'password_req_letter' },
+        { selector: '#reqNumber', key: 'password_req_number' },
+        { selector: '#reqMatch', key: 'password_req_match' },
+        { selector: '#backBtn', key: 'back' },
+        { selector: '#nextBtn', key: 'continue' },
+        { selector: '#finishBtn', key: 'finish' },
+        { selector: '.muted', key: 'already_have_account_html', html: true }
+      ],
+      'studenthomepage.html': [
+        { selector: '#studentHomeTitle', key: 'student_home_title' },
+        { selector: '#viewClassesOverlayTitle', key: 'classes' },
+        { selector: '#classDetailsOverlayTitle', key: 'class_details' },
+        { selector: '.attended-classes-label', key: 'attended_classes' },
+        { selector: '.total-classes-label', key: 'total_classes' },
+        { selector: '#closeClassDetailsOverlayBtn', key: 'back' },
+        { selector: '#viewClassesBtn', key: 'classes' },
+        { selector: '#logoutBtn', key: 'log_out' }
+      ],
+      'teacherhomepage.html': [
+        { selector: '#overlayTitle', key: 'students' },
+        { selector: '#resetFiltersBtn', key: 'reset' },
+        { selector: '#addStudentsOverlayBtn', key: 'add_students' },
+        { selector: '#closeOverlayBtn', key: 'close' },
+        { selector: '#attendanceHistoryTitle', key: 'attendance_history' },
+        { selector: '#attendanceHistoryBackBtn', key: 'back' },
+        { selector: '#classWizardTitle', key: 'create_class' },
+        { selector: 'label[for="createClassNameInput"]', key: 'name' },
+        { selector: '#createClassResetFiltersBtn', key: 'reset' },
+        { selector: '#createClassBackBtn', key: 'back' },
+        { selector: '#createClassNextBtn', key: 'continue' },
+        { selector: '#createClassFinishBtn', key: 'finish' },
+        { selector: '#manageStudentsTitle', key: 'manage_students' },
+        { selector: '#backToReadyBtn', key: 'back' },
+        { selector: '#addStudentManageBtn', key: 'add_students' },
+        { selector: '#addStudentsTitle', key: 'add_students' },
+        { selector: '#addStudentsResetFiltersBtn', key: 'reset' },
+        { selector: '#addStudentsOverlayBtn', key: 'add' },
+        { selector: '#readyClassTitle', key: 'class_ready' },
+        { selector: '#manageStudentsBtn', key: 'manage_students' },
+        { selector: '#startScannerBtn', key: 'start_scanner' },
+        { selector: '#downloadAttendanceTableBtn', key: 'download_attendance_table' },
+        { selector: '#classOptionsBtn', key: 'options' },
+        { selector: '#scannerTitle', key: 'start_scanning' },
+        { selector: '#scannerStopBtn', key: 'show_attendance' },
+        { selector: '#scannerCloseBtn', key: 'close' },
+        { selector: '#attendanceTitle', key: 'attendance' },
+        { selector: '#attendanceCloseBtn', key: 'close' },
+        { selector: '#classesTitle', key: 'classes' },
+        { selector: '#addClassBtn', key: 'new_class' },
+        { selector: '#createClassSearchInput', key: 'search_students_placeholder', attr: 'placeholder' },
+        { selector: '#addStudentsSearchInput', key: 'search_placeholder', attr: 'placeholder' },
+        { selector: '#overlaySearchInput', key: 'search_placeholder', attr: 'placeholder' }
+      ]
+    };
+
+    (pages[page] || []).forEach(applyEntry);
+
+    if (page === 'studenthomepage.html') {
+      applyStudentHomepageText();
+    }
+    updateSelectOptions();
+    if (page === 'teacherhomepage.html') {
+      updateModeLabels();
+    }
+  }
+
+  function ensureLanguageUI() {
+    if (document.getElementById('langToggleBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'langToggleBtn';
+    btn.className = 'lang-toggle-btn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Change language');
+    btn.textContent = '🌍';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'langOverlay';
+    overlay.className = 'lang-overlay';
+    overlay.innerHTML = `
+      <div class="lang-popup" role="dialog" aria-modal="true">
+        <h2 id="langTitle"></h2>
+        <div class="lang-actions">
+          <button type="button" class="lang-btn" data-lang="en">🇬🇧</button>
+          <button type="button" class="lang-btn" data-lang="bg">🇧🇬</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(btn);
+    document.body.appendChild(overlay);
+
+    const updateLangButtons = () => {
+      const titleEl = document.getElementById('langTitle');
+      if (titleEl) titleEl.textContent = t('language_change_title');
+      const enBtn = overlay.querySelector('[data-lang="en"]');
+      const bgBtn = overlay.querySelector('[data-lang="bg"]');
+      if (enBtn) enBtn.textContent = `🇬🇧 ${t('language_en')}`;
+      if (bgBtn) bgBtn.textContent = `🇧🇬 ${t('language_bg')}`;
+    };
+
+    btn.addEventListener('click', () => {
+      updateLangButtons();
+      overlay.classList.add('visible');
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('visible');
+    });
+
+    overlay.querySelectorAll('.lang-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const lang = b.getAttribute('data-lang');
+        setLanguage(lang);
+        overlay.classList.remove('visible');
+      });
+    });
+  }
+
+  function init() {
+    ensureLanguageUI();
+    applyTranslations();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  window.i18n = { t, setLanguage, getLanguage, applyTranslations };
+})();
