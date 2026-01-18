@@ -537,6 +537,31 @@
                     // Store token ONLY in sessionStorage so closing the tab ends implicit login.
                     try { sessionStorage.setItem('authToken', data.token); } catch (_) {}
                 }
+
+                // Persist a minimal student session so the homepage doesn't redirect to login.
+                const responseStudent = data.student || data.user || data.data?.student || null;
+                const fullNameFromPayload = [payload.firstName, payload.middleName, payload.lastName]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim();
+                const sessionStudent = {
+                    full_name: responseStudent?.full_name || responseStudent?.fullName || fullNameFromPayload,
+                    faculty_number: responseStudent?.faculty_number || responseStudent?.facultyNumber || payload.facultyNumber,
+                    firstName: responseStudent?.firstName || payload.firstName,
+                    middleName: responseStudent?.middleName || payload.middleName,
+                    lastName: responseStudent?.lastName || payload.lastName,
+                    email: responseStudent?.email || payload.email,
+                    group: responseStudent?.group || payload.group,
+                    faculty: responseStudent?.faculty || payload.faculty,
+                    level: responseStudent?.level || payload.level,
+                    specialization: responseStudent?.specialization || payload.specialization
+                };
+                try {
+                    sessionStorage.setItem('studentData', JSON.stringify({
+                        data: { student: sessionStudent, loginSuccess: true }
+                    }));
+                } catch (_) {}
+
                 alert('Registration successful! Redirecting...');
                 window.location.href = 'studentHomepage.html';
             } else {
