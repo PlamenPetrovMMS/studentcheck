@@ -109,17 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-	const closeViewClassesOverlayBtn = document.getElementById('closeViewClassesOverlayBtn');
-	if(closeViewClassesOverlayBtn){
-		closeViewClassesOverlayBtn.addEventListener('click', () => {
-
-			closeViewClassesOverlay();
-
-		});
-	}else{
-		console.error("Error: Unable to load close overlay button.");
-	}
-
 	const viewClassesOverlay = document.getElementById('view-classes-overlay');
 	const overlayBackground = document.querySelector('.overlay-background');
 	if (overlayBackground) {
