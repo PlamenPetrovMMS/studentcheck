@@ -120,6 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		console.error("Error: Unable to load close overlay button.");
 	}
 
+	const viewClassesOverlay = document.getElementById('view-classes-overlay');
+	const overlayBackground = document.querySelector('.overlay-background');
+	if (overlayBackground) {
+		overlayBackground.addEventListener('click', () => {
+			if (viewClassesOverlay && viewClassesOverlay.style.display === 'block') {
+				closeViewClassesOverlay();
+			}
+		});
+	}
+
 
 
 
