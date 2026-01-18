@@ -562,7 +562,6 @@
                     }));
                 } catch (_) {}
 
-                alert('Registration successful! Redirecting...');
                 window.location.href = 'studentHomepage.html';
             } else {
                 if (/duplicate|exists|already/i.test(data.message || '')) {
