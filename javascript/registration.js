@@ -521,7 +521,7 @@
                     contactErrorActivated = true;
                     errorSlide3.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     errorSlide3.style.display = 'block';
-                    step = 1; // ensure contact slide visible
+                    step = 2; // ensure email slide visible
                     updateUI();
                     email.focus();
                     return;
@@ -572,7 +572,7 @@
                     contactErrorActivated = true;
                     errorSlide3.textContent = 'This email is already registered. You were returned to the email step to change it.';
                     errorSlide3.style.display = 'block';
-                    step = 1; updateUI();
+                    step = 2; updateUI();
                     email.focus();
                 } else {
                     alert('Registration failed: ' + (data.message || 'Unknown error'));
