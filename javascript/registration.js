@@ -495,6 +495,7 @@
             if (!available) {
                 return;
             }
+            email.classList.remove('invalid');
         }
 
         if (step < TOTAL_STEPS - 1) {
