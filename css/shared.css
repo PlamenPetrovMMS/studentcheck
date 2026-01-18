@@ -59,8 +59,8 @@ body[aria-busy="true"] .navbar-logo {
   position: fixed;
   top: 12px;
   right: 12px;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   border-radius: 10px;
   border: none;
   background: #ffffff;
@@ -122,6 +122,11 @@ body[aria-busy="true"] .navbar-logo {
   gap: 10px;
 }
 .lang-popup .lang-btn:hover { background: #e5e7eb; }
+.lang-popup .lang-btn.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  background: #eef2ff;
+}
 .lang-popup .lang-flag {
   width: 22px;
   height: 22px;
@@ -132,8 +137,8 @@ body[aria-busy="true"] .navbar-logo {
   .lang-toggle-btn {
     top: 10px;
     right: 10px;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
 }
 

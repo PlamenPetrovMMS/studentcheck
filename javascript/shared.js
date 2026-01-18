@@ -447,6 +447,9 @@
       const bgBtn = overlay.querySelector('[data-lang="bg"]');
       if (enBtn) enBtn.innerHTML = `<img src="icons/united-kingdom.svg" alt="" class="lang-flag" /> ${t('language_en')}`;
       if (bgBtn) bgBtn.innerHTML = `<img src="icons/bulgaria.svg" alt="" class="lang-flag" /> ${t('language_bg')}`;
+      const current = getLanguage();
+      if (enBtn) enBtn.classList.toggle('active', current === 'en');
+      if (bgBtn) bgBtn.classList.toggle('active', current === 'bg');
     };
 
     btn.addEventListener('click', () => {
