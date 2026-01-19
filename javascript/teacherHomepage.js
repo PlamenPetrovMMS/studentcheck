@@ -195,7 +195,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ===== CLASS LOADING =====
     async function loadClassStudents(className, classId) {
         try {
-            const students = await fetchClassStudents(classId);
+            const resolvedClassId = classId
+                || getClassIdByName(className)
+                || getClassIdByNameFromStorage(className);
+            if (!resolvedClassId) {
+                console.warn('Failed to load class students: classId is missing');
+                return;
+            }
+            const students = await fetchClassStudents(resolvedClassId);
             if (students && students.length > 0) {
                 addNewStudentsToStorage(className, students);
                 setClassReady(className, true);
