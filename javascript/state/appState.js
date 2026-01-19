@@ -152,10 +152,13 @@ export function setClassStudentAssignments(className, studentIds) {
  * @returns {Set<studentId>} Set of student IDs
  */
 export function ensureClassStudentAssignments(className) {
-    if (!classStudentAssignments.has(className)) {
-        classStudentAssignments.set(className, new Set());
+    const existing = classStudentAssignments.get(className);
+    if (!(existing instanceof Set)) {
+        const fresh = new Set();
+        classStudentAssignments.set(className, fresh);
+        return fresh;
     }
-    return classStudentAssignments.get(className);
+    return existing;
 }
 
 /**
