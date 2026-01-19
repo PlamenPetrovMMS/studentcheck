@@ -38,9 +38,9 @@ let attendanceHistoryOverlayInitialized = false;
 let addStudentsOverlayInitialized = false;
 let addStudentsReturnToManage = false;
 
-function showSuccessToast(message) {
+function showToast(message, tone = 'success') {
     const toast = document.createElement('div');
-    toast.className = 'toast-bubble toast-success';
+    toast.className = `toast-bubble toast-${tone}`;
     toast.textContent = message;
     document.body.appendChild(toast);
 
@@ -590,7 +590,7 @@ export async function removeStudentFromClass(facultyNumber, className) {
             await renderManageStudentsForClass(className);
         }
 
-        alert('Student removed from class successfully.');
+        showToast('Student removed', 'error');
     } catch (error) {
         console.error('[removeStudentFromClass] Error:', error.message);
         alert('Failed to remove student: ' + error.message);
@@ -1345,7 +1345,7 @@ export async function finalizeAddStudentsToClass(className) {
     }
 
     if (newlyAddedStudents.length > 0 && addedToServer) {
-        showSuccessToast('Successfully added students');
+        showToast('Successfully added students', 'success');
     }
 
     // Ensure class marked ready

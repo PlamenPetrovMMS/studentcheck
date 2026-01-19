@@ -153,6 +153,9 @@ body[aria-busy="true"] .navbar-logo {
   transform: translate(-50%, -6px);
   opacity: 1;
 }
+.toast-bubble.toast-error {
+  background: #dc2626;
+}
 
 @media (max-width: 480px) {
   .lang-toggle-btn {
