@@ -1345,7 +1345,7 @@ export async function finalizeAddStudentsToClass(className) {
     }
 
     if (newlyAddedStudents.length > 0 && addedToServer) {
-        showSuccessToast('Students added to class');
+        showSuccessToast('Successfully added students');
     }
 
     // Ensure class marked ready

@@ -137,7 +137,7 @@ body[aria-busy="true"] .navbar-logo {
 .toast-bubble {
   position: fixed;
   left: 50%;
-  bottom: 24px;
+  bottom: 64px;
   transform: translate(-50%, 20px);
   opacity: 0;
   padding: 10px 16px;
