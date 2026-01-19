@@ -133,6 +133,27 @@ body[aria-busy="true"] .navbar-logo {
   display: block;
 }
 
+/* Toast bubble */
+.toast-bubble {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #16a34a;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  z-index: 10050;
+  font-weight: 600;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.toast-bubble.show {
+  transform: translate(-50%, -6px);
+  opacity: 1;
+}
+
 @media (max-width: 480px) {
   .lang-toggle-btn {
     top: 10px;

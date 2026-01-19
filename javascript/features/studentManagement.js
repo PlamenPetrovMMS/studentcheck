@@ -37,6 +37,20 @@ let manageStudentsOverlayInitialized = false;
 let attendanceHistoryOverlayInitialized = false;
 let addStudentsOverlayInitialized = false;
 let addStudentsReturnToManage = false;
+
+function showSuccessToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-bubble toast-success';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 1400);
+}
 let addStudentsSelections = new Set();
 let addStudentsRequestId = 0;
 
@@ -1280,9 +1294,11 @@ export async function finalizeAddStudentsToClass(className) {
     addNewStudentsToStorage(className, [...existingStudentsInClass, ...newlyAddedStudents]);
 
     const classId = await resolveClassId(className);
+    let addedToServer = false;
     if (classId && newlyAddedStudents.length > 0) {
         try {
             const response = await addStudentsToClass(classId, newlyAddedStudents);
+            addedToServer = true;
             
             // WORKAROUND: Server may not await inserts, so wait a bit then verify
             // This ensures inserts complete before we try to fetch the updated list
@@ -1326,6 +1342,10 @@ export async function finalizeAddStudentsToClass(className) {
             alert(`Failed to add students to class: ${error.message}`);
             // Continue with UI update even if server call fails (optimistic update)
         }
+    }
+
+    if (newlyAddedStudents.length > 0 && addedToServer) {
+        showSuccessToast('Students added to class');
     }
 
     // Ensure class marked ready
