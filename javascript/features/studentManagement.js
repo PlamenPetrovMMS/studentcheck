@@ -150,12 +150,14 @@ export async function renderManageStudentsForClass(className) {
             if (needsNames) {
                 try {
                     const all = await fetchAllStudents({ forceRefresh: true });
-                    nameLookup = new Map(
-                        (all || []).map(s => [
-                            String(s.faculty_number || s.facultyNumber || '').trim(),
-                            s.full_name || s.fullName || ''
-                        ])
-                    );
+                    nameLookup = new Map();
+                    (all || []).forEach(s => {
+                        const name = s.full_name || s.fullName || '';
+                        const fac = String(s.faculty_number || s.facultyNumber || '').trim();
+                        const id = String(s.id || s.student_id || '').trim();
+                        if (fac) nameLookup.set(fac, name);
+                        if (id) nameLookup.set(id, name);
+                    });
                 } catch (_) {
                     nameLookup = null;
                 }
@@ -169,7 +171,7 @@ export async function renderManageStudentsForClass(className) {
             students.forEach(student => {
                 const li = document.createElement('li');
                 li.className = 'list-item';
-                const studentId = student.faculty_number || student.facultyNumber;
+                const studentId = student.faculty_number || student.facultyNumber || student.id || student.student_id;
                 li.dataset.studentId = studentId;
                 const fullName = student.full_name || student.fullName || (nameLookup ? nameLookup.get(String(studentId || '').trim()) : '') || '';
 
@@ -182,7 +184,7 @@ export async function renderManageStudentsForClass(className) {
 
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
-                facEl.textContent = student.faculty_number || student.facultyNumber;
+                facEl.textContent = student.faculty_number || student.facultyNumber || studentId || '';
 
                 wrap.appendChild(nameEl);
                 wrap.appendChild(facEl);
@@ -1239,7 +1241,17 @@ export async function finalizeAddStudentsToClass(className) {
     const newlyAddedStudents = [];
 
     newlyAdded.forEach(facultyNumber => {
-        const studentInfo = getStudentInfoForFacultyNumber(facultyNumber, studentsFromDatabase);
+        let studentInfo = getStudentInfoForFacultyNumber(facultyNumber, studentsFromDatabase);
+        if (studentInfo && !studentInfo.full_name && !studentInfo.fullName) {
+            const fallbackName = (studentInfo.fullName || studentInfo.full_name || '').trim();
+            if (!fallbackName) {
+                const fallback = (studentsFromDatabase || []).find(s => {
+                    const fac = s.faculty_number || s.facultyNumber || s.id || s.student_id;
+                    return String(fac || '').trim() === String(facultyNumber || '').trim();
+                });
+                if (fallback) studentInfo = fallback;
+            }
+        }
 
         // Prevent duplicates
         const duplicate = existingStudentsInClass.some(student => {
@@ -1257,7 +1269,7 @@ export async function finalizeAddStudentsToClass(className) {
 
     addNewStudentsToStorage(className, [...existingStudentsInClass, ...newlyAddedStudents]);
 
-    const classId = getClassIdByName(className);
+    const classId = await resolveClassId(className);
     if (classId && newlyAddedStudents.length > 0) {
         try {
             const response = await addStudentsToClass(classId, newlyAddedStudents);

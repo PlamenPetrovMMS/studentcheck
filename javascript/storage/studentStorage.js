@@ -54,5 +54,12 @@ export function addNewStudentsToStorage(className, students) {
  */
 export function getStudentInfoForFacultyNumber(facultyNumber, studentsList) {
     if (!Array.isArray(studentsList)) return null;
-    return studentsList.find(student => student.faculty_number === facultyNumber) || null;
+    const target = String(facultyNumber || '').trim();
+    if (!target) return null;
+    return (
+        studentsList.find(student => {
+            const fac = student.faculty_number || student.facultyNumber || student.id || student.student_id;
+            return String(fac || '').trim() === target;
+        }) || null
+    );
 }
