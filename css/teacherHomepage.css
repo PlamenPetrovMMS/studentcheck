@@ -1285,6 +1285,42 @@ body {
     }
 }
 
+/* Add Students overlay: equal-width filters and compact search row */
+#addStudentsClassOverlay .top-section-search-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+#addStudentsClassOverlay .top-section-search-filters .filter-select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+#addStudentsClassOverlay .top-section-search-bar-reset-filters {
+    align-items: center;
+}
+#addStudentsClassOverlay #addStudentsSearchInput {
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    #addStudentsClassOverlay .top-section-search-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    #addStudentsClassOverlay .top-section-search-bar-reset-filters {
+        flex-direction: row;
+        gap: 8px;
+    }
+    #addStudentsClassOverlay #addStudentsSearchInput {
+        width: 72%;
+    }
+    #addStudentsClassOverlay #addStudentsResetFiltersBtn {
+        width: auto;
+        flex: 1 0 auto;
+    }
+}
+
 /* Search input responsive styles */
 #overlaySearchInput,
 #addStudentsSearchInput,
