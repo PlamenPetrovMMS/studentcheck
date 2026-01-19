@@ -43,7 +43,7 @@ function ensureClassOptionsOverlay() {
             <button type="button" id="closeClassOptionsBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
             <div class="class-options-row">
                 <input type="text" id="classOptionsNameInput" placeholder="Class name" />
-                <button type="button" id="classOptionsSaveBtn" class="role-button primary">Save</button>
+                <button type="button" id="classOptionsSaveBtn" class="role-button primary">Rename</button>
             </div>
             <div class="class-options-footer">
                 <button type="button" id="classOptionsDeleteBtn" class="role-button danger">Delete Class</button>

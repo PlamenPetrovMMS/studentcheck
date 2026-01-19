@@ -539,6 +539,7 @@ body {
     margin: 4px 0 6px 0;
     font-style: italic;
     color: #4b5563;
+    font-size: 1.15rem;
 }
 .class-options-popup #classOptionsNameInput {
     flex: 1 1 auto;
