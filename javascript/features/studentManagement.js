@@ -36,6 +36,7 @@ let manageStudentsScrollPos = 0;
 let manageStudentsOverlayInitialized = false;
 let attendanceHistoryOverlayInitialized = false;
 let addStudentsOverlayInitialized = false;
+let addStudentsReturnToManage = false;
 let addStudentsSelections = new Set();
 let addStudentsRequestId = 0;
 
@@ -306,7 +307,7 @@ function ensureManageStudentsOverlayInitialized() {
 
         addBtn?.addEventListener('click', async () => {
             const current = getCurrentClass();
-            await openAddStudentsToClass(current.name);
+            await openAddStudentsToClass(current.name, { returnToManage: true });
         });
 
     document.addEventListener('keydown', (e) => {
@@ -943,12 +944,13 @@ async function requestAddStudentsWithFilters(overrides = {}) {
  * Open add students to class overlay
  * @param {string} className - Class name
  */
-export async function openAddStudentsToClass(className) {
+export async function openAddStudentsToClass(className, options = {}) {
     closeManageStudentsOverlay();
 
     if (!className) return;
 
     ensureAddStudentsOverlayInitialized();
+    addStudentsReturnToManage = Boolean(options.returnToManage);
 
     const overlay = getAddStudentsClassOverlay();
     const confirmBtn = overlay?.querySelector('#addStudentsOverlayBtn');
@@ -985,6 +987,14 @@ export async function openAddStudentsToClass(className) {
 function closeAddStudentsToClass() {
     const overlay = getAddStudentsClassOverlay();
     if (overlay) hideOverlay(overlay, false);
+    if (addStudentsReturnToManage) {
+        addStudentsReturnToManage = false;
+        const current = getCurrentClass();
+        if (current?.name) {
+            openManageStudentsOverlay(current.name);
+            return;
+        }
+    }
     const manageOverlay = getManageStudentsOverlay();
     if (!manageOverlay || !isOverlayVisible(manageOverlay)) {
         document.body.style.overflow = '';
