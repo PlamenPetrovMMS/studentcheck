@@ -6,7 +6,7 @@
  * Slide 2: Student selection with search/filter
  */
 
-import { createClass } from '../api/classApi.js';
+import { createClass, fetchClasses, addStudentsToClass } from '../api/classApi.js';
 import { fetchAllStudents } from '../api/studentApi.js';
 import {
     getWizardSelections,
@@ -163,7 +163,19 @@ async function submitNewClass() {
     
     try {
         const data = await createClass(className, selectedIds, teacherEmail);
-        const newClassId = data.class_id || data.id;
+        let newClassId = data?.class_id || data?.id || data?.classId;
+        if (!newClassId) {
+            // Fallback: fetch classes and resolve the ID by name
+            const classesData = await fetchClasses(teacherEmail);
+            const classes = classesData?.classes || [];
+            const match = classes.find(c => (c.name || '').trim() === className.trim());
+            if (match) {
+                newClassId = match.id;
+            }
+        }
+        if (!newClassId) {
+            throw new Error('Class created but classId is missing from server response');
+        }
         
         // Update state
         setClassId(className, newClassId);
@@ -171,9 +183,10 @@ async function submitNewClass() {
         setClassStudentAssignments(className, new Set(selectedIds));
         
         // Persist selected students for readiness on reload
+        let selectedStudents = [];
         try {
             const wizardIndex = getWizardStudentIndex();
-            const selectedStudents = selectedIds
+            selectedStudents = selectedIds
                 .map(id => {
                     const info = wizardIndex.get(id);
                     if (!info) return null;
@@ -185,6 +198,15 @@ async function submitNewClass() {
                 .filter(Boolean);
             saveClassStudents(className, selectedStudents);
         } catch (_) {}
+
+        // Ensure server has students assigned even if createClass ignores studentIds
+        if (selectedStudents.length > 0) {
+            try {
+                await addStudentsToClass(newClassId, selectedStudents);
+            } catch (e) {
+                console.warn('[Class Creation] Failed to attach students to class', e);
+            }
+        }
 
         // Persist class in local storage map so readiness is restored on refresh
         try {
