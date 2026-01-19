@@ -1291,6 +1291,42 @@ body {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
 }
+
+/* Create Class overlay: equal-width filters and compact search row */
+#createClassOverlay .top-section-search-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+#createClassOverlay .top-section-search-filters .filter-select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+#createClassOverlay .top-section-search-bar-reset-filters {
+    align-items: center;
+}
+#createClassOverlay #createClassSearchInput {
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    #createClassOverlay .top-section-search-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    #createClassOverlay .top-section-search-bar-reset-filters {
+        flex-direction: row;
+        gap: 8px;
+    }
+    #createClassOverlay #createClassSearchInput {
+        width: 72%;
+    }
+    #createClassOverlay #createClassResetFiltersBtn {
+        width: auto;
+        flex: 1 0 auto;
+    }
+}
 #addStudentsClassOverlay .top-section-search-filters .filter-select {
     width: 100%;
     max-width: none;
