@@ -447,7 +447,6 @@ body {
 #readyClassPopupOverlay .ready-class-popup.buttons-only h2 {
     display: block;
     text-align: center;
-    margin: 0 0 28px 0; /* increased space between title and action buttons */
 }
 #readyClassPopupOverlay .ready-class-popup .ready-class-actions.vertical {
     display: flex;
@@ -495,6 +494,7 @@ body {
     justify-content: space-between;
     gap: 12px;
     width: 100%;
+    margin-bottom: 16px;
 }
 
 .overlay-top-bar h1,
