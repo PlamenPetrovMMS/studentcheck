@@ -1218,6 +1218,15 @@ body.delete-popup-active #addClassBtn {
     padding-right: 4px;
 }
 
+@media (max-width: 600px) {
+    #addStudentsClassOverlay .add-students-list {
+        max-height: 32vh;
+    }
+    #createClassStudentsBody {
+        max-height: 32vh;
+    }
+}
+
 /* Mobile: increase action button height for better touch targets */
 @media (max-width: 480px) {
     .add-class-btn,

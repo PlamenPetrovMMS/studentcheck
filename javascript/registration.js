@@ -217,9 +217,6 @@
             return;
         }
 
-        selectSpecialization.appendChild(new Option('', '', true, true));
-        selectSpecialization.firstChild.disabled = true;
-
         for(const specialization of list){
             selectSpecialization.appendChild(new Option(specialization, specialization));
         }
