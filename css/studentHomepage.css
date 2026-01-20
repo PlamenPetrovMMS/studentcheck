@@ -216,8 +216,11 @@
 	width: 100%;
 	height: 60px;
 	border-radius: 10px;
+	border: none;
 	cursor: pointer;
 	font-size: 22px;
+	font-weight: 700;
+	background: transparent;
 	transition: 
         background 0.25s ease,
         box-shadow 0.25s ease,
@@ -225,7 +228,7 @@
 }
 .class-button:hover{
 	background: #bdbec0; /* gray-300 */
-	box-shadow: 0 6px 16px rgba(55,65,81,0.42);
+	box-shadow: none;
 }
 
 

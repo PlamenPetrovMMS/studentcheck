@@ -2,15 +2,15 @@
 // Uses ONLY sessionStorage so login dies with the tab/window.
 (function(){
   function getAuthStatus() {
-    // Student session data set by studentLogin.js
-    try {
-      const studentData = sessionStorage.getItem('studentData');
-      if (studentData) return { loggedIn: true, role: 'student' };
-    } catch(_) {}
     // Teacher session data set by teacherLogin.js
     try {
       const teacherData = sessionStorage.getItem('teacherData');
       if (teacherData) return { loggedIn: true, role: 'teacher' };
+    } catch(_) {}
+    // Student session data set by studentLogin.js
+    try {
+      const studentData = sessionStorage.getItem('studentData');
+      if (studentData) return { loggedIn: true, role: 'student' };
     } catch(_) {}
     // authToken optional; stored in sessionStorage after registration/login if needed
     // We don't infer role from token alone to avoid accidental auto-login.
