@@ -476,9 +476,7 @@ body {
 }
 #readyClassPopupOverlay .role-button.secondary-green:hover { background: #047857; }
 .close-small {
-    position: absolute;
-    top: 10px;
-    right: 12px;
+    position: static;
     background: transparent;
     border: none;
     font-size: 2rem; /* enlarged X */
@@ -490,6 +488,19 @@ body {
     transition: background 0.15s ease, color 0.15s ease;
 }
 .close-small:hover { background:#f3f4f6; color:#374151; }
+
+.overlay-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+
+.overlay-top-bar h1,
+.overlay-top-bar h2 {
+    margin: 0;
+}
 
 /* Manage Students overlay specifics */
 #manageStudentsOverlay .ready-class-popup {
@@ -698,7 +709,7 @@ body {
     #addStudentsClassOverlay .add-students-footer .role-button { padding: 10px 16px; font-size: 0.95rem; }
 }
 #manageStudentsOverlay #manageStudentsTitle {
-    margin: 0 0 10px 0;
+    margin: 0 0 18px 0;
     font-size: 1.5rem;
     font-weight: 700;
     text-align: center;

@@ -38,9 +38,11 @@ function ensureClassOptionsOverlay() {
     classOptionsOverlay.style.visibility = 'hidden';
     classOptionsOverlay.innerHTML = `
         <div class="ready-class-popup class-options-popup" role="dialog" aria-modal="true" aria-labelledby="classOptionsTitle">
-            <h2 id="classOptionsTitle">Class Options</h2>
+            <div class="overlay-top-bar">
+                <h2 id="classOptionsTitle">Class Options</h2>
+                <button type="button" id="closeClassOptionsBtn" class="close-small" aria-label="Close">×</button>
+            </div>
             <p id="classOptionsClassName" class="class-options-name"></p>
-            <button type="button" id="closeClassOptionsBtn" class="close-small" aria-label="Close" style="top:10px; right:12px;">×</button>
             <div class="class-options-row">
                 <input type="text" id="classOptionsNameInput" placeholder="Class name" />
                 <button type="button" id="classOptionsSaveBtn" class="role-button primary">Rename</button>
