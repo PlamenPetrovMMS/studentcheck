@@ -215,6 +215,15 @@ export function openScannerOverlay(className) {
             const eventName = isDiscard ? 'closeScannerDiscardRequested' : 'closeScannerRequested';
             document.dispatchEvent(new CustomEvent(eventName));
         });
+        scannerOverlay.addEventListener('pointerdown', (e) => {
+            const target = e.target.closest('#closeScannerBtn, #scannerCloseBtn');
+            if (!target) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const isDiscard = target.id === 'closeScannerBtn';
+            const eventName = isDiscard ? 'closeScannerDiscardRequested' : 'closeScannerRequested';
+            document.dispatchEvent(new CustomEvent(eventName));
+        });
     }
     
     document.addEventListener('keydown', (e) => {
