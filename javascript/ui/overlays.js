@@ -117,6 +117,7 @@ export function ensureConfirmOverlay() {
  * @param {Function} onCancel - Callback on cancel
  */
 export function openConfirmOverlay(message, onConfirm, onCancel, options = {}) {
+    options = options || {};
     ensureConfirmOverlay();
     const msgEl = confirmOverlay.querySelector('#confirmMessage');
     if (msgEl) msgEl.textContent = message || 'Are you sure?';
