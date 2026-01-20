@@ -378,7 +378,7 @@ export async function openDiscardScannerConfirm(className, onClosed) {
             await closeScannerDiscard(className, onClosed);
         },
         null,
-        { title: 'Close Scanner' }
+        { title: 'Close Scanner', okText: 'Confirm', okClass: 'danger' }
     );
 }
 

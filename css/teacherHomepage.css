@@ -1178,12 +1178,12 @@ body.delete-popup-active #addClassBtn {
         background: #fca5a5; /* red-300 */
     }
 #confirmOverlay .role-button.confirm-accept {
-    background: #bbf7d0; /* green-200 */
+    background: #86efac; /* green-300 */
     color: #14532d; /* green-900 */
-    border-color: #bbf7d0;
+    border-color: #86efac;
 }
 #confirmOverlay .role-button.confirm-accept:hover {
-    background: #86efac; /* green-300 */
+    background: #4ade80; /* green-400 */
 }
     /* Match confirmation buttons height with attendance overlay */
     #confirmOverlay .confirm-actions .role-button {
