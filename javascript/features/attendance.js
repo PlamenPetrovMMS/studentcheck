@@ -348,6 +348,28 @@ export async function openCloseScannerConfirm(className, onClosed) {
     );
 }
 
+export async function closeScannerDiscard(className, onClosed) {
+    try {
+        clearAttendanceState(className);
+        clearStudentTimestamps();
+        const attendanceOverlay = getOverlay('attendanceOverlay');
+        if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') {
+            hideOverlay(attendanceOverlay, false);
+        }
+        await closeScanner(() => {
+            if (onClosed) {
+                try { onClosed(); } catch (e) { logError('closeScannerDiscard', e, { className }); }
+            }
+        });
+    } catch (e) {
+        logError('closeScannerDiscard', e, { className, action: 'closeScanner' });
+        document.body.style.overflow = '';
+        if (onClosed) {
+            try { onClosed(); } catch (callbackErr) { logError('closeScannerDiscard', callbackErr, { className, action: 'onClosed callback' }); }
+        }
+    }
+}
+
 function isOverlayVisible(overlay) {
     return overlay && overlay.style.visibility === 'visible';
 }

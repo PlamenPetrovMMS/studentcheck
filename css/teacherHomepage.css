@@ -474,6 +474,12 @@ body {
     border-color: #059669;
 }
 #readyClassPopupOverlay .role-button.secondary-green:hover { background: #047857; }
+#scannerOverlay .role-button.secondary-green {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+}
+#scannerOverlay .role-button.secondary-green:hover { background: #047857; }
 .close-small {
     position: static;
     background: transparent;

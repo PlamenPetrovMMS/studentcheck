@@ -206,8 +206,7 @@ export function openScannerOverlay(className) {
     
     const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
     closeBtn?.addEventListener('click', () => {
-        // This will be handled by attendance module's openCloseScannerConfirm
-        const event = new CustomEvent('closeScannerRequested');
+        const event = new CustomEvent('closeScannerDiscardRequested');
         document.dispatchEvent(event);
     });
     
