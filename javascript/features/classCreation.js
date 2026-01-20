@@ -20,7 +20,7 @@ import {
     setClassStudentAssignments,
     ensureClassStudentAssignments
 } from '../state/appState.js';
-import { showOverlay, hideOverlay, getOverlay } from '../ui/overlays.js';
+import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from '../ui/overlays.js';
 import { renderClassItem, updateClassStatusUI, flashReadyBadge, attachNewClassButtonBehavior } from '../ui/classUI.js';
 import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
 import { saveClassStudents } from '../storage/studentStorage.js';
@@ -124,6 +124,45 @@ function collectClassName() {
     return getWizardClassName().trim();
 }
 
+function normalizeClassName(name) {
+    return (name || '').trim().toLowerCase();
+}
+
+async function isClassNameTaken(name, teacherEmail) {
+    const normalized = normalizeClassName(name);
+    if (!normalized) return false;
+
+    // Check locally stored classes map
+    try {
+        const storedMap = getStoredClassesMap();
+        if (storedMap && storedMap.size > 0) {
+            for (const n of storedMap.values()) {
+                if (normalizeClassName(n) === normalized) return true;
+            }
+        }
+    } catch (_) {}
+
+    // Check current DOM list
+    const buttons = Array.from(document.querySelectorAll('.newClassBtn'));
+    for (const btn of buttons) {
+        const btnName = (btn.dataset.className || btn.dataset.originalLabel || btn.textContent || '')
+            .replace(/✓\s*Ready/g, '')
+            .trim();
+        if (normalizeClassName(btnName) === normalized) return true;
+    }
+
+    // Check server list as final source of truth
+    if (teacherEmail) {
+        try {
+            const classesData = await fetchClasses(teacherEmail);
+            const classes = classesData?.classes || [];
+            return classes.some(c => normalizeClassName(c.name) === normalized);
+        } catch (_) {}
+    }
+
+    return false;
+}
+
 /**
  * Collect selected student IDs from wizard
  * @returns {Array<string>} Array of student IDs
@@ -148,6 +187,23 @@ async function submitNewClass() {
         return;
     }
 
+    const teacherEmail = getTeacherEmail();
+    const nameTaken = await isClassNameTaken(className, teacherEmail);
+    if (nameTaken) {
+        openConfirmOverlay(
+            'This class name is already used.',
+            () => {
+                const input = getCreateClassNameInput();
+                if (input) input.value = '';
+                setWizardClassName('');
+                goToSlide(0);
+            },
+            null,
+            { okText: 'OK', hideCancel: true, title: 'Error' }
+        );
+        return;
+    }
+
     const selectedIds = collectSelectedStudents();
     if (selectedIds.length === 0) {
         if (!confirm('No students selected. Create an empty ready class?')) return;
@@ -159,8 +215,6 @@ async function submitNewClass() {
         finishBtn.textContent = 'Creating...';
     }
 
-    const teacherEmail = getTeacherEmail();
-    
     try {
         const data = await createClass(className, selectedIds, teacherEmail);
         let newClassId = data?.class_id || data?.id || data?.classId;

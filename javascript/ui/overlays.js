@@ -116,10 +116,14 @@ export function ensureConfirmOverlay() {
  * @param {Function} onConfirm - Callback on confirm
  * @param {Function} onCancel - Callback on cancel
  */
-export function openConfirmOverlay(message, onConfirm, onCancel) {
+export function openConfirmOverlay(message, onConfirm, onCancel, options = {}) {
     ensureConfirmOverlay();
     const msgEl = confirmOverlay.querySelector('#confirmMessage');
     if (msgEl) msgEl.textContent = message || 'Are you sure?';
+    const titleEl = confirmOverlay.querySelector('#confirmTitle');
+    if (titleEl) {
+        titleEl.textContent = options.title !== undefined ? options.title : 'Confirm';
+    }
     const cancelBtn = confirmOverlay.querySelector('#confirmCancelBtn');
     const okBtn = confirmOverlay.querySelector('#confirmOkBtn');
     const cleanup = () => {
@@ -131,6 +135,16 @@ export function openConfirmOverlay(message, onConfirm, onCancel) {
     const wire = () => {
         newCancel = confirmOverlay.querySelector('#confirmCancelBtn');
         newOk = confirmOverlay.querySelector('#confirmOkBtn');
+        if (newCancel) {
+            const hideCancel = options.hideCancel === true;
+            newCancel.style.display = hideCancel ? 'none' : '';
+            if (options.cancelText !== undefined) {
+                newCancel.textContent = options.cancelText;
+            }
+        }
+        if (newOk && options.okText !== undefined) {
+            newOk.textContent = options.okText;
+        }
         newCancel?.addEventListener('click', () => {
             closeConfirmOverlay();
             if (onCancel) {
