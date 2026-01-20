@@ -29,6 +29,8 @@ import { getStoredClassesMap, saveClassesMap } from '../storage/classStorage.js'
 const WIZARD_TOTAL_SLIDES = 2;
 let createClassSlideIndex = 0;
 let createClassFiltersInitialized = false;
+let lastValidatedName = '';
+let lastValidatedAvailable = false;
 
 // DOM references (cached on first access)
 function getCreateClassOverlay() { return getOverlay('createClassOverlay'); }
@@ -95,7 +97,7 @@ function goToSlide(index) {
 /**
  * Handle "Next" button click (validate name and advance)
  */
-function handleWizardNext() {
+async function handleWizardNext() {
     const nameInput = getCreateClassNameInput();
     const errorEl = getCreateClassErrorName();
     
@@ -111,6 +113,25 @@ function handleWizardNext() {
         errorEl.textContent = 'Name must be 50 characters or less.';
         return;
     }
+
+    const teacherEmail = getTeacherEmail();
+    const nameTaken = await isClassNameTaken(name, teacherEmail);
+    if (nameTaken) {
+        openConfirmOverlay(
+            'This class name is already used.',
+            () => {
+                if (nameInput) nameInput.value = '';
+                setWizardClassName('');
+                goToSlide(0);
+            },
+            null,
+            { okText: 'OK', hideCancel: true, title: 'Error' }
+        );
+        return;
+    }
+
+    lastValidatedName = name;
+    lastValidatedAvailable = true;
     errorEl.textContent = '';
     setWizardClassName(name);
     goToSlide(1);
@@ -188,20 +209,24 @@ async function submitNewClass() {
     }
 
     const teacherEmail = getTeacherEmail();
-    const nameTaken = await isClassNameTaken(className, teacherEmail);
-    if (nameTaken) {
-        openConfirmOverlay(
-            'This class name is already used.',
-            () => {
-                const input = getCreateClassNameInput();
-                if (input) input.value = '';
-                setWizardClassName('');
-                goToSlide(0);
-            },
-            null,
-            { okText: 'OK', hideCancel: true, title: 'Error' }
-        );
-        return;
+    if (lastValidatedName !== className || !lastValidatedAvailable) {
+        const nameTaken = await isClassNameTaken(className, teacherEmail);
+        if (nameTaken) {
+            openConfirmOverlay(
+                'This class name is already used.',
+                () => {
+                    const input = getCreateClassNameInput();
+                    if (input) input.value = '';
+                    setWizardClassName('');
+                    goToSlide(0);
+                },
+                null,
+                { okText: 'OK', hideCancel: true, title: 'Error' }
+            );
+            return;
+        }
+        lastValidatedName = className;
+        lastValidatedAvailable = true;
     }
 
     const selectedIds = collectSelectedStudents();
