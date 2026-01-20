@@ -117,8 +117,9 @@ async function handleWizardNext() {
     const teacherEmail = getTeacherEmail();
     const nameTaken = await isClassNameTaken(name, teacherEmail);
     if (nameTaken) {
+        const msg = window.i18n?.t ? window.i18n.t('err_class_name_taken') : 'This class name is already used.';
         openConfirmOverlay(
-            'This class name is already used.',
+            msg,
             () => {
                 if (nameInput) nameInput.value = '';
                 setWizardClassName('');
@@ -212,8 +213,9 @@ async function submitNewClass() {
     if (lastValidatedName !== className || !lastValidatedAvailable) {
         const nameTaken = await isClassNameTaken(className, teacherEmail);
         if (nameTaken) {
+            const msg = window.i18n?.t ? window.i18n.t('err_class_name_taken') : 'This class name is already used.';
             openConfirmOverlay(
-                'This class name is already used.',
+                msg,
                 () => {
                     const input = getCreateClassNameInput();
                     if (input) input.value = '';
