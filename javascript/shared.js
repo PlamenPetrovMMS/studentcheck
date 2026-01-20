@@ -319,6 +319,9 @@
     if (!nodes || nodes.length === 0) return;
     const value = t(entry.key);
     nodes.forEach((el) => {
+      if (entry.selector === '#readyClassTitle' && el.dataset.dynamicTitle === 'true') {
+        return;
+      }
       if (entry.html) {
         el.innerHTML = value;
         return;

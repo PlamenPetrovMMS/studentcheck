@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const rawFromBtn = current.button ? getRawClassNameFromButton(current.button) : '';
                 const name = (current.name || rawFromBtn || '').trim();
                 titleEl.textContent = name || 'Class';
+                titleEl.dataset.dynamicTitle = name ? 'true' : 'false';
             }
         }
         

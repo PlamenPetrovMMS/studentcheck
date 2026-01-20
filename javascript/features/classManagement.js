@@ -225,6 +225,7 @@ export function renameClass(oldName, newName) {
     const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
     if (readyTitle && readyPopupOverlay && isOverlayVisible(readyPopupOverlay)) {
         readyTitle.textContent = to;
+        readyTitle.dataset.dynamicTitle = 'true';
     }
     
     const manageTitle = document.getElementById('manageStudentsTitle');
