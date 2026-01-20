@@ -110,6 +110,12 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
             const timestamp = getStudentTimestamp(studentFacultyNumber);
             const joinedAt = timestamp ? timestamp.joined_at : null;
             setStudentTimestamp(studentFacultyNumber, joinedAt, Date.now());
+        } else {
+            console.warn('[Attendance] Leaving scan ignored: student not joined yet', {
+                className,
+                studentFacultyNumber,
+                current
+            });
         }
     }
 
@@ -128,6 +134,13 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
                 const storedStudents = loadClassStudentsFromStorage(className) || [];
                 const info = getStudentInfoForFacultyNumber(studentFacultyNumber, storedStudents);
                 const apiStudentId = info?.id || info?.student_id || info?.faculty_number || info?.facultyNumber || studentFacultyNumber;
+                if (!info) {
+                    console.warn('[Attendance] Student info not found in storage', {
+                        className,
+                        studentFacultyNumber,
+                        fallbackId: apiStudentId
+                    });
+                }
                 // Show loading state on dot
                 const dotIndex = getAttendanceDotIndex();
                 const dot = dotIndex.get(studentFacultyNumber);
@@ -144,6 +157,13 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
                     }
                 }).catch(e => {
                     if (dot) dot.classList.remove('status-loading');
+                    console.warn('[Attendance] markAttendance failed', {
+                        className,
+                        classId,
+                        studentFacultyNumber,
+                        apiStudentId,
+                        message: e?.message
+                    });
                     alert('Failed to record attendance: ' + e.message);
                     map.set(studentFacultyNumber, 'joined');
                     updateAttendanceDot(studentFacultyNumber, 'joined');
@@ -183,6 +203,15 @@ export function handleScannedCode(data, mode, className, updateStudentInfoCountF
             // Ignoring scan for unassigned student
             return;
         } else {
+            if (mode === 'leaving') {
+                const map = getAttendanceState(activeClass);
+                const current = map?.get(studentFacultyNumber) || 'none';
+                console.warn('[Attendance] Leaving scan', {
+                    activeClass,
+                    studentFacultyNumber,
+                    current
+                });
+            }
             updateAttendanceState(activeClass, studentFacultyNumber, mode, updateStudentInfoCountFn);
         }
     }
