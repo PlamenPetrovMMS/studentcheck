@@ -115,7 +115,8 @@ export function initializeScanner(mode, className, onScanCallback) {
             if (now - lastScan > 300) {
                 setLastScanAt(now);
                 if (onScanCallback) {
-                    onScanCallback(decodedText, mode, className);
+                    const liveMode = getCurrentScanMode();
+                    onScanCallback(decodedText, liveMode, className);
                 }
             }
         };
