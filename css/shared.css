@@ -149,6 +149,10 @@ body[aria-busy="true"] .navbar-logo {
   font-weight: 600;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
+.toast-bubble.toast-large {
+  padding: 14px 22px;
+  font-size: 1.05rem;
+}
 .toast-bubble.show {
   transform: translate(-50%, -6px);
   opacity: 1;

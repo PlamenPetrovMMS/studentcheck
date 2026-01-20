@@ -26,6 +26,20 @@ import { getActiveClassName, logError } from '../utils/helpers.js';
 import { openConfirmOverlay, getOverlay, hideOverlay } from '../ui/overlays.js';
 import { closeScanner } from './scanner.js';
 
+function showScanToast(message, tone) {
+    const existing = document.querySelector('.toast-bubble');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast-bubble toast-${tone} toast-large`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 1400);
+}
+
 /**
  * Check if a student is in a class
  * @param {string} className - Class name
@@ -119,13 +133,16 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
         }
     }
 
+    let changed = false;
     if (next !== current) {
         map.set(studentFacultyNumber, next);
         // Update UI dot
         updateAttendanceDot(studentFacultyNumber, next);
+        changed = true;
 
         // When completing a session, only update local state; server update happens on scanner close.
     }
+    return { changed, next };
 }
 
 /**
@@ -167,7 +184,14 @@ export function handleScannedCode(data, mode, className, updateStudentInfoCountF
                     current
                 });
             }
-            updateAttendanceState(activeClass, studentFacultyNumber, mode, updateStudentInfoCountFn);
+            const result = updateAttendanceState(activeClass, studentFacultyNumber, mode, updateStudentInfoCountFn);
+            if (result?.changed) {
+                const storedStudents = loadClassStudentsFromStorage(activeClass) || [];
+                const info = getStudentInfoForFacultyNumber(studentFacultyNumber, storedStudents);
+                const name = info?.full_name || info?.fullName || info?.name || studentFacultyNumber;
+                const tone = mode === 'leaving' ? 'error' : 'success';
+                showScanToast(name, tone);
+            }
         }
     }
 
