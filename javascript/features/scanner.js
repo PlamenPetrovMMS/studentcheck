@@ -164,6 +164,7 @@ export function closeScanner(onClosed) {
         const html5QrCode = getHtml5QrCode();
         if (html5QrCode) {
             return html5QrCode.stop().then(() => {
+                stopAllCameraTracks();
                 html5QrCode.clear();
                 setHtml5QrCode(null);
                 finish();
@@ -171,8 +172,8 @@ export function closeScanner(onClosed) {
                 try {
                     html5QrCode.clear();
                 } catch (_) { }
-                setHtml5QrCode(null);
                 stopAllCameraTracks();
+                setHtml5QrCode(null);
                 finish();
             });
         }
