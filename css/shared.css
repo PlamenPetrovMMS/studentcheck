@@ -153,6 +153,13 @@ body[aria-busy="true"] .navbar-logo {
   padding: 14px 22px;
   font-size: 1.05rem;
 }
+
+@media (max-width: 600px) {
+  .toast-bubble.toast-large {
+    width: 90%;
+    text-align: center;
+  }
+}
 .toast-bubble.show {
   transform: translate(-50%, -6px);
   opacity: 1;
