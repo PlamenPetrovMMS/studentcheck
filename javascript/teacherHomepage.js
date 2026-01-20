@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let deletePopupClassName = '';
     let longPressTimer = null;
 
+    function isDeletePopupVisible() {
+        return deletePopup.style.display !== 'none';
+    }
+
     function hideDeletePopup() {
         deletePopup.style.display = 'none';
         deletePopupClassName = '';
@@ -83,11 +87,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.addEventListener('click', (e) => {
-        if (deletePopup.style.display === 'none') return;
+    const dismissDeletePopup = (e) => {
+        if (!isDeletePopupVisible()) return;
         if (e.target === deletePopup) return;
+        e.preventDefault();
+        e.stopPropagation();
         hideDeletePopup();
-    });
+    };
+
+    document.addEventListener('pointerdown', dismissDeletePopup, true);
+    document.addEventListener('click', dismissDeletePopup, true);
     
     if (!teacherEmail) {
         console.error('No teacher email found in localStorage for session.');
