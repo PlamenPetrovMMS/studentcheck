@@ -210,9 +210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const attendanceOverlay = getOverlay('attendanceOverlay');
 
     function openAttendanceOverlay(className) {
-        const closeBtn = attendanceOverlay?.querySelector('#attendanceCloseBtn');
-        closeBtn?.addEventListener('click', () => closeAttendanceOverlay());
-        
         attendanceOverlay?.addEventListener('click', (e) => {
             if (e.target === attendanceOverlay) closeAttendanceOverlay();
         });
@@ -226,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const current = getCurrentClass();
         const titleEl = attendanceOverlay?.querySelector('#attendanceTitle');
         if (titleEl) {
-            titleEl.textContent = `Attendance — ${className || current.name || ''}`;
+            titleEl.textContent = 'Attendance';
         }
 
         const listEl = document.getElementById('attendanceList');

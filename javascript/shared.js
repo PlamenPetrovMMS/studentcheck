@@ -467,7 +467,6 @@
         { selector: '#scannerStopBtn', key: 'show_attendance' },
         { selector: '#scannerCloseBtn', key: 'finish_class' },
         { selector: '#attendanceTitle', key: 'attendance' },
-        { selector: '#attendanceCloseBtn', key: 'close' },
         { selector: '#classesTitle', key: 'classes' },
         { selector: '#addClassBtn', key: 'new_class' },
         { selector: '#createClassSearchInput', key: 'search_students_placeholder', attr: 'placeholder' },
