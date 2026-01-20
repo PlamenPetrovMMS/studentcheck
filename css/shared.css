@@ -159,6 +159,10 @@ body[aria-busy="true"] .navbar-logo {
     width: 90%;
     text-align: center;
   }
+  .toast-bubble.toast-wide {
+    width: 90%;
+    text-align: center;
+  }
 }
 .toast-bubble.show {
   transform: translate(-50%, -6px);

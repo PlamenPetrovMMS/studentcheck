@@ -40,7 +40,7 @@ let addStudentsReturnToManage = false;
 
 function showToast(message, tone = 'success') {
     const toast = document.createElement('div');
-    toast.className = `toast-bubble toast-${tone}`;
+    toast.className = `toast-bubble toast-${tone} toast-wide`;
     toast.textContent = message;
     document.body.appendChild(toast);
 
