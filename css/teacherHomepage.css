@@ -1086,6 +1086,15 @@ body.delete-popup-active #addClassBtn {
     overflow-y: auto;
     padding: 0 2px;
 }
+
+@media (max-width: 600px) {
+    #manageStudentsOverlay .manage-students-list {
+        max-height: 40vh;
+    }
+    #attendanceOverlay .attendance-list {
+        max-height: 40vh;
+    }
+}
 #attendanceOverlay .attendance-ul {
     list-style: none;
     margin: 0;
