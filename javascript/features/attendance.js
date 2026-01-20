@@ -344,9 +344,7 @@ export async function openCloseScannerConfirm(className, onClosed) {
                 }
             }
         },
-        () => { /* canceled */ }
-    ,
-        null,
+        () => { /* canceled */ },
         { okText: 'Finish', cancelText: 'Cancel', okClass: 'confirm-accept', title: 'Finish class?' }
     );
 }
