@@ -36,8 +36,8 @@ function showScanToast(message, tone) {
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 1400);
+        setTimeout(() => toast.remove(), 450);
+    }, 2200);
 }
 
 /**

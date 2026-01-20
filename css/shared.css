@@ -147,7 +147,7 @@ body[aria-busy="true"] .navbar-logo {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
   z-index: 10050;
   font-weight: 600;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition: transform 0.4s ease, opacity 0.4s ease;
 }
 .toast-bubble.toast-large {
   padding: 14px 22px;
