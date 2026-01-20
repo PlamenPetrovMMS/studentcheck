@@ -215,14 +215,24 @@ export function openScannerOverlay(className) {
     const bindCloseButton = (btn, eventName) => {
         if (!btn || btn.dataset.closeBound === 'true') return;
         btn.dataset.closeBound = 'true';
-        const handler = (e) => {
+        const fire = (e) => {
             e.preventDefault();
             e.stopPropagation();
             document.dispatchEvent(new CustomEvent(eventName));
         };
-        btn.addEventListener('click', handler);
-        btn.addEventListener('touchstart', handler, { passive: false });
-        btn.addEventListener('pointerdown', handler);
+        btn.addEventListener('touchend', (e) => {
+            btn.dataset.touchHandled = 'true';
+            fire(e);
+        }, { passive: false });
+        btn.addEventListener('click', (e) => {
+            if (btn.dataset.touchHandled === 'true') {
+                btn.dataset.touchHandled = 'false';
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            fire(e);
+        });
     };
 
     const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
