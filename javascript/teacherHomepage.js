@@ -43,6 +43,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     const classList = document.getElementById('classList');
     const addBtn = document.getElementById('addClassBtn');
     const teacherEmail = getTeacherEmail();
+    const deletePopup = document.createElement('button');
+    deletePopup.id = 'unreadyDeletePopup';
+    deletePopup.className = 'unready-delete-popup';
+    deletePopup.type = 'button';
+    deletePopup.textContent = 'Delete class';
+    deletePopup.style.display = 'none';
+    document.body.appendChild(deletePopup);
+
+    let deletePopupClassName = '';
+    let longPressTimer = null;
+
+    function hideDeletePopup() {
+        deletePopup.style.display = 'none';
+        deletePopupClassName = '';
+    }
+
+    function showDeletePopup(x, y, className) {
+        deletePopupClassName = className;
+        deletePopup.style.display = 'block';
+        deletePopup.style.left = `${x}px`;
+        deletePopup.style.top = `${y}px`;
+        const rect = deletePopup.getBoundingClientRect();
+        const maxLeft = window.innerWidth - rect.width - 8;
+        const maxTop = window.innerHeight - rect.height - 8;
+        const left = Math.max(8, Math.min(x, maxLeft));
+        const top = Math.max(8, Math.min(y, maxTop));
+        deletePopup.style.left = `${left}px`;
+        deletePopup.style.top = `${top}px`;
+    }
+
+    deletePopup.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const name = deletePopupClassName;
+        hideDeletePopup();
+        if (name) {
+            await deleteClass(name);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (deletePopup.style.display === 'none') return;
+        if (e.target === deletePopup) return;
+        hideDeletePopup();
+    });
     
     if (!teacherEmail) {
         console.error('No teacher email found in localStorage for session.');
@@ -320,6 +365,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         openClassCreationWizard();
     });
 
+    function attachUnreadyDeleteLongPress(btn) {
+        if (!btn || btn.dataset.longPressBound === 'true') return;
+        btn.dataset.longPressBound = 'true';
+
+        btn.addEventListener('pointerdown', (e) => {
+            if (e.button !== undefined && e.button !== 0) return;
+            const className = btn.dataset.className || getRawClassNameFromButton(btn);
+            if (!className || isClassReady(className)) return;
+            longPressTimer = window.setTimeout(() => {
+                btn.dataset.longPressActive = 'true';
+                showDeletePopup(e.clientX, e.clientY, className);
+            }, 600);
+        });
+
+        const clearLongPress = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        };
+        btn.addEventListener('pointerup', clearLongPress);
+        btn.addEventListener('pointercancel', clearLongPress);
+        btn.addEventListener('pointerleave', clearLongPress);
+
+        btn.addEventListener('click', (e) => {
+            if (btn.dataset.longPressActive === 'true') {
+                e.preventDefault();
+                e.stopPropagation();
+                btn.dataset.longPressActive = 'false';
+            }
+        });
+    }
+
     // ===== LEGACY STUDENT SELECTION OVERLAY (for not-ready classes) =====
     // This is handled by openAddStudentsToClass in studentManagement.js
     // No additional wiring needed here
@@ -340,9 +418,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ===== INITIAL LOAD =====
     classList?.querySelectorAll('.newClassBtn').forEach(attachNewClassButtonBehavior);
+    classList?.querySelectorAll('.newClassBtn').forEach(attachUnreadyDeleteLongPress);
     await loadClasses();
     loadReadyClasses();
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
+    classList?.querySelectorAll('.newClassBtn').forEach(attachUnreadyDeleteLongPress);
+
+    if (classList) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((m) => {
+                m.addedNodes.forEach((node) => {
+                    if (!(node instanceof HTMLElement)) return;
+                    const btns = node.matches?.('.newClassBtn')
+                        ? [node]
+                        : Array.from(node.querySelectorAll?.('.newClassBtn') || []);
+                    btns.forEach(attachUnreadyDeleteLongPress);
+                });
+            });
+        });
+        observer.observe(classList, { childList: true, subtree: true });
+    }
 
     // ===== PAGESHOW HANDLER (bfcache) =====
     window.addEventListener('pageshow', (ev) => {

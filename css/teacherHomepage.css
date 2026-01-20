@@ -485,6 +485,7 @@ body {
     padding: 0;
     border-radius: 10px;
     transition: background 0.15s ease, color 0.15s ease;
+    margin-bottom: 10px;
 }
 .close-small:hover { background:#f3f4f6; color:#374151; }
 
@@ -501,6 +502,24 @@ body {
 .overlay-top-bar h2 {
     margin: 0;
     line-height: 1;
+}
+
+.unready-delete-popup {
+    position: fixed;
+    z-index: 2000;
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #b91c1c;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.unready-delete-popup:hover {
+    background: #b91c1c;
 }
 
 /* Manage Students overlay specifics */
