@@ -20,7 +20,7 @@ import {
     getAttendanceDotIndex
 } from '../state/appState.js';
 import { loadClassStudentsFromStorage, getStudentInfoForFacultyNumber } from '../storage/studentStorage.js';
-import { markAttendance, fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData } from '../api/attendanceApi.js';
+import { fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData } from '../api/attendanceApi.js';
 import { updateAttendanceDot } from '../ui/attendanceUI.js';
 import { getActiveClassName, logError } from '../utils/helpers.js';
 import { openConfirmOverlay, getOverlay, hideOverlay } from '../ui/overlays.js';
@@ -124,52 +124,7 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
         // Update UI dot
         updateAttendanceDot(studentFacultyNumber, next);
 
-        // Mark attendance when completing a session (joined -> completed)
-        if (current === 'joined' && next === 'completed') {
-            const classId = getClassIdByName(className);
-
-            if (!classId) {
-                console.warn('Missing class id for', className);
-            } else {
-                const storedStudents = loadClassStudentsFromStorage(className) || [];
-                const info = getStudentInfoForFacultyNumber(studentFacultyNumber, storedStudents);
-                const apiStudentId = info?.id || info?.student_id || info?.faculty_number || info?.facultyNumber || studentFacultyNumber;
-                if (!info) {
-                    console.warn('[Attendance] Student info not found in storage', {
-                        className,
-                        studentFacultyNumber,
-                        fallbackId: apiStudentId
-                    });
-                }
-                // Show loading state on dot
-                const dotIndex = getAttendanceDotIndex();
-                const dot = dotIndex.get(studentFacultyNumber);
-                if (dot) dot.classList.add('status-loading');
-
-                markAttendance(classId, apiStudentId).then(() => {
-                    if (dot) dot.classList.remove('status-loading');
-                    const counts = getAttendanceCountCache(classId) || new Map();
-                    const existing = counts.get(studentFacultyNumber) || 0;
-                    counts.set(studentFacultyNumber, existing + 1);
-                    setAttendanceCountCache(classId, counts);
-                    if (updateStudentInfoCountFn) {
-                        updateStudentInfoCountFn(studentFacultyNumber, className);
-                    }
-                }).catch(e => {
-                    if (dot) dot.classList.remove('status-loading');
-                    console.warn('[Attendance] markAttendance failed', {
-                        className,
-                        classId,
-                        studentFacultyNumber,
-                        apiStudentId,
-                        message: e?.message
-                    });
-                    alert('Failed to record attendance: ' + e.message);
-                    map.set(studentFacultyNumber, 'joined');
-                    updateAttendanceDot(studentFacultyNumber, 'joined');
-                });
-            }
-        }
+        // When completing a session, only update local state; server update happens on scanner close.
     }
 }
 
@@ -271,6 +226,26 @@ export async function openCloseScannerConfirm(className, onClosed) {
                     logError('closeScannerConfirm', new Error('Missing class ID'), { className });
                     // Still attempt to close scanner even without classId
                 } else {
+                    // Persist completed attendance in bulk
+                    try {
+                        const attendanceMap = getAttendanceState(className);
+                        const storedStudents = loadClassStudentsFromStorage(className) || [];
+                        const completedIds = [];
+                        if (attendanceMap) {
+                            attendanceMap.forEach((status, facultyNumber) => {
+                                if (status !== 'completed') return;
+                                const info = getStudentInfoForFacultyNumber(facultyNumber, storedStudents);
+                                const apiStudentId = info?.id || info?.student_id || info?.faculty_number || info?.facultyNumber || facultyNumber;
+                                completedIds.push(apiStudentId);
+                            });
+                        }
+                        if (completedIds.length > 0) {
+                            await saveAttendanceData(classId, completedIds);
+                        }
+                    } catch (e) {
+                        logError('closeScannerConfirm', e, { className, classId, action: 'saveAttendanceData' });
+                    }
+
                     // Safely get timestamps (may be empty map, which is fine)
                     const timestamps = getStudentTimestamps();
                     if (timestamps && timestamps.size > 0) {
