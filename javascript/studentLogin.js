@@ -38,6 +38,10 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
         if (response.ok) {
             const data = await response.json();
             if(data.loginSuccess) {
+                try {
+                    sessionStorage.removeItem('teacherData');
+                    localStorage.removeItem('teacherEmail');
+                } catch (_) {}
                 // Store non-sensitive data for the homepage
                 try {
                     sessionStorage.setItem('studentData', JSON.stringify({

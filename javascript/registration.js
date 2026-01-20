@@ -676,6 +676,8 @@
                     specialization: responseStudent?.specialization || payload.specialization
                 };
                 try {
+                    sessionStorage.removeItem('teacherData');
+                    localStorage.removeItem('teacherEmail');
                     sessionStorage.setItem('studentData', JSON.stringify({
                         data: { student: sessionStudent, loginSuccess: true }
                     }));
