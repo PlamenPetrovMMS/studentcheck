@@ -19,7 +19,7 @@ import {
     clearStudentTimestamps,
     getAttendanceDotIndex
 } from '../state/appState.js';
-import { loadClassStudentsFromStorage } from '../storage/studentStorage.js';
+import { loadClassStudentsFromStorage, getStudentInfoForFacultyNumber } from '../storage/studentStorage.js';
 import { markAttendance, fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData } from '../api/attendanceApi.js';
 import { updateAttendanceDot } from '../ui/attendanceUI.js';
 import { getActiveClassName, logError } from '../utils/helpers.js';
@@ -125,12 +125,15 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
             if (!classId) {
                 console.warn('Missing class id for', className);
             } else {
+                const storedStudents = loadClassStudentsFromStorage(className) || [];
+                const info = getStudentInfoForFacultyNumber(studentFacultyNumber, storedStudents);
+                const apiStudentId = info?.id || info?.student_id || info?.faculty_number || info?.facultyNumber || studentFacultyNumber;
                 // Show loading state on dot
                 const dotIndex = getAttendanceDotIndex();
                 const dot = dotIndex.get(studentFacultyNumber);
                 if (dot) dot.classList.add('status-loading');
 
-                markAttendance(classId, studentFacultyNumber).then(() => {
+                markAttendance(classId, apiStudentId).then(() => {
                     if (dot) dot.classList.remove('status-loading');
                     const counts = getAttendanceCountCache(classId) || new Map();
                     const existing = counts.get(studentFacultyNumber) || 0;
