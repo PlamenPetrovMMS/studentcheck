@@ -211,18 +211,23 @@ export function openScannerOverlay(className) {
     
     clearStudentTimestamps();
     
-    if (scannerOverlay && scannerOverlay.dataset.closeHandlers !== 'bound') {
-        scannerOverlay.dataset.closeHandlers = 'bound';
-        scannerOverlay.addEventListener('pointerdown', (e) => {
-            const target = e.target.closest('#closeScannerBtn, #scannerCloseBtn');
-            if (!target) return;
+    const bindCloseButton = (btn, eventName) => {
+        if (!btn || btn.dataset.closeBound === 'true') return;
+        btn.dataset.closeBound = 'true';
+        const handler = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const isDiscard = target.id === 'closeScannerBtn';
-            const eventName = isDiscard ? 'closeScannerDiscardRequested' : 'closeScannerRequested';
             document.dispatchEvent(new CustomEvent(eventName));
-        });
-    }
+        };
+        btn.addEventListener('click', handler);
+        btn.addEventListener('touchstart', handler, { passive: false });
+        btn.addEventListener('pointerdown', handler);
+    };
+
+    const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
+    const finishBtn = scannerOverlay.querySelector('#scannerCloseBtn');
+    bindCloseButton(closeBtn, 'closeScannerDiscardRequested');
+    bindCloseButton(finishBtn, 'closeScannerRequested');
     
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') {
