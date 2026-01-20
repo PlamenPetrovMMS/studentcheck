@@ -40,6 +40,16 @@
 .muted-left { text-align: left; padding: 0; margin: 0 0 8px 0; }
 .muted-left-spaced { text-align: left; padding: 0; margin: 0 0 12px 0; }
 
+.welcome-text,
+.faculty-text {
+	font-size: 1.15rem;
+}
+
+.welcome-text strong,
+.faculty-text strong {
+	font-size: 1.2rem;
+}
+
 
 
 /* Reuse .btn classes from registration.css for #logoutBtn; no extra styles here */
