@@ -160,21 +160,28 @@ export function closeScanner(onClosed) {
         } catch (_) { }
     };
 
-    const html5QrCode = getHtml5QrCode();
-    if (html5QrCode) {
-        return html5QrCode.stop().then(() => {
-            html5QrCode.clear();
-            setHtml5QrCode(null);
-            finish();
-        }).catch(() => {
-            try {
+    try {
+        const html5QrCode = getHtml5QrCode();
+        if (html5QrCode) {
+            return html5QrCode.stop().then(() => {
                 html5QrCode.clear();
-            } catch (_) { }
-            setHtml5QrCode(null);
-            stopAllCameraTracks();
-            finish();
-        });
-    } else {
+                setHtml5QrCode(null);
+                finish();
+            }).catch(() => {
+                try {
+                    html5QrCode.clear();
+                } catch (_) { }
+                setHtml5QrCode(null);
+                stopAllCameraTracks();
+                finish();
+            });
+        }
+        stopAllCameraTracks();
+        finish();
+        return Promise.resolve();
+    } catch (_) {
+        // If stop throws (e.g., scanner never started), still finish cleanly.
+        setHtml5QrCode(null);
         stopAllCameraTracks();
         finish();
         return Promise.resolve();
@@ -206,15 +213,6 @@ export function openScannerOverlay(className) {
     
     if (scannerOverlay && scannerOverlay.dataset.closeHandlers !== 'bound') {
         scannerOverlay.dataset.closeHandlers = 'bound';
-        scannerOverlay.addEventListener('click', (e) => {
-            const target = e.target.closest('#closeScannerBtn, #scannerCloseBtn');
-            if (!target) return;
-            e.preventDefault();
-            e.stopPropagation();
-            const isDiscard = target.id === 'closeScannerBtn';
-            const eventName = isDiscard ? 'closeScannerDiscardRequested' : 'closeScannerRequested';
-            document.dispatchEvent(new CustomEvent(eventName));
-        });
         scannerOverlay.addEventListener('pointerdown', (e) => {
             const target = e.target.closest('#closeScannerBtn, #scannerCloseBtn');
             if (!target) return;
