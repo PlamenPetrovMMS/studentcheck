@@ -18,6 +18,11 @@
   }
 
   function handleLogoClick() {
+    const path = (window.location.pathname || '').toLowerCase();
+    if (path.endsWith('studentlogin.html') || path.endsWith('teacherlogin.html')) {
+      window.location.href = 'index.html';
+      return;
+    }
     const { loggedIn, role } = getAuthStatus();
     if (loggedIn) {
       window.location.href = role === 'teacher' ? 'teacherHomepage.html' : 'studentHomepage.html';

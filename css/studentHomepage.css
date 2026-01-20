@@ -220,14 +220,14 @@
 	cursor: pointer;
 	font-size: 22px;
 	font-weight: 700;
-	background: transparent;
+	background: #e5e7eb; /* gray-200 */
 	transition: 
         background 0.25s ease,
         box-shadow 0.25s ease,
         transform 0.2s ease;
 }
 .class-button:hover{
-	background: #bdbec0; /* gray-300 */
+	background: #9ca3af; /* gray-400 */
 	box-shadow: none;
 }
 
