@@ -241,7 +241,7 @@ export function getStudentAttendanceCountForClass(className, studentId, updateCo
  */
 export async function openCloseScannerConfirm(className, onClosed) {
     openConfirmOverlay(
-        'Finish class? Attendance data will be saved.',
+        'Attendance data will be saved.',
         async () => {
             try {
                 const classId = getClassIdByName(className);
@@ -347,7 +347,7 @@ export async function openCloseScannerConfirm(className, onClosed) {
         () => { /* canceled */ }
     ,
         null,
-        { okText: 'Finish', okClass: 'confirm-accept', title: 'Finish Class' }
+        { okText: 'Finish', cancelText: 'Cancel', okClass: 'confirm-accept', title: 'Finish class?' }
     );
 }
 
