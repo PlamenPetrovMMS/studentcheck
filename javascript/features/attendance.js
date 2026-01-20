@@ -296,27 +296,6 @@ export async function openCloseScannerConfirm(className, onClosed) {
                         // Continue with cleanup
                     }
 
-                    const classStudents = loadClassStudentsFromStorage(className);
-                    const completedStudentIds = [];
-                    const stateMap = getAttendanceState(className);
-
-                    if (stateMap && classStudents) {
-                        for (const [facultyNumber, state] of stateMap.entries()) {
-                            const student = classStudents.find(s => s.faculty_number === facultyNumber);
-                            if (student && state === 'completed') {
-                                completedStudentIds.push(student.id);
-                            }
-                        }
-                    }
-
-                    if (completedStudentIds.length > 0) {
-                        try {
-                            await saveAttendanceData(classId, completedStudentIds);
-                        } catch (e) {
-                            logError('closeScannerConfirm', e, { className, classId, action: 'saveAttendanceData' });
-                            // Continue with cleanup
-                        }
-                    }
                 }
 
                 // Always clear state and close overlays, even if saves failed
