@@ -16,13 +16,24 @@ import { logError } from '../utils/helpers.js';
  * @returns {Promise<Object>} Response data
  */
 export async function markAttendance(classId, studentId) {
-    const res = await fetch(SERVER_BASE_URL + ENDPOINTS.attendance, {
+    const url = SERVER_BASE_URL + ENDPOINTS.attendance;
+    const primaryPayload = { class_id: classId, student_id: studentId };
+    const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ class_id: classId, student_id: studentId })
+        body: JSON.stringify(primaryPayload)
     });
-    if (!res.ok) throw new Error('Attendance mark failed');
-    return res.json();
+    if (res.ok) return res.json();
+
+    const fallbackPayload = { class_id: classId, faculty_number: String(studentId) };
+    const fallbackRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fallbackPayload)
+    });
+    if (fallbackRes.ok) return fallbackRes.json();
+
+    throw new Error('Attendance mark failed');
 }
 
 /**
