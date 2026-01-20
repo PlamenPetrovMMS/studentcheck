@@ -349,10 +349,9 @@ export async function openManageStudentsOverlay(className) {
     const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
     if (readyPopupOverlay) hideOverlay(readyPopupOverlay);
 
-    // Title reflect class name
     const overlay = getManageStudentsOverlay();
     const titleEl = overlay?.querySelector('#manageStudentsTitle');
-    if (titleEl) titleEl.textContent = `Manage Students — ${className}`;
+    if (titleEl) titleEl.textContent = 'Students';
 
     // Show overlay immediately (renderManageStudentsForClass will show loading state)
     if (overlay) {

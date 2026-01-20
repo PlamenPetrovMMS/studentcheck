@@ -230,7 +230,7 @@ export function renameClass(oldName, newName) {
     const manageTitle = document.getElementById('manageStudentsTitle');
     const manageStudentsOverlay = getOverlay('manageStudentsOverlay');
     if (manageTitle && manageStudentsOverlay && isOverlayVisible(manageStudentsOverlay)) {
-        manageTitle.textContent = `Manage Students — ${to}`;
+        manageTitle.textContent = 'Students';
     }
     
     const scannerTitle = document.getElementById('scannerTitle');

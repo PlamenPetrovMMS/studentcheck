@@ -869,7 +869,7 @@ body {
 
 #manageStudentsOverlay .manage-footer-actions {
     display: flex;
-    justify-content: flex-end; /* Move Back button to far right */
+    justify-content: space-between;
     align-items: center;
     gap: 12px;
     margin-top: 20px;
