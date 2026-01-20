@@ -241,7 +241,7 @@ export function getStudentAttendanceCountForClass(className, studentId, updateCo
  */
 export async function openCloseScannerConfirm(className, onClosed) {
     openConfirmOverlay(
-        'Are you sure you want to close the scanner? All attendance data will be deleted.',
+        'Finish class? Attendance data will be saved.',
         async () => {
             try {
                 const classId = getClassIdByName(className);
@@ -345,6 +345,9 @@ export async function openCloseScannerConfirm(className, onClosed) {
             }
         },
         () => { /* canceled */ }
+    ,
+        null,
+        { okText: 'Finish', okClass: 'confirm-accept', title: 'Finish Class' }
     );
 }
 
@@ -368,6 +371,17 @@ export async function closeScannerDiscard(className, onClosed) {
             try { onClosed(); } catch (callbackErr) { logError('closeScannerDiscard', callbackErr, { className, action: 'onClosed callback' }); }
         }
     }
+}
+
+export async function openDiscardScannerConfirm(className, onClosed) {
+    openConfirmOverlay(
+        'Closing the scanner will discard attendance data.',
+        async () => {
+            await closeScannerDiscard(className, onClosed);
+        },
+        null,
+        { title: 'Close Scanner' }
+    );
 }
 
 function isOverlayVisible(overlay) {

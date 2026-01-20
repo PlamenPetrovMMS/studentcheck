@@ -32,7 +32,7 @@ import { openClassCreationWizard, closeClassCreationWizard } from './features/cl
 import { openClassOptionsOverlay, closeClassOptionsOverlay, renameClass, deleteClass } from './features/classManagement.js';
 import { openManageStudentsOverlay, openStudentInfoOverlay, openAddStudentsToClass, finalizeAddStudentsToClass, closeAllClassOverlays } from './features/studentManagement.js';
 import { openScannerOverlay, closeScanner, setScanMode } from './features/scanner.js';
-import { openCloseScannerConfirm, closeScannerDiscard, getStudentAttendanceCountForClass } from './features/attendance.js';
+import { openCloseScannerConfirm, openDiscardScannerConfirm, getStudentAttendanceCountForClass } from './features/attendance.js';
 import { renderAttendanceForClass } from './ui/attendanceUI.js';
 import { handleDownloadAttendanceTable } from './features/export.js';
 import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from './ui/overlays.js';
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.addEventListener('closeScannerDiscardRequested', async () => {
         const current = getCurrentClass();
-        await closeScannerDiscard(current.name, () => {
+        await openDiscardScannerConfirm(current.name, () => {
             closeReadyClassPopup();
             openReadyClassPopup(current.name);
         });

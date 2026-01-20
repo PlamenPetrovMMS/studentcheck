@@ -142,8 +142,13 @@ export function openConfirmOverlay(message, onConfirm, onCancel, options = {}) {
                 newCancel.textContent = options.cancelText;
             }
         }
-        if (newOk && options.okText !== undefined) {
-            newOk.textContent = options.okText;
+        if (newOk) {
+            if (options.okText !== undefined) {
+                newOk.textContent = options.okText;
+            }
+            if (options.okClass) {
+                newOk.className = `role-button ${options.okClass}`;
+            }
         }
         newCancel?.addEventListener('click', () => {
             closeConfirmOverlay();
