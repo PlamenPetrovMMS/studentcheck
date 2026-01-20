@@ -19,7 +19,9 @@
 
   function handleLogoClick() {
     const path = (window.location.pathname || '').toLowerCase();
-    if (path.endsWith('studentlogin.html') || path.endsWith('teacherlogin.html')) {
+    const isStudentHome = path.endsWith('studenthomepage.html');
+    const isTeacherHome = path.endsWith('teacherhomepage.html');
+    if (!isStudentHome && !isTeacherHome) {
       window.location.href = 'index.html';
       return;
     }
