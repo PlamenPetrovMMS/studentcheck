@@ -62,11 +62,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     function hideDeletePopup() {
         deletePopup.style.display = 'none';
         deletePopupClassName = '';
+        document.body.classList.remove('delete-popup-active');
     }
 
     function showDeletePopup(x, y, className) {
         deletePopupClassName = className;
         deletePopup.style.display = 'block';
+        document.body.classList.add('delete-popup-active');
         deletePopup.style.left = `${x}px`;
         deletePopup.style.top = `${y}px`;
         const rect = deletePopup.getBoundingClientRect();

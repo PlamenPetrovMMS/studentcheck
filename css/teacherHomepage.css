@@ -522,6 +522,11 @@ body {
     background: #b91c1c;
 }
 
+body.delete-popup-active #classList button,
+body.delete-popup-active #addClassBtn {
+    pointer-events: none;
+}
+
 /* Manage Students overlay specifics */
 #manageStudentsOverlay .ready-class-popup {
     background: #ffffff;
