@@ -77,6 +77,16 @@ function formatDateTime(ms) {
 
 function parseTimestamp(value) {
     if (!value) return null;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (/^\d+$/.test(trimmed)) {
+            const numeric = Number(trimmed);
+            return Number.isFinite(numeric) ? numeric : null;
+        }
+    }
     const parsed = Date.parse(value);
     return Number.isNaN(parsed) ? null : parsed;
 }
