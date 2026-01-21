@@ -169,7 +169,7 @@ function sortAttendanceEntries(entries) {
  * @returns {Array<Array>} Worksheet data (rows)
  */
 function buildWorksheetData(entries) {
-    const header = ['Student Name', 'Faculty Number', 'Joined Time', 'Left Time'];
+    const header = ['Student Name', 'Faculty Number', 'Joined At', 'Left At'];
     return [header, ...entries.map(e => [
         e.studentName,
         e.facultyNumber,
