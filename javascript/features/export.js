@@ -82,6 +82,18 @@ function parseTimestamp(value) {
     }
     if (typeof value === 'string') {
         const trimmed = value.trim();
+        // Bulgarian locale format: "DD.MM.YYYY г., HH:mm:ss"
+        const bgMatch = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})\s*г\.,?\s*(\d{2}):(\d{2})(?::(\d{2}))?$/);
+        if (bgMatch) {
+            const day = Number(bgMatch[1]);
+            const month = Number(bgMatch[2]) - 1;
+            const year = Number(bgMatch[3]);
+            const hours = Number(bgMatch[4]);
+            const minutes = Number(bgMatch[5]);
+            const seconds = Number(bgMatch[6] || '0');
+            const ms = new Date(year, month, day, hours, minutes, seconds).getTime();
+            return Number.isNaN(ms) ? null : ms;
+        }
         if (/^\d+$/.test(trimmed)) {
             const numeric = Number(trimmed);
             return Number.isFinite(numeric) ? numeric : null;
