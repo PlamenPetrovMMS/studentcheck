@@ -50,6 +50,19 @@ export async function fetchClassAttendance(classId) {
 }
 
 /**
+ * Fetch attendance timestamps for a class
+ * @param {number} classId - Class ID
+ * @returns {Promise<{timestamps: Array}>} Attendance timestamps data
+ */
+export async function fetchClassAttendanceTimestamps(classId) {
+    const res = await fetch(SERVER_BASE_URL + ENDPOINTS.attendanceTimestamps(classId), {
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error('Attendance timestamps fetch failed');
+    return res.json();
+}
+
+/**
  * Save attendance data for multiple students
  * @param {number} classId - Class ID
  * @param {Array<number>} studentIds - Array of student IDs

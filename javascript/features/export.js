@@ -8,6 +8,7 @@ import { getActiveClassName } from '../utils/helpers.js';
 import { getClassIdByNameFromStorage } from '../storage/classStorage.js';
 import { loadClassStudentsFromStorage } from '../storage/studentStorage.js';
 import { fetchClassStudents } from '../api/classApi.js';
+import { fetchClassAttendanceTimestamps } from '../api/attendanceApi.js';
 
 // Cache for XLSX load promise
 let xlsxLoadPromise = null;
@@ -74,15 +75,10 @@ function formatDateTime(ms) {
     return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
-/**
- * Load attendance log for a student (stub - returns empty array)
- * @param {string} className - Class name
- * @param {string} studentId - Student ID
- * @returns {Array} Empty array (attendance logs not implemented)
- */
-function loadAttendanceLog(className, studentId) {
-    // TODO: Implement attendance log loading from server/storage
-    return [];
+function parseTimestamp(value) {
+    if (!value) return null;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : parsed;
 }
 
 /**
@@ -91,43 +87,42 @@ function loadAttendanceLog(className, studentId) {
  * @returns {Array<Object>} Array of attendance entries
  */
 async function collectAttendanceEntriesForClass(className) {
-    // Fixed: Get classId first, then load students
     const classId = getClassIdByNameFromStorage(className);
-    let students = loadClassStudentsFromStorage(className);
-    
-    // If not in storage, fetch from API
-    if (!students || students.length === 0) {
-        if (classId) {
-            students = await fetchClassStudents(classId, className);
+    if (!classId) return [];
+
+    try {
+        const data = await fetchClassAttendanceTimestamps(classId);
+        const timestamps = data?.timestamps || [];
+        if (!Array.isArray(timestamps) || timestamps.length === 0) {
+            return [];
         }
+
+        return timestamps.map((row) => ({
+            studentName: row.full_name || row.fullName || '',
+            facultyNumber: row.faculty_number || row.facultyNumber || '',
+            joinedAt: parseTimestamp(row.joined_at || row.joinedAt),
+            leftAt: parseTimestamp(row.left_at || row.leftAt)
+        }));
+    } catch (e) {
+        console.warn('[Attendance Export] Failed to fetch timestamps, falling back to local data.', e);
     }
-    
+
+    // Fallback to local class roster if server timestamps are unavailable
+    let students = loadClassStudentsFromStorage(className);
+    if (!students || students.length === 0) {
+        students = await fetchClassStudents(classId, className);
+    }
+
     if (!students || students.length === 0) {
         return [];
     }
-    
-    const entries = [];
-    students.forEach((s) => {
-        const studentId = (s.facultyNumber || s.faculty_number || s.fullName || '').trim();
-        if (!studentId) {
-            console.warn('[Attendance Export] Skipping student with missing ID.');
-            return;
-        }
-        const logs = loadAttendanceLog(className, studentId) || [];
-        logs.forEach(sess => {
-            if (!sess) return;
-            const joinMs = sess.joinAt || sess.leaveAt || null;
-            const leaveMs = sess.leaveAt || sess.joinAt || null;
-            if (!joinMs) return;
-            entries.push({
-                studentName: s.fullName || s.full_name || '',
-                facultyNumber: s.facultyNumber || s.faculty_number || '',
-                joinedAt: joinMs,
-                leftAt: leaveMs
-            });
-        });
-    });
-    return entries;
+
+    return students.map((s) => ({
+        studentName: s.fullName || s.full_name || '',
+        facultyNumber: s.facultyNumber || s.faculty_number || '',
+        joinedAt: null,
+        leftAt: null
+    }));
 }
 
 /**

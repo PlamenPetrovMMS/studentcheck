@@ -19,7 +19,8 @@ export const ENDPOINTS = {
     updateCompletedClassesCount: '/update_completed_classes_count',
     saveStudentTimestamps: '/save_student_timestamps',
     // Fixed: Added missing endpoint for class attendance summary
-    classAttendanceSummary: (classId) => `/attendance/summary?class_id=${classId}`
+    classAttendanceSummary: (classId) => `/attendance/summary?class_id=${classId}`,
+    attendanceTimestamps: (classId) => `/attendance/timestamps?class_id=${classId}`
 };
 
 /**
