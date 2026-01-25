@@ -44,6 +44,28 @@ export function stopAllCameraTracks() {
 }
 
 /**
+ * Stop media tracks held by html5-qrcode (best-effort)
+ * @param {Object} html5QrCode - Html5Qrcode instance
+ */
+function stopHtml5QrCodeStream(html5QrCode) {
+    if (!html5QrCode) return;
+    try {
+        const track = typeof html5QrCode.getRunningTrack === 'function'
+            ? html5QrCode.getRunningTrack()
+            : null;
+        if (track && typeof track.stop === 'function') track.stop();
+    } catch (_) {}
+    try {
+        const stream = html5QrCode._localMediaStream || html5QrCode._mediaStream;
+        if (stream && typeof stream.getTracks === 'function') {
+            stream.getTracks().forEach(t => {
+                try { t.stop(); } catch (_) { }
+            });
+        }
+    } catch (_) {}
+}
+
+/**
  * Ensure html5-qrcode library is loaded
  * @returns {Promise<Object>} Html5Qrcode constructor
  */
@@ -163,7 +185,9 @@ export function closeScanner(onClosed) {
     try {
         const html5QrCode = getHtml5QrCode();
         if (html5QrCode) {
+            stopHtml5QrCodeStream(html5QrCode);
             return html5QrCode.stop().then(() => {
+                stopHtml5QrCodeStream(html5QrCode);
                 stopAllCameraTracks();
                 html5QrCode.clear();
                 setHtml5QrCode(null);
@@ -172,6 +196,7 @@ export function closeScanner(onClosed) {
                 try {
                     html5QrCode.clear();
                 } catch (_) { }
+                stopHtml5QrCodeStream(html5QrCode);
                 stopAllCameraTracks();
                 setHtml5QrCode(null);
                 finish();
