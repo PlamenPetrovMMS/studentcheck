@@ -804,7 +804,7 @@ async function renderAttendanceHistoryList(className, studentId) {
         joinLabel.textContent = i18nText('joined_label', 'Joined');
         const joinVal = document.createElement('span');
         joinVal.className = 'att-value';
-        joinVal.textContent = `${joinTime} — ${joinDate}`;
+        joinVal.textContent = `${joinTime} - ${joinDate}`;
         row1.appendChild(joinLabel);
         row1.appendChild(joinVal);
 
@@ -815,7 +815,7 @@ async function renderAttendanceHistoryList(className, studentId) {
         leaveLabel.textContent = i18nText('left_label', 'Left');
         const leaveVal = document.createElement('span');
         leaveVal.className = 'att-value';
-        leaveVal.textContent = `${leaveTime} — ${leaveDate}`;
+        leaveVal.textContent = `${leaveTime} - ${leaveDate}`;
         row2.appendChild(leaveLabel);
         row2.appendChild(leaveVal);
 
