@@ -185,9 +185,11 @@ async function loadAttendanceLog(className, studentId) {
     };
 
     try {
+        const numericStudentId = /^\d+$/.test(String(studentId || '')) ? String(studentId) : '';
+        const useStudentId = numericStudentId && numericStudentId !== facultyKey;
         const data = await fetchStudentAttendanceHistory(classId, {
-            studentId,
-            facultyNumber
+            studentId: useStudentId ? numericStudentId : null,
+            facultyNumber: facultyKey
         });
         const raw = data?.records || data?.sessions || data?.history || data?.attendance || data?.items || [];
         if (Array.isArray(raw) && raw.length > 0) {
