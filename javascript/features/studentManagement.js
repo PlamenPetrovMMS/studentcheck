@@ -197,8 +197,12 @@ export async function renderManageStudentsForClass(className) {
         // Render students if we have any
         if (students && students.length > 0) {
             let infoLookup = null;
-            const needsNames = students.some(s => !(s.full_name || s.fullName));
-            if (needsNames) {
+            const needsInfo = students.some(s => (
+                !getStudentFullName(s) ||
+                !getStudentEmail(s) ||
+                !getStudentGroup(s)
+            ));
+            if (needsInfo) {
                 try {
                     const all = await fetchAllStudents({ forceRefresh: true });
                     infoLookup = new Map();
