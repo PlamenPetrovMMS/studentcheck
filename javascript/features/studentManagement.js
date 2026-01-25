@@ -9,6 +9,7 @@ import { removeStudentFromClass as apiRemoveStudentFromClass, addStudentsToClass
 import { fetchAllStudents } from '../api/studentApi.js';
 import { fetchClassStudents } from '../api/classApi.js';
 import { getStudentAttendanceCountForClass } from './attendance.js';
+import { fetchStudentAttendanceHistory } from '../api/attendanceApi.js';
 import {
     getCurrentClass,
     setCurrentClass,
@@ -91,6 +92,29 @@ function applyI18n() {
     } catch (_) {}
 }
 
+function parseTimestamp(value) {
+    if (!value) return null;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        const bgMatch = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4}) г\., (\d{2}):(\d{2}):(\d{2})$/);
+        if (bgMatch) {
+            const [, day, month, year, hours, minutes, seconds] = bgMatch;
+            const d = new Date(year, month - 1, day, hours, minutes, seconds);
+            const parsed = d.getTime();
+            return Number.isNaN(parsed) ? null : parsed;
+        }
+        if (/^\d+$/.test(trimmed)) {
+            const numeric = Number(trimmed);
+            return Number.isFinite(numeric) ? numeric : null;
+        }
+    }
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
 function showToast(message, tone = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-bubble toast-${tone} toast-wide`;
@@ -119,14 +143,38 @@ function getAddStudentsListEl() {
 function getAttendanceHistoryOverlay() { return getOverlay('attendanceHistoryOverlay'); }
 
 /**
- * Load attendance log for a student (stub - returns empty array)
+ * Load attendance log for a student
  * @param {string} className - Class name
  * @param {string} studentId - Student ID
- * @returns {Array} Empty array (attendance logs not implemented)
+ * @returns {Promise<Array<{joinAt:number|null, leaveAt:number|null}>>}
  */
-function loadAttendanceLog(className, studentId) {
-    // TODO: Implement attendance log loading from server/storage
-    return [];
+async function loadAttendanceLog(className, studentId) {
+    const classId = await resolveClassId(className);
+    if (!classId) return [];
+
+    const info = studentIndex.get(String(studentId)) || {};
+    const facultyNumber = info.faculty_number || studentId;
+
+    try {
+        const data = await fetchStudentAttendanceHistory(classId, {
+            studentId,
+            facultyNumber
+        });
+        const raw = data?.records || data?.sessions || data?.history || data?.attendance || data?.items || [];
+        if (!Array.isArray(raw)) return [];
+        return raw.map((row) => {
+            const joinedAt = parseTimestamp(
+                row.joined_at ?? row.joinedAt ?? row.join_time ?? row.joinTime ?? row.in_time ?? row.inTime
+            );
+            const leftAt = parseTimestamp(
+                row.left_at ?? row.leftAt ?? row.leave_time ?? row.leaveTime ?? row.out_time ?? row.outTime
+            );
+            return { joinAt: joinedAt, leaveAt: leftAt };
+        }).filter(r => r.joinAt || r.leaveAt);
+    } catch (e) {
+        console.error('[loadAttendanceLog] Failed to load attendance history', e);
+        return [];
+    }
 }
 
 /**
@@ -674,17 +722,18 @@ export async function removeStudentFromClass(facultyNumber, className) {
  * @param {string} className - Class name
  * @param {string} studentId - Student ID
  */
-function renderAttendanceHistoryList(className, studentId) {
+async function renderAttendanceHistoryList(className, studentId) {
     const container = document.getElementById('attendanceHistoryList');
     if (!container) return;
 
-    const sessions = loadAttendanceLog(className, studentId);
+    container.innerHTML = '<p class="muted" style="text-align:center;">Loading...</p>';
+    const sessions = await loadAttendanceLog(className, studentId);
 
     container.innerHTML = '';
     if (!Array.isArray(sessions) || sessions.length === 0) {
         const p = document.createElement('p');
         p.className = 'muted';
-        p.textContent = 'No attendance records.';
+        p.textContent = i18nText('no_attendance_records', 'No attendance records.');
         container.appendChild(p);
         return;
     }
@@ -707,7 +756,7 @@ function renderAttendanceHistoryList(className, studentId) {
         row1.className = 'att-row';
         const joinLabel = document.createElement('span');
         joinLabel.className = 'att-label att-label-joined';
-        joinLabel.textContent = 'Joined';
+        joinLabel.textContent = i18nText('joined_label', 'Joined');
         const joinVal = document.createElement('span');
         joinVal.className = 'att-value';
         joinVal.textContent = `${joinTime} — ${joinDate}`;
@@ -718,7 +767,7 @@ function renderAttendanceHistoryList(className, studentId) {
         row2.className = 'att-row';
         const leaveLabel = document.createElement('span');
         leaveLabel.className = 'att-label att-label-left';
-        leaveLabel.textContent = 'Left';
+        leaveLabel.textContent = i18nText('left_label', 'Left');
         const leaveVal = document.createElement('span');
         leaveVal.className = 'att-value';
         leaveVal.textContent = `${leaveTime} — ${leaveDate}`;
@@ -766,21 +815,21 @@ function ensureAttendanceHistoryOverlayInitialized() {
  */
 export function openAttendanceHistoryOverlay(className, studentId) {
     ensureAttendanceHistoryOverlayInitialized();
+    applyI18n();
 
     // Hide student info overlay
     if (studentInfoOverlay) hideOverlay(studentInfoOverlay, false);
 
     const overlay = getAttendanceHistoryOverlay();
     const titleEl = overlay?.querySelector('#attendanceHistoryTitle');
-    if (titleEl) titleEl.textContent = 'Attendance History';
-
-    renderAttendanceHistoryList(className, studentId);
+    if (titleEl) titleEl.textContent = i18nText('attendance_history', 'Attendance History');
 
     if (overlay) {
         showOverlay(overlay, false);
         overlay.dataset.studentId = String(studentId);
         overlay.dataset.className = String(className || getCurrentClass().name || '');
     }
+    renderAttendanceHistoryList(className, studentId);
 }
 
 /**

@@ -20,7 +20,14 @@ export const ENDPOINTS = {
     saveStudentTimestamps: '/save_student_timestamps',
     // Fixed: Added missing endpoint for class attendance summary
     classAttendanceSummary: (classId) => `/attendance/summary?class_id=${classId}`,
-    attendanceTimestamps: (classId) => `/attendance/timestamps?class_id=${classId}`
+    attendanceTimestamps: (classId) => `/attendance/timestamps?class_id=${classId}`,
+    attendanceHistory: (classId, studentId, facultyNumber) => {
+        const params = new URLSearchParams();
+        if (classId) params.append('class_id', classId);
+        if (studentId) params.append('student_id', studentId);
+        if (facultyNumber) params.append('faculty_number', facultyNumber);
+        return `/attendance/history?${params.toString()}`;
+    }
 };
 
 /**

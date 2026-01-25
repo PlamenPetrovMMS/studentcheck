@@ -63,6 +63,23 @@ export async function fetchClassAttendanceTimestamps(classId) {
 }
 
 /**
+ * Fetch attendance history for a student in a class
+ * @param {number} classId - Class ID
+ * @param {Object} options - Student identifiers
+ * @param {string|number} [options.studentId] - Student ID
+ * @param {string|number} [options.facultyNumber] - Faculty number
+ * @returns {Promise<Object>} Attendance history data
+ */
+export async function fetchStudentAttendanceHistory(classId, { studentId, facultyNumber } = {}) {
+    const res = await fetch(
+        SERVER_BASE_URL + ENDPOINTS.attendanceHistory(classId, studentId, facultyNumber),
+        { headers: { 'Accept': 'application/json' } }
+    );
+    if (!res.ok) throw new Error('Attendance history fetch failed');
+    return res.json();
+}
+
+/**
  * Save attendance data for multiple students
  * @param {number} classId - Class ID
  * @param {Array<number>} studentIds - Array of student IDs
