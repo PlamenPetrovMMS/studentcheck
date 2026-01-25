@@ -3,6 +3,15 @@
 document.getElementById('teacherLoginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
+    function t(key, fallback) {
+        try {
+            if (window.i18n && typeof window.i18n.t === 'function') {
+                return window.i18n.t(key);
+            }
+        } catch (_) {}
+        return fallback || key;
+    }
+
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
     const errorMessage = document.getElementById('error-message');
@@ -12,7 +21,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
 
     if (!email || !password) {
         if (errorMessage) {
-            errorMessage.textContent = 'Email and Password are required.';
+            errorMessage.textContent = t('err_login_required', 'Email and Password are required.');
             // Ensure inline styles don't keep it hidden
             errorMessage.style.removeProperty('display');
             errorMessage.classList.remove('show');
@@ -61,7 +70,12 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
             } else {
                 LoadingOverlay.hide();
                 if (errorMessage) {
-                    errorMessage.textContent = 'Login failed: ' + (data.message || 'Invalid credentials');
+                errorMessage.textContent = t('err_login_failed', 'Login failed');
+                if (data.message) {
+                    errorMessage.textContent = `${t('err_login_failed', 'Login failed')}: ${data.message}`;
+                } else if (!data.loginSuccess) {
+                    errorMessage.textContent = t('err_invalid_credentials', 'Invalid credentials');
+                }
                     errorMessage.style.removeProperty('display');
                     errorMessage.classList.remove('show');
                     void errorMessage.offsetWidth;
@@ -72,7 +86,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         } else {
             LoadingOverlay.hide();
             if (errorMessage) {
-                errorMessage.textContent = 'Login failed: Invalid credentials';
+            errorMessage.textContent = t('err_invalid_credentials', 'Invalid credentials');
                 errorMessage.style.removeProperty('display');
                 errorMessage.classList.remove('show');
                 void errorMessage.offsetWidth;
@@ -84,7 +98,7 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
         LoadingOverlay.hide();
         console.error('Login request failed:', err);
         if (errorMessage) {
-            errorMessage.textContent = 'Login failed: Network error or unavailable server.';
+        errorMessage.textContent = t('err_login_network', 'Login failed: Network error or unavailable server.');
             errorMessage.style.removeProperty('display');
             errorMessage.classList.remove('show');
             void errorMessage.offsetWidth;
