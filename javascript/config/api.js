@@ -27,7 +27,9 @@ export const ENDPOINTS = {
         if (studentId) params.append('student_id', studentId);
         if (facultyNumber) params.append('faculty_number', facultyNumber);
         return `/attendance/history?${params.toString()}`;
-    }
+    },
+    getStudentAttendanceCount: (classId, studentId) =>
+        `/get_student_attendance_count?class_id=${classId}&student_id=${studentId}`
 };
 
 /**

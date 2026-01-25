@@ -115,6 +115,23 @@ function parseTimestamp(value) {
     return Number.isNaN(parsed) ? null : parsed;
 }
 
+async function fetchAttendedClassesCount(className, studentId, updateEl) {
+    const classId = await resolveClassId(className);
+    if (!classId || !studentId) return;
+    try {
+        const url = SERVER_BASE_URL + ENDPOINTS.getStudentAttendanceCount(classId, studentId);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return;
+        const data = await res.json();
+        const count = Number(data?.attendance_count ?? 0);
+        if (updateEl && updateEl.isConnected) {
+            updateEl.textContent = `${i18nText('attended_classes_label', 'Attended Classes')}: ${Number.isFinite(count) ? count : 0}`;
+        }
+    } catch (_) {
+        // Silent fail; keep default count
+    }
+}
+
 function showToast(message, tone = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-bubble toast-${tone} toast-wide`;
@@ -589,6 +606,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     attendedP.style.fontSize = '1.15rem';
     attendedP.style.letterSpacing = '.5px';
     wrapper.appendChild(attendedP);
+    fetchAttendedClassesCount(className || current.name, studentId, attendedP);
 
     // Attendance History button
     const historyBtn = document.createElement('button');
