@@ -74,6 +74,23 @@ function fillMissing(target, source) {
     }
 }
 
+function i18nText(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key);
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
+function applyI18n() {
+    try {
+        if (window.i18n && typeof window.i18n.applyTranslations === 'function') {
+            window.i18n.applyTranslations();
+        }
+    } catch (_) {}
+}
+
 function showToast(message, tone = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-bubble toast-${tone} toast-wide`;
@@ -387,6 +404,7 @@ function ensureManageStudentsOverlayInitialized() {
  */
 export async function openManageStudentsOverlay(className) {
     ensureManageStudentsOverlayInitialized();
+    applyI18n();
 
     const current = getCurrentClass();
     
@@ -400,7 +418,7 @@ export async function openManageStudentsOverlay(className) {
 
     const overlay = getManageStudentsOverlay();
     const titleEl = overlay?.querySelector('#manageStudentsTitle');
-    if (titleEl) titleEl.textContent = 'Students';
+    if (titleEl) titleEl.textContent = i18nText('manage_students', 'Manage Students');
 
     // Show overlay immediately (renderManageStudentsForClass will show loading state)
     if (overlay) {
@@ -479,7 +497,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     wrapper.innerHTML = '';
 
     const h2 = document.createElement('h2');
-    h2.textContent = 'Student Info';
+    h2.textContent = i18nText('student_info_title', 'Student Info');
     wrapper.appendChild(h2);
 
     // Get student data from storage/state if available
@@ -493,22 +511,22 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     fillMissing(studentData, allInfo);
 
     const nameP = document.createElement('p');
-    nameP.textContent = `Full Name: ${getStudentFullName(studentData) || '—'}`;
+    nameP.textContent = `${i18nText('full_name_label', 'Full Name')}: ${getStudentFullName(studentData) || '—'}`;
     nameP.style.margin = '0 0 8px 0';
     wrapper.appendChild(nameP);
 
     const facultyP = document.createElement('p');
-    facultyP.textContent = `Faculty Number: ${getStudentFacultyNumber(studentData) || '—'}`;
+    facultyP.textContent = `${i18nText('faculty_number_label', 'Faculty number')}: ${getStudentFacultyNumber(studentData) || '—'}`;
     facultyP.style.margin = '0 0 12px 0';
     wrapper.appendChild(facultyP);
 
     const emailP = document.createElement('p');
-    emailP.textContent = `Email: ${getStudentEmail(studentData) || '—'}`;
+    emailP.textContent = `${i18nText('email', 'Email')}: ${getStudentEmail(studentData) || '—'}`;
     emailP.style.margin = '0 0 8px 0';
     wrapper.appendChild(emailP);
 
     const groupP = document.createElement('p');
-    groupP.textContent = `Group: ${getStudentGroup(studentData) || '—'}`;
+    groupP.textContent = `${i18nText('group', 'Group')}: ${getStudentGroup(studentData) || '—'}`;
     groupP.style.margin = '0 0 10px 0';
     wrapper.appendChild(groupP);
 
@@ -517,7 +535,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     const attended = getStudentAttendanceCountForClass(className || current.name, studentId, null);
     const attendedP = document.createElement('p');
     attendedP.setAttribute('data-attendance-counter', '');
-    attendedP.textContent = `Attended Classes: ${attended}`;
+    attendedP.textContent = `${i18nText('attended_classes_label', 'Attended Classes')}: ${attended}`;
     attendedP.style.margin = '10px 0 0 0';
     attendedP.style.fontWeight = '700';
     attendedP.style.fontSize = '1.15rem';
@@ -528,7 +546,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     const historyBtn = document.createElement('button');
     historyBtn.type = 'button';
     historyBtn.className = 'role-button attendance-history-btn';
-    historyBtn.textContent = 'Attendance History';
+    historyBtn.textContent = i18nText('attendance_history', 'Attendance History');
     historyBtn.style.marginTop = '16px';
     historyBtn.style.width = '100%';
     historyBtn.addEventListener('click', () => {
@@ -540,7 +558,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'role-button danger';
-    removeBtn.textContent = 'Remove from Class';
+    removeBtn.textContent = i18nText('remove_from_class', 'Remove from Class');
     removeBtn.style.marginTop = '12px';
     removeBtn.style.width = '100%';
     removeBtn.style.backgroundColor = '#dc2626';
@@ -555,7 +573,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     });
     removeBtn.addEventListener('click', () => {
         openConfirmOverlay(
-            `Are you sure you want to remove ${studentData.fullName || studentData.full_name || 'this student'} from the class?`,
+            `${i18nText('confirm_remove_student_prefix', 'Are you sure you want to remove')} ${getStudentFullName(studentData) || i18nText('this_student', 'this student')} ${i18nText('confirm_remove_student_suffix', 'from the class?')}`,
             () => removeStudentFromClass(studentId, className || current.name),
             () => { /* cancelled */ }
         );
@@ -572,6 +590,7 @@ function buildStudentInfoContent(studentObj, studentId, className) {
  */
 export function openStudentInfoOverlay(studentId, className) {
     ensureStudentInfoOverlay();
+    applyI18n();
 
     // Preserve scroll of manage overlay
     const listEl = getManageStudentsListEl();
