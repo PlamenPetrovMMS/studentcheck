@@ -224,6 +224,9 @@
         }
 
         selectSpecialization.disabled = list.length === 0;
+        if (window.i18n && typeof window.i18n.applyTranslations === 'function') {
+            window.i18n.applyTranslations();
+        }
 
     }
 

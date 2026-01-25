@@ -378,19 +378,36 @@
   }
 
   function updateSelectOptions() {
-    if (document.body && document.body.classList.contains('registration-page')) {
-      return;
-    }
+    const lang = getLanguage();
     const optionMap = {
       '': t('any') || 'Any',
       bachelor: t('bachelor') || 'Bachelor',
       master: t('master') || 'Master',
       phd: t('phd') || 'PhD'
     };
+    const localizedOptionMap = {
+      economics: { en: 'Economics', bg: 'Икономика' },
+      Economics: { en: 'Economics', bg: 'Икономика' },
+      'Business Management': { en: 'Business Management', bg: 'Бизнес управление' },
+      'Business Management 1': { en: 'Business Management 1', bg: 'Бизнес управление 1' },
+      'Business Management 2': { en: 'Business Management 2', bg: 'Бизнес управление 2' },
+      'Business Management in English': { en: 'Business Management in English', bg: 'Бизнес управление (английски)' },
+      'Industrial Management': { en: 'Industrial Management', bg: 'Индустриален мениджмънт' },
+      'Industrial Management in English': { en: 'Industrial Management in English', bg: 'Индустриален мениджмънт (английски)' },
+      'Management and Business Information Systems': { en: 'Management and Business Information Systems', bg: 'Мениджмънт и бизнес информационни системи' },
+      'Electricity Management': { en: 'Electricity Management', bg: 'Електроенергийно управление' },
+      'Intellectual Property and Innovation': { en: 'Intellectual Property and Innovation', bg: 'Интелектуална собственост и иновации' },
+      'Senior Management': { en: 'Senior Management', bg: 'Висш мениджмънт' }
+    };
     document.querySelectorAll('select').forEach(select => {
       Array.from(select.options).forEach(opt => {
         if (optionMap.hasOwnProperty(opt.value)) {
           opt.textContent = optionMap[opt.value];
+          return;
+        }
+        const mapping = localizedOptionMap[opt.value] || localizedOptionMap[opt.textContent];
+        if (mapping) {
+          opt.textContent = lang === 'bg' ? mapping.bg : mapping.en;
         }
       });
     });
