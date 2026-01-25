@@ -22,7 +22,10 @@ document.getElementById('studentLoginForm').addEventListener('submit', async fun
         return;
     }
 
-    LoadingOverlay.show('Logging in...');
+    const loginMessage = window.i18n && typeof window.i18n.t === 'function'
+        ? window.i18n.t('logging_in')
+        : 'Logging in...';
+    LoadingOverlay.show(loginMessage);
 
     // Optional: measure request duration
     const t0 = performance.now();

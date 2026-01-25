@@ -43,6 +43,16 @@
   let longWaitInterval = null;
   let startMs = 0;
 
+  function tOr(key, fallback) {
+    const t = window.i18n && typeof window.i18n.t === 'function' ? window.i18n.t : null;
+    return t ? t(key) : fallback;
+  }
+
+  function formatWakingText(seconds) {
+    const template = tOr('server_waking_up', 'Server is waking up ... ({sec} sec)');
+    return template.replace('{sec}', String(seconds));
+  }
+
   function ensureOverlay(message){
     if (document.getElementById('loginOverlay')) {
       const txt = document.querySelector('#loginOverlay .loading-text');
@@ -78,11 +88,11 @@
     longWaitTimeout = setTimeout(() => {
       if (longWaitEl) {
         longWaitEl.style.display = 'block';
-        longWaitEl.textContent = 'Server is waking up ... (0 sec)';
+        longWaitEl.textContent = formatWakingText(0);
       }
       longWaitInterval = setInterval(() => {
         const elapsed = Math.max(0, Math.floor((Date.now() - startMs) / 1000) - 10);
-        if (longWaitEl) longWaitEl.textContent = `Server is waking up ... (${elapsed} sec)`;
+        if (longWaitEl) longWaitEl.textContent = formatWakingText(elapsed);
       }, 1000);
     }, 10000);
   }
@@ -120,6 +130,8 @@
       faculty_number: 'Faculty Number',
       password: 'Password',
       log_in: 'Log in',
+      logging_in: 'Logging in...',
+      server_waking_up: 'Server is waking up ... ({sec} sec)',
       no_account_register_html: 'Don’t have an account? <a href="registration.html">Register here</a>',
       email: 'Email',
       enter_email: 'Enter your email',
@@ -217,6 +229,8 @@
       faculty_number: 'Факултетен номер',
       password: 'Парола',
       log_in: 'Вход',
+      logging_in: 'Влизане...',
+      server_waking_up: 'Сървърът се събужда ... ({sec} сек)',
       no_account_register_html: 'Нямате акаунт? <a href="registration.html">Регистрация</a>',
       email: 'Имейл',
       enter_email: 'Въведете имейл',

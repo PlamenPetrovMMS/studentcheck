@@ -27,7 +27,10 @@ document.getElementById('teacherLoginForm').addEventListener('submit', async fun
     const submitBtn = form?.querySelector('button[type="submit"]');
     if (submitBtn) submitBtn.disabled = true;
     const t0 = performance.now();
-    LoadingOverlay.show('Logging in...');
+    const loginMessage = window.i18n && typeof window.i18n.t === 'function'
+        ? window.i18n.t('logging_in')
+        : 'Logging in...';
+    LoadingOverlay.show(loginMessage);
     try {
         const response = await fetch("https://studentcheck-server.onrender.com/teacherLogin", {
             method: 'POST',
