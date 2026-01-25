@@ -786,10 +786,14 @@ async function renderAttendanceHistoryList(className, studentId) {
         const left = new Date(sess.leaveAt || sess.joinAt || Date.now());
         const timeOpts = { hour: 'numeric', minute: '2-digit' };
         const dateOpts = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
-        const joinTime = joined.toLocaleTimeString([], timeOpts);
-        const leaveTime = left.toLocaleTimeString([], timeOpts);
-        const joinDate = joined.toLocaleDateString([], dateOpts);
-        const leaveDate = left.toLocaleDateString([], dateOpts);
+        const lang = (window.i18n && typeof window.i18n.getLanguage === 'function')
+            ? window.i18n.getLanguage()
+            : (document.documentElement.lang || 'en');
+        const locale = lang === 'bg' ? 'bg-BG' : 'en-US';
+        const joinTime = joined.toLocaleTimeString(locale, timeOpts);
+        const leaveTime = left.toLocaleTimeString(locale, timeOpts);
+        const joinDate = joined.toLocaleDateString(locale, dateOpts);
+        const leaveDate = left.toLocaleDateString(locale, dateOpts);
 
         const row1 = document.createElement('div');
         row1.className = 'att-row';
