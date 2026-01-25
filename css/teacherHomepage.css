@@ -892,6 +892,7 @@ body.delete-popup-active #addClassBtn {
     align-items: center;
     gap: 10px;
     width: 100%;
+    margin-top: 12px;
 }
 
 /* Make Attendance History + Back buttons compact on mobile */
@@ -1092,7 +1093,7 @@ body.delete-popup-active #addClassBtn {
         max-height: 40vh;
     }
     #attendanceOverlay .attendance-list {
-        max-height: clamp(180px, 45vh, 360px);
+        max-height: clamp(150px, 34vh, 280px);
     }
 }
 #attendanceOverlay .attendance-ul {
