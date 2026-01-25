@@ -1093,7 +1093,13 @@ body.delete-popup-active #addClassBtn {
         max-height: 40vh;
     }
     #attendanceOverlay .attendance-list {
-        max-height: clamp(150px, 34vh, 280px);
+        max-height: clamp(150px, 28vh, 280px);
+    }
+}
+
+@media (max-width: 420px) {
+    #attendanceOverlay .attendance-list {
+        max-height: clamp(130px, 28vh, 240px);
     }
 }
 #attendanceOverlay .attendance-ul {
