@@ -1083,7 +1083,7 @@ body.delete-popup-active #addClassBtn {
 }
 #attendanceOverlay .attendance-list {
     flex: 1 1 auto;
-    max-height: clamp(200px, 38vh, 420px);
+    max-height: 25vh;
     overflow-y: auto;
     padding: 0 2px;
 }
@@ -1093,13 +1093,13 @@ body.delete-popup-active #addClassBtn {
         max-height: 40vh;
     }
     #attendanceOverlay .attendance-list {
-        max-height: clamp(150px, 28vh, 280px);
+        max-height: 25vh;
     }
 }
 
 @media (max-width: 420px) {
     #attendanceOverlay .attendance-list {
-        max-height: clamp(130px, 28vh, 240px);
+        max-height: 25vh;
     }
 }
 #attendanceOverlay .attendance-ul {
