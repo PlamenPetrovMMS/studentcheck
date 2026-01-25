@@ -1,4 +1,4 @@
-// Sliding 3-step registration controller
+// Sliding multi-step registration controller
 (function(){
     
 
@@ -146,6 +146,7 @@
     }
 
     const selectGroup = document.getElementById('group');
+    const selectCourse = document.getElementById('course');
 
 
 
@@ -162,9 +163,10 @@
     const errorSlide2_faculty = document.getElementById('errorSlide2_faculty');
     const errorSlide2_level = document.getElementById('errorSlide2_level');
     const errorSlide2_specialization = document.getElementById('errorSlide2_specialization');
-    const errorSlide2_group = document.getElementById('errorSlide2_group');
+    const errorSlide3_group = document.getElementById('errorSlide3_group');
+    const errorSlide3_course = document.getElementById('errorSlide3_course');
 
-    const errorSlide3 = document.getElementById('errorSlide3');
+    const errorSlide4 = document.getElementById('errorSlide4');
     // Removed dedicated errorSlide3 element; requirements list now provides all feedback.
 
     // Loading overlay handled by shared LoadingOverlay utility
@@ -328,43 +330,53 @@
 
         clearError(errorSlide2_specialization);
 
-        const groupInvalid = (selectGroup.value === "" || selectGroup.selectedIndex === 0);
-        setInvalid(selectGroup, groupInvalid);
-        if(groupInvalid){
-            setError(errorSlide2_group, 'err_select_group');
-            return false;
-        }
-
-        clearError(errorSlide2_group);
-
         return true;
         
     }
 
-
-
-    // Slide 2 (index 1): Contact (email + faculty number)
-    let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
     function validateSlide3() {
+        const groupInvalid = (selectGroup.value === "" || selectGroup.selectedIndex === 0);
+        setInvalid(selectGroup, groupInvalid);
+        if (groupInvalid) {
+            setError(errorSlide3_group, 'err_select_group');
+            return false;
+        }
+        clearError(errorSlide3_group);
+
+        const courseInvalid = (selectCourse.value === "" || selectCourse.selectedIndex === 0);
+        setInvalid(selectCourse, courseInvalid);
+        if (courseInvalid) {
+            setError(errorSlide3_course, 'err_select_course');
+            return false;
+        }
+        clearError(errorSlide3_course);
+
+        return true;
+    }
+
+
+
+    // Slide 4 (index 3): Contact (email + faculty number)
+    let contactErrorActivated = false; // becomes true after first failed Continue (or duplicate email server error)
+    function validateSlide4() {
         const state = getContactFieldState();
         const { valid, message, normalized, key } = getContactState();
         setInvalid(email, state.emailInvalid);
         setInvalid(facultyNumber, state.facultyInvalid);
-        setInvalid(selectGroup, state.groupInvalid);
         if (!valid) {
             contactErrorActivated = true; // user attempted to proceed
             if (key) {
-                setError(errorSlide3, key);
+                setError(errorSlide4, key);
             } else {
-                errorSlide3.textContent = message;
+                errorSlide4.textContent = message;
             }
-            errorSlide3.style.display = 'block';
+            errorSlide4.style.display = 'block';
             return false;
         }
         facultyNumber.value = normalized; // commit normalized value
         if (contactErrorActivated) {
-            clearError(errorSlide3);
-            errorSlide3.style.display = 'none';
+            clearError(errorSlide4);
+            errorSlide4.style.display = 'none';
         }
         return true;
     }
@@ -380,8 +392,7 @@
         const fRaw = facultyNumber.value.trim();
         // Clean: remove leading/trailing whitespace and collapse internal spaces -> remove entirely
         const f = fRaw.replace(/\s+/g,'');
-        const g = selectGroup ? (selectGroup.value || '') : '';
-        const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f, groupValue: g };
+        const debug = { emailOriginal: email.value, emailTrimmed: e, facultyOriginal: facultyNumber.value, facultyStripped: f };
         if (!e) return { valid:false, message:t('err_email_required'), normalized:f, debug, key: 'err_email_required' };
         if (!validateEmailFormat(e)) return { valid:false, message:t('err_email_invalid'), normalized:f, debug, key: 'err_email_invalid' };
         if (!f) return { valid:false, message:t('err_faculty_required'), normalized:f, debug, key: 'err_faculty_required' };
@@ -392,9 +403,6 @@
         // If it contains disallowed characters, attempt auto-sanitization (keep letters/digits and - _ . /)
         const sanitized = f.replace(/[^A-Za-z0-9\-_.\/]/g,'');
         if (sanitized.length === 0) return { valid:false, message:t('err_faculty_invalid_chars'), normalized:f, debug, key: 'err_faculty_invalid_chars' };
-        // Group selection required; only allow 37-42
-        const allowedGroups = ['37','38','39','40','41','42'];
-        if (!g || !allowedGroups.includes(g)) return { valid:false, message:t('err_group_invalid'), normalized:f, debug, key: 'err_group_invalid' };
         debug.sanitized = sanitized;
         return { valid:true, message:'', normalized:sanitized.toUpperCase(), debug, key: '' };
     }
@@ -403,13 +411,10 @@
         const e = email.value.trim();
         const fRaw = facultyNumber.value.trim();
         const f = fRaw.replace(/\s+/g,'');
-        const g = selectGroup ? (selectGroup.value || '') : '';
-        const allowedGroups = ['37','38','39','40','41','42'];
         const sanitized = f.replace(/[^A-Za-z0-9\-_.\/]/g,'');
         const emailInvalid = !e || !validateEmailFormat(e);
         const facultyInvalid = (!f || f.length !== 9 || !/[A-Za-z0-9]/.test(f) || sanitized.length === 0);
-        const groupInvalid = (!g || !allowedGroups.includes(g));
-        return { emailInvalid, facultyInvalid, groupInvalid };
+        return { emailInvalid, facultyInvalid };
     }
 
     async function checkEmailAvailability() {
@@ -426,8 +431,8 @@
             });
 
             if (!result.ok) {
-                setError(errorSlide3, 'err_email_verify');
-                errorSlide3.style.display = 'block';
+                setError(errorSlide4, 'err_email_verify');
+                errorSlide4.style.display = 'block';
                 contactErrorActivated = true;
                 return false;
             }
@@ -444,15 +449,15 @@
                 lastDuplicateEmail = emailValue;
                 email.classList.add('invalid');
                 contactErrorActivated = true;
-                setError(errorSlide3, 'err_email_exists');
-                errorSlide3.style.display = 'block';
+                setError(errorSlide4, 'err_email_exists');
+                errorSlide4.style.display = 'block';
                 return false;
             }
 
             return true;
         } catch (_) {
-            setError(errorSlide3, 'err_email_verify');
-            errorSlide3.style.display = 'block';
+            setError(errorSlide4, 'err_email_verify');
+            errorSlide4.style.display = 'block';
             contactErrorActivated = true;
             return false;
         } finally {
@@ -467,11 +472,11 @@
     let lastDuplicateEmail = null; // tracks last server-rejected email to clear red state on change
     function liveContactValidation() {
         // Only perform live updates if user has already triggered error display OR duplicate email state is active.
-        if (step !== 1) return;
+        if (step !== 3) return;
         const currentEmail = email.value.trim();
         if (lastDuplicateEmail) {
             if (currentEmail === lastDuplicateEmail) {
-                errorSlide3.style.display = 'block';
+                errorSlide4.style.display = 'block';
                 return;
             } else {
                 email.classList.remove('invalid');
@@ -484,17 +489,16 @@
         const state = getContactFieldState();
         setInvalid(email, state.emailInvalid);
         setInvalid(facultyNumber, state.facultyInvalid);
-        setInvalid(selectGroup, state.groupInvalid);
         if (valid) {
-            clearError(errorSlide3);
-            errorSlide3.style.display = 'none';
+            clearError(errorSlide4);
+            errorSlide4.style.display = 'none';
         } else {
             if (key) {
-                setError(errorSlide3, key);
+                setError(errorSlide4, key);
             } else {
-                errorSlide3.textContent = message;
+                errorSlide4.textContent = message;
             }
-            errorSlide3.style.display = 'block';
+            errorSlide4.style.display = 'block';
         }
     }
 
@@ -555,6 +559,12 @@
             if (!validateSlide3()) {
                 return;
             }
+        }
+
+        if (step === 3) {
+            if (!validateSlide4()) {
+                return;
+            }
             const available = await checkEmailAvailability();
             if (!available) {
                 return;
@@ -610,6 +620,7 @@
             faculty: selectFaculty.options[selectFaculty.selectedIndex].text,
             specialization: selectSpecialization.options[selectSpecialization.selectedIndex].text,
             group: selectGroup.options[selectGroup.selectedIndex].text,
+            course: selectCourse.options[selectCourse.selectedIndex].text,
         };
 
         try {
@@ -635,9 +646,9 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    setError(errorSlide3, 'err_email_exists');
-                    errorSlide3.style.display = 'block';
-                    step = 2; // ensure email slide visible
+                    setError(errorSlide4, 'err_email_exists');
+                    errorSlide4.style.display = 'block';
+                    step = 3; // ensure email slide visible
                     updateUI();
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                     return;
@@ -668,6 +679,7 @@
                     lastName: responseStudent?.lastName || payload.lastName,
                     email: responseStudent?.email || payload.email,
                     group: responseStudent?.group || payload.group,
+                    course: responseStudent?.course || payload.course,
                     faculty: responseStudent?.faculty || payload.faculty,
                     level: responseStudent?.level || payload.level,
                     specialization: responseStudent?.specialization || payload.specialization
@@ -687,9 +699,9 @@
                     lastDuplicateEmail = email.value.trim();
                     email.classList.add('invalid');
                     contactErrorActivated = true;
-                    setError(errorSlide3, 'err_email_exists');
-                    errorSlide3.style.display = 'block';
-                    step = 2; updateUI();
+                    setError(errorSlide4, 'err_email_exists');
+                    errorSlide4.style.display = 'block';
+                    step = 3; updateUI();
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                 } else {
                     alert(t('err_registration_failed_prefix') + (data.message || t('err_registration_failed_unknown')));
@@ -730,8 +742,15 @@
 
 
     if (selectGroup) {
-        selectGroup.addEventListener('change', () => { 
-            liveContactValidation(); 
+        selectGroup.addEventListener('change', () => {
+            clearError(errorSlide3_group);
+            setInvalid(selectGroup, false);
+        });
+    }
+    if (selectCourse) {
+        selectCourse.addEventListener('change', () => {
+            clearError(errorSlide3_course);
+            setInvalid(selectCourse, false);
         });
     }
 
@@ -748,7 +767,7 @@
 
 
     // Hide contact error initially until user attempts to Continue.
-    if (errorSlide3) errorSlide3.style.display = 'none';
+    if (errorSlide4) errorSlide4.style.display = 'none';
     updateUI();
     focusFirstInput();
 
