@@ -822,6 +822,11 @@ function filterAddStudentsListBySelects(levelValue, facultyValue, specialization
  * Reset add students filters
  */
 function resetAddStudentsFilters() {
+    resetAddStudentsFiltersState();
+    requestAddStudentsWithFilters();
+}
+
+function resetAddStudentsFiltersState() {
     const levelSelect = document.getElementById('addStudentsFilterLevel');
     const facultySelect = document.getElementById('addStudentsFilterFaculty');
     const specializationSelect = document.getElementById('addStudentsFilterSpecialization');
@@ -833,8 +838,6 @@ function resetAddStudentsFilters() {
     if (specializationSelect) specializationSelect.value = '';
     if (groupSelect) groupSelect.value = '';
     if (searchInput) searchInput.value = '';
-
-    requestAddStudentsWithFilters();
 }
 
 /**
@@ -1053,6 +1056,7 @@ export async function openAddStudentsToClass(className, options = {}) {
  */
 function closeAddStudentsToClass() {
     const overlay = getAddStudentsClassOverlay();
+    resetAddStudentsFiltersState();
     if (overlay) hideOverlay(overlay, false);
     if (addStudentsReturnToManage) {
         addStudentsReturnToManage = false;
