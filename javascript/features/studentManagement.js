@@ -38,6 +38,42 @@ let attendanceHistoryOverlayInitialized = false;
 let addStudentsOverlayInitialized = false;
 let addStudentsReturnToManage = false;
 
+function getStudentFullName(student) {
+    return student?.fullName || student?.full_name || student?.name || '';
+}
+
+function getStudentFacultyNumber(student) {
+    return student?.faculty_number || student?.facultyNumber || student?.faculty || '';
+}
+
+function getStudentEmail(student) {
+    return student?.email || student?.email_address || student?.emailAddress || '';
+}
+
+function getStudentGroup(student) {
+    return student?.group || student?.group_name || student?.groupName || student?.group_number || student?.groupNumber || '';
+}
+
+function fillMissing(target, source) {
+    if (!source) return;
+    if (!getStudentFullName(target)) {
+        const name = getStudentFullName(source);
+        if (name) target.fullName = name;
+    }
+    if (!getStudentFacultyNumber(target)) {
+        const fac = getStudentFacultyNumber(source);
+        if (fac) target.faculty_number = fac;
+    }
+    if (!getStudentEmail(target)) {
+        const email = getStudentEmail(source);
+        if (email) target.email = email;
+    }
+    if (!getStudentGroup(target)) {
+        const group = getStudentGroup(source);
+        if (group) target.group = group;
+    }
+}
+
 function showToast(message, tone = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-bubble toast-${tone} toast-wide`;
@@ -160,21 +196,24 @@ export async function renderManageStudentsForClass(className) {
 
         // Render students if we have any
         if (students && students.length > 0) {
-            let nameLookup = null;
+            let infoLookup = null;
             const needsNames = students.some(s => !(s.full_name || s.fullName));
             if (needsNames) {
                 try {
                     const all = await fetchAllStudents({ forceRefresh: true });
-                    nameLookup = new Map();
+                    infoLookup = new Map();
                     (all || []).forEach(s => {
-                        const name = s.full_name || s.fullName || '';
-                        const fac = String(s.faculty_number || s.facultyNumber || '').trim();
+                        const name = getStudentFullName(s);
+                        const fac = String(getStudentFacultyNumber(s) || '').trim();
                         const id = String(s.id || s.student_id || '').trim();
-                        if (fac) nameLookup.set(fac, name);
-                        if (id) nameLookup.set(id, name);
+                        const email = getStudentEmail(s);
+                        const group = getStudentGroup(s);
+                        const payload = { fullName: name, faculty_number: fac, email, group };
+                        if (fac) infoLookup.set(fac, payload);
+                        if (id) infoLookup.set(id, payload);
                     });
                 } catch (_) {
-                    nameLookup = null;
+                    infoLookup = null;
                 }
             }
 
@@ -188,7 +227,11 @@ export async function renderManageStudentsForClass(className) {
                 li.className = 'list-item';
                 const studentId = student.faculty_number || student.facultyNumber || student.id || student.student_id;
                 li.dataset.studentId = studentId;
-                const fullName = student.full_name || student.fullName || (nameLookup ? nameLookup.get(String(studentId || '').trim()) : '') || '';
+                const lookup = infoLookup ? infoLookup.get(String(studentId || '').trim()) : null;
+                const fullName = getStudentFullName(student) || lookup?.fullName || '';
+                const facultyNumber = getStudentFacultyNumber(student) || lookup?.faculty_number || studentId || '';
+                const email = getStudentEmail(student) || lookup?.email || '';
+                const group = getStudentGroup(student) || lookup?.group || '';
 
                 const wrap = document.createElement('div');
                 wrap.className = 'student-card-text';
@@ -199,7 +242,7 @@ export async function renderManageStudentsForClass(className) {
 
                 const facEl = document.createElement('span');
                 facEl.className = 'student-fac';
-                facEl.textContent = student.faculty_number || student.facultyNumber || studentId || '';
+                facEl.textContent = facultyNumber || '';
 
                 wrap.appendChild(nameEl);
                 wrap.appendChild(facEl);
@@ -209,7 +252,9 @@ export async function renderManageStudentsForClass(className) {
                 if (studentId) {
                     studentIndex.set(String(studentId), {
                         fullName,
-                        faculty_number: student.faculty_number || student.facultyNumber || ''
+                        faculty_number: facultyNumber,
+                        email,
+                        group
                     });
                 }
 
@@ -433,30 +478,35 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     h2.textContent = 'Student Info';
     wrapper.appendChild(h2);
 
-    // Get student data from storage if available
+    // Get student data from storage/state if available
     const classStudents = loadClassStudentsFromStorage(className);
-    let studentData = studentObj;
-    if (classStudents && Array.isArray(classStudents)) {
-        const found = classStudents.find(s => (s.faculty_number || s.id) === String(studentId));
-        if (found) studentData = found;
-    }
+    const storageInfo = getStudentInfoForFacultyNumber(studentId, classStudents);
+    const allStudents = getAllStudents();
+    const allInfo = getStudentInfoForFacultyNumber(studentId, allStudents);
+
+    const studentData = { ...(studentObj || {}) };
+    fillMissing(studentData, storageInfo);
+    fillMissing(studentData, allInfo);
 
     const nameP = document.createElement('p');
-    nameP.textContent = `Full Name: ${studentData.fullName || studentData.full_name || ''}`;
+    nameP.textContent = `Full Name: ${getStudentFullName(studentData) || '—'}`;
     nameP.style.margin = '0 0 8px 0';
     wrapper.appendChild(nameP);
 
     const facultyP = document.createElement('p');
-    facultyP.textContent = `Faculty Number: ${studentData.faculty_number || studentData.facultyNumber || ''}`;
+    facultyP.textContent = `Faculty Number: ${getStudentFacultyNumber(studentData) || '—'}`;
     facultyP.style.margin = '0 0 12px 0';
     wrapper.appendChild(facultyP);
 
-    if (studentData.email) {
-        const emailP = document.createElement('p');
-        emailP.textContent = `Email: ${studentData.email}`;
-        emailP.style.margin = '0 0 10px 0';
-        wrapper.appendChild(emailP);
-    }
+    const emailP = document.createElement('p');
+    emailP.textContent = `Email: ${getStudentEmail(studentData) || '—'}`;
+    emailP.style.margin = '0 0 8px 0';
+    wrapper.appendChild(emailP);
+
+    const groupP = document.createElement('p');
+    groupP.textContent = `Group: ${getStudentGroup(studentData) || '—'}`;
+    groupP.style.margin = '0 0 10px 0';
+    wrapper.appendChild(groupP);
 
     // Attended classes counter (per-class, live)
     const current = getCurrentClass();
