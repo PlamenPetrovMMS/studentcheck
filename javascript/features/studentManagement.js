@@ -9,7 +9,7 @@ import { removeStudentFromClass as apiRemoveStudentFromClass, addStudentsToClass
 import { fetchAllStudents } from '../api/studentApi.js';
 import { fetchClassStudents } from '../api/classApi.js';
 import { getStudentAttendanceCountForClass } from './attendance.js';
-import { fetchStudentAttendanceHistory } from '../api/attendanceApi.js';
+import { fetchStudentAttendanceHistory, fetchClassAttendanceTimestamps } from '../api/attendanceApi.js';
 import {
     getCurrentClass,
     setCurrentClass,
@@ -171,6 +171,18 @@ async function loadAttendanceLog(className, studentId) {
 
     const info = studentIndex.get(String(studentId)) || {};
     const facultyNumber = info.faculty_number || studentId;
+    const studentKey = String(studentId || '').trim();
+    const facultyKey = String(facultyNumber || '').trim();
+
+    const normalize = (row) => {
+        const joinedAt = parseTimestamp(
+            row.joined_at ?? row.joinedAt ?? row.join_time ?? row.joinTime ?? row.in_time ?? row.inTime
+        );
+        const leftAt = parseTimestamp(
+            row.left_at ?? row.leftAt ?? row.leave_time ?? row.leaveTime ?? row.out_time ?? row.outTime
+        );
+        return { joinAt: joinedAt, leaveAt: leftAt };
+    };
 
     try {
         const data = await fetchStudentAttendanceHistory(classId, {
@@ -178,18 +190,27 @@ async function loadAttendanceLog(className, studentId) {
             facultyNumber
         });
         const raw = data?.records || data?.sessions || data?.history || data?.attendance || data?.items || [];
-        if (!Array.isArray(raw)) return [];
-        return raw.map((row) => {
-            const joinedAt = parseTimestamp(
-                row.joined_at ?? row.joinedAt ?? row.join_time ?? row.joinTime ?? row.in_time ?? row.inTime
-            );
-            const leftAt = parseTimestamp(
-                row.left_at ?? row.leftAt ?? row.leave_time ?? row.leaveTime ?? row.out_time ?? row.outTime
-            );
-            return { joinAt: joinedAt, leaveAt: leftAt };
-        }).filter(r => r.joinAt || r.leaveAt);
+        if (Array.isArray(raw) && raw.length > 0) {
+            return raw.map(normalize).filter(r => r.joinAt || r.leaveAt);
+        }
     } catch (e) {
-        console.error('[loadAttendanceLog] Failed to load attendance history', e);
+        console.warn('[loadAttendanceLog] Attendance history endpoint failed, falling back', e);
+    }
+
+    try {
+        const data = await fetchClassAttendanceTimestamps(classId);
+        const raw = data?.timestamps || data?.items || data?.records || data?.rows || [];
+        if (!Array.isArray(raw)) return [];
+        const filtered = raw.filter((row) => {
+            const rowStudentId = String(row.student_id ?? row.studentId ?? '').trim();
+            const rowFaculty = String(row.faculty_number ?? row.facultyNumber ?? '').trim();
+            return (studentKey && rowStudentId && rowStudentId === studentKey)
+                || (facultyKey && rowFaculty && rowFaculty === facultyKey);
+        });
+        if (filtered.length === 0) return [];
+        return filtered.map(normalize).filter(r => r.joinAt || r.leaveAt);
+    } catch (e) {
+        console.error('[loadAttendanceLog] Failed to load attendance history fallback', e);
         return [];
     }
 }
