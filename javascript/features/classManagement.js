@@ -47,6 +47,7 @@ function ensureClassOptionsOverlay() {
                 <input type="text" id="classOptionsNameInput" placeholder="Class name" />
                 <button type="button" id="classOptionsSaveBtn" class="role-button primary">Rename</button>
             </div>
+            <p id="classOptionsError" class="class-options-error" aria-live="polite"></p>
             <div class="class-options-footer">
                 <button type="button" id="classOptionsDeleteBtn" class="role-button danger">Delete Class</button>
             </div>
@@ -69,6 +70,8 @@ function ensureClassOptionsOverlay() {
     const deleteBtn = classOptionsOverlay.querySelector('#classOptionsDeleteBtn');
     saveBtn?.addEventListener('click', onSaveClassOptions);
     deleteBtn?.addEventListener('click', onDeleteClassFromOptions);
+    const nameInput = classOptionsOverlay.querySelector('#classOptionsNameInput');
+    nameInput?.addEventListener('input', () => setClassOptionsError(''));
     
     return classOptionsOverlay;
 }
@@ -82,6 +85,7 @@ export function openClassOptionsOverlay(className) {
     const input = classOptionsOverlay.querySelector('#classOptionsNameInput');
     const resolvedName = (className || getActiveClassName() || '').trim();
     if (input) input.value = resolvedName;
+    setClassOptionsError('');
     
     const titleEl = classOptionsOverlay.querySelector('#classOptionsTitle');
     if (titleEl) titleEl.textContent = 'Class Options';
@@ -314,12 +318,12 @@ async function onSaveClassOptions() {
     const oldName = getActiveClassName();
     
     if (!proposed) {
-        alert('Name cannot be empty.');
+        setClassOptionsError('Name cannot be empty.');
         // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
     if (proposed.length > 50) {
-        alert('Name must be 50 characters or less.');
+        setClassOptionsError('Name must be 50 characters or less.');
         return;
     }
     
@@ -335,7 +339,7 @@ async function onSaveClassOptions() {
             await renameClassById(classId, proposed, teacherEmail);
         }
     } catch (e) {
-        alert('Failed to update class name on server: ' + e.message);
+        setClassOptionsError(`Failed to update class name on server: ${e.message}`);
         return;
     }
 
@@ -343,6 +347,13 @@ async function onSaveClassOptions() {
     if (ok) {
         closeClassOptionsOverlay();
     }
+}
+
+function setClassOptionsError(message) {
+    const errorEl = classOptionsOverlay?.querySelector('#classOptionsError');
+    if (!errorEl) return;
+    errorEl.textContent = message || '';
+    errorEl.style.display = message ? 'block' : 'none';
 }
 
 /**

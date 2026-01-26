@@ -1465,3 +1465,11 @@ body.delete-popup-active #addClassBtn {
 .error-hidden {
     display: none;
 }
+
+.class-options-error {
+    margin: 6px 0 0 0;
+    font-size: 0.9rem;
+    color: #b91c1c;
+    min-height: 1.1em;
+    display: none;
+}
