@@ -605,8 +605,16 @@ body.delete-popup-active #addClassBtn {
 .class-options-popup .class-options-footer {
     margin-top: 18px;
     display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     justify-content: center;
 }
+.class-options-popup .role-button.secondary-green {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+}
+.class-options-popup .role-button.secondary-green:hover { background: #047857; }
 .role-button.danger { background: #b91c1c; color: #fff; border-color: #b91c1c; }
 .role-button.danger:hover { background: #991b1b; }
 

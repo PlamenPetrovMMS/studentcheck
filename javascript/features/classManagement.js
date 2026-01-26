@@ -49,6 +49,7 @@ function ensureClassOptionsOverlay() {
             </div>
             <p id="classOptionsError" class="class-options-error" aria-live="polite"></p>
             <div class="class-options-footer">
+                <button type="button" id="classOptionsBillingBtn" class="role-button secondary-green">Billing Page</button>
                 <button type="button" id="classOptionsDeleteBtn" class="role-button danger" data-i18n="delete_class_btn">Delete Class</button>
             </div>
         </div>`;
