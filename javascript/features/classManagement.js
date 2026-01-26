@@ -124,38 +124,20 @@ export function renameClass(oldName, newName) {
     
     const teacherEmail = getTeacherEmail();
     
-    // Migrate per-class storage
+    // Remove per-class local storage data on rename (avoid stale cache)
     try {
         const oldKey = classItemKey(from, teacherEmail);
         const newKey = classItemKey(to, teacherEmail);
-        const raw = oldKey ? localStorage.getItem(oldKey) : null;
-        let studentsArr = [];
-        
-        if (raw) {
-            try {
-                const obj = JSON.parse(raw);
-                studentsArr = Array.isArray(obj?.students) ? obj.students : [];
-            } catch (_) {}
-        } else {
-            const stored = loadClassStudentsFromStorage(from);
-            studentsArr = stored || [];
-        }
-        
-        if (newKey) {
-            localStorage.setItem(newKey, JSON.stringify({ name: to, students: studentsArr }));
-        }
         if (oldKey) localStorage.removeItem(oldKey);
-        
-        // Also migrate the ${className}:students key
+        if (newKey) localStorage.removeItem(newKey);
+
+        // Remove the ${className}:students key for both names
         const oldStudentsKey = `${from}:students`;
         const newStudentsKey = `${to}:students`;
-        const oldStudentsData = localStorage.getItem(oldStudentsKey);
-        if (oldStudentsData) {
-            localStorage.setItem(newStudentsKey, oldStudentsData);
-            localStorage.removeItem(oldStudentsKey);
-        }
+        localStorage.removeItem(oldStudentsKey);
+        localStorage.removeItem(newStudentsKey);
     } catch (e) {
-        console.warn('Rename class storage migrate failed', e);
+        console.warn('Rename class storage cleanup failed', e);
     }
     
     // Update state
@@ -177,26 +159,20 @@ export function renameClass(oldName, newName) {
         setClassId(from, null);
     }
     
-    // Migrate attendance logs keys
+    // Remove attendance logs for the old class name
     try {
         if (teacherEmail) {
             const normEmail = normalizeEmail(teacherEmail);
             const oldPrefix = `teacher:attendance:${normEmail}:logs:${encodeURIComponent(from)}:`;
-            const newPrefix = `teacher:attendance:${normEmail}:logs:${encodeURIComponent(to)}:`;
             const toMove = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
                 if (k && k.startsWith(oldPrefix)) toMove.push(k);
             }
-            toMove.forEach(k => {
-                const tail = k.substring(oldPrefix.length);
-                const val = localStorage.getItem(k);
-                localStorage.setItem(newPrefix + tail, val);
-                localStorage.removeItem(k);
-            });
+            toMove.forEach(k => localStorage.removeItem(k));
         }
     } catch (e) {
-        console.warn('Attendance logs migrate failed', e);
+        console.warn('Attendance logs cleanup failed', e);
     }
     
     // Update UI: button, titles, currentClassName, datasets

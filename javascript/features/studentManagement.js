@@ -61,6 +61,14 @@ function normalizeStudentKey(value) {
     return normalized;
 }
 
+function getStudentPrimaryKey(student) {
+    return normalizeStudentKey(
+        getStudentFacultyNumber(student)
+        || student?.id
+        || student?.student_id
+    );
+}
+
 function fillMissing(target, source) {
     if (!source) return;
     if (!getStudentFullName(target)) {
@@ -153,6 +161,7 @@ function showToast(message, tone = 'success') {
 }
 let addStudentsSelections = new Set();
 let addStudentsRequestId = 0;
+let addStudentsIndex = new Map();
 
 // DOM helpers
 function getManageStudentsOverlay() { return getOverlay('manageStudentsOverlay'); }
@@ -1278,7 +1287,7 @@ async function renderAddStudentsList(className, options = {}) {
             // Add to existing set
             if (classStudents && classStudents.length > 0) {
                 classStudents.forEach(student => {
-                    const id = normalizeStudentKey(getStudentFacultyNumber(student) || student.id || student.student_id);
+                    const id = getStudentPrimaryKey(student);
                     if (id) {
                         existingSet.add(id);
                     }
@@ -1342,6 +1351,7 @@ async function renderAddStudentsList(className, options = {}) {
     }
 
     // Render the list of all students
+    addStudentsIndex = new Map();
     const ul = document.createElement('ul');
     ul.style.listStyle = 'none';
     ul.style.margin = '0';
@@ -1352,12 +1362,34 @@ async function renderAddStudentsList(className, options = {}) {
         li.className = 'list-item';
         const parts = (window.Students?.splitNames || (() => ({ fullName: '' })))(student);
         const facultyNumber = getStudentFacultyNumber(student);
-        const studentId = (window.Students?.idForStudent
-            ? window.Students.idForStudent(student, 'add', idx)
-            : (facultyNumber || parts.fullName || `add_${idx}`));
-        const studentKey = normalizeStudentKey(studentId || facultyNumber);
+        const studentKey = getStudentPrimaryKey(student);
 
-        if (studentKey && existingSet.has(studentKey)) {
+        if (!studentKey) {
+            li.classList.add('already-in');
+            const textWrap = document.createElement('div');
+            textWrap.className = 'student-card-text';
+            const nameEl = document.createElement('span');
+            nameEl.className = 'student-name';
+            nameEl.textContent = parts.fullName;
+            const facEl = document.createElement('span');
+            facEl.className = 'student-fac';
+            facEl.textContent = facultyNumber || '';
+            textWrap.appendChild(nameEl);
+            textWrap.appendChild(facEl);
+            const badge = document.createElement('span');
+            badge.className = 'already-in-badge';
+            badge.textContent = 'Missing ID';
+            li.appendChild(textWrap);
+            li.appendChild(badge);
+            ul.appendChild(li);
+            return;
+        }
+
+        if (!addStudentsIndex.has(studentKey)) {
+            addStudentsIndex.set(studentKey, student);
+        }
+
+        if (existingSet.has(studentKey)) {
             // Render without checkbox, with 'Already in' badge
             li.classList.add('already-in');
             const textWrap = document.createElement('div');
@@ -1382,6 +1414,7 @@ async function renderAddStudentsList(className, options = {}) {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.id = `addStudent_${idx}`;
+        checkbox.dataset.studentKey = studentKey;
         const label = document.createElement('label');
         label.htmlFor = checkbox.id;
         const wrap = document.createElement('div');
@@ -1397,15 +1430,21 @@ async function renderAddStudentsList(className, options = {}) {
         label.appendChild(wrap);
 
         checkbox.addEventListener('change', () => {
+            const key = checkbox.dataset.studentKey;
             if (checkbox.checked) {
-                if (studentKey) addStudentsSelections.add(studentKey);
+                if (key) addStudentsSelections.add(key);
                 li.classList.add('selected');
             } else {
-                if (studentKey) addStudentsSelections.delete(studentKey);
+                if (key) addStudentsSelections.delete(key);
                 li.classList.remove('selected');
             }
             updateAddStudentsCounter();
         });
+
+        if (addStudentsSelections.has(studentKey)) {
+            checkbox.checked = true;
+            li.classList.add('selected');
+        }
 
         li.addEventListener('click', (e) => {
             if (e.target === checkbox || e.target.tagName === 'LABEL' || (e.target && e.target.closest('label'))) return;
@@ -1418,6 +1457,7 @@ async function renderAddStudentsList(className, options = {}) {
         ul.appendChild(li);
     });
 
+    updateAddStudentsCounter();
     listEl.appendChild(ul);
 }
 
@@ -1458,14 +1498,17 @@ export async function finalizeAddStudentsToClass(className) {
     const existingStudentsInClass = loadClassStudentsFromStorage(className) || [];
     const newlyAddedStudents = [];
 
-    newlyAdded.forEach(facultyNumber => {
-        let studentInfo = getStudentInfoForFacultyNumber(facultyNumber, studentsFromDatabase);
+    newlyAdded.forEach(studentKey => {
+        let studentInfo = addStudentsIndex.get(studentKey);
+        if (!studentInfo) {
+            studentInfo = getStudentInfoForFacultyNumber(studentKey, studentsFromDatabase);
+        }
         if (studentInfo && !studentInfo.full_name && !studentInfo.fullName) {
             const fallbackName = (studentInfo.fullName || studentInfo.full_name || '').trim();
             if (!fallbackName) {
                 const fallback = (studentsFromDatabase || []).find(s => {
-                    const fac = s.faculty_number || s.facultyNumber || s.id || s.student_id;
-                    return String(fac || '').trim() === String(facultyNumber || '').trim();
+                    const fac = getStudentPrimaryKey(s);
+                    return String(fac || '').trim() === String(studentKey || '').trim();
                 });
                 if (fallback) studentInfo = fallback;
             }
@@ -1477,11 +1520,17 @@ export async function finalizeAddStudentsToClass(className) {
             if (studentInfo && existingStudentFacultyNum && existingStudentFacultyNum === studentInfo.faculty_number) {
                 return true;
             }
-            return student.full_name === studentInfo.full_name;
+            return studentInfo && student.full_name === studentInfo.full_name;
         });
 
         if (!duplicate && studentInfo) {
-            newlyAddedStudents.push(studentInfo);
+            const normalizedFaculty = getStudentFacultyNumber(studentInfo);
+            if (normalizedFaculty) {
+                newlyAddedStudents.push({
+                    ...studentInfo,
+                    faculty_number: normalizedFaculty
+                });
+            }
         }
     });
 
