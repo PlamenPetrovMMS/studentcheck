@@ -345,6 +345,7 @@ async function onSaveClassOptions() {
 
     const ok = renameClass(oldName, proposed);
     if (ok) {
+        showClassOptionsToast(i18nText('toast_class_renamed', 'Class was renamed'), 'success');
         closeClassOptionsOverlay();
     }
 }
@@ -354,6 +355,29 @@ function setClassOptionsError(message) {
     if (!errorEl) return;
     errorEl.textContent = message || '';
     errorEl.style.display = message ? 'block' : 'none';
+}
+
+function i18nText(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key);
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
+function showClassOptionsToast(message, tone = 'success') {
+    const existing = document.querySelector('.toast-bubble');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast-bubble toast-${tone} toast-wide`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 1600);
 }
 
 /**

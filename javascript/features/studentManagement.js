@@ -780,7 +780,7 @@ export async function removeStudentFromClass(facultyNumber, className) {
             await renderManageStudentsForClass(className);
         }
 
-        showToast('Student removed', 'error');
+        showToast(i18nText('toast_student_removed', 'Student removed'), 'error');
     } catch (error) {
         console.error('[removeStudentFromClass] Error:', error.message);
         alert('Failed to remove student: ' + error.message);
@@ -1646,8 +1646,11 @@ export async function finalizeAddStudentsToClass(className) {
     }
 
     if (newlyAddedStudents.length > 0 && addedToServer) {
-        const noun = newlyAddedStudents.length === 1 ? 'student' : 'students';
-        showToast(`Successfully added ${noun}`, 'success');
+        const nounKey = newlyAddedStudents.length === 1 ? 'toast_student_added' : 'toast_students_added';
+        const fallback = newlyAddedStudents.length === 1
+            ? 'Successfully added student'
+            : 'Successfully added students';
+        showToast(i18nText(nounKey, fallback), 'success');
     }
 
     // Ensure class marked ready
