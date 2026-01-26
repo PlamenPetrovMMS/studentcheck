@@ -29,7 +29,8 @@ import { closeScanner } from './scanner.js';
 function i18nText(key, fallback) {
     try {
         if (window.i18n && typeof window.i18n.t === 'function') {
-            return window.i18n.t(key);
+            const value = window.i18n.t(key);
+            if (value && value !== key) return value;
         }
     } catch (_) {}
     return fallback || key;
