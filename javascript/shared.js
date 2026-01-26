@@ -617,7 +617,12 @@
       </div>
     `;
 
-    document.body.appendChild(btn);
+    const navSlot = document.getElementById('navbarLanguageSlot');
+    if (navSlot) {
+      navSlot.appendChild(btn);
+    } else {
+      document.body.appendChild(btn);
+    }
     document.body.appendChild(overlay);
 
     const updateLangButtons = () => {
