@@ -2,7 +2,7 @@ const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
         getStudentClasses: '/get_student_classes',
 		getStudentClassesNamesbyIds: '/get_classes_names_by_ids',
-		getStudentAttendanceCount: '/get_student_attendance_count',
+		getClassAttendanceSummary: '/attendance/summary',
 		getClassIdByName: '/get_class_id_by_name',
 	};
 
@@ -249,7 +249,7 @@ async function loadClassesForStudent(studentData) {
 				
 				btn.addEventListener('click', () => {
 
-					openClassDetailsOverlay(className, studentData.id);
+					openClassDetailsOverlay(className, studentData.id, studentData.faculty_number);
 
 				});
 
@@ -276,7 +276,7 @@ async function loadClassesForStudent(studentData) {
 
 // Class Details Overlay functions ===============================
 
-function openClassDetailsOverlay(className, studentId) {
+function openClassDetailsOverlay(className, studentId, facultyNumber) {
 
 
 	closeViewClassesOverlay();
@@ -292,7 +292,7 @@ function openClassDetailsOverlay(className, studentId) {
 	const classNameEl = document.getElementById('classDetailsOverlayClassName');
 	if (classNameEl) classNameEl.textContent = className || '';
 
-	loadAttendedClassesCount(className, studentId);
+	loadAttendedClassesCount(className, studentId, facultyNumber);
 
 }
 
@@ -307,12 +307,12 @@ function closeClassDetailsOverlay(){
 
 }
 
-async function loadAttendedClassesCount(className, studentId){
+async function loadAttendedClassesCount(className, studentId, facultyNumber){
 
 
 	const classId = await getClassIdByName(className);
 
-	const response = await fetch(serverBaseUrl + ENDPOINTS.getStudentAttendanceCount + `?class_id=${encodeURIComponent(classId)}&student_id=${encodeURIComponent(studentId)}`, {
+	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
@@ -323,14 +323,36 @@ async function loadAttendedClassesCount(className, studentId){
 		
 		const data = await response.json();
 
-		const attendance_count = data.attendance_count;
-		const total_completed_classes_count = data.total_completed_classes_count;
+		const list = data.attendances || data.items || data.summary || data.attendance_summary || data.records || [];
+		const studentKey = String(studentId || '').trim();
+		const facultyKey = String(facultyNumber || '').trim();
+		let attendance_count = 0;
+
+		if (Array.isArray(list)) {
+			const row = list.find((item) => {
+				const id = String(item?.student_id ?? item?.studentId ?? item?.id ?? '').trim();
+				const fac = String(item?.faculty_number ?? item?.facultyNumber ?? '').trim();
+				return (studentKey && id === studentKey) || (facultyKey && fac === facultyKey);
+			});
+			if (row) {
+				const countVal = Number(row.count ?? row.attendance_count ?? row.attended_classes_count ?? 0);
+				attendance_count = Number.isFinite(countVal) ? countVal : 0;
+			}
+		}
+
+		const total_completed_classes_count = data.total_completed_classes_count
+			?? data.total_classes_count
+			?? data.total_completed
+			?? data.total
+			?? null;
 
 		const attendanceCountElement = document.getElementById('attendedClassesCount');
 		const totalClassesCountElement = document.getElementById('totalClassesCount'); 
 
-		attendanceCountElement.textContent = attendance_count;
-		totalClassesCountElement.textContent = total_completed_classes_count;
+		if (attendanceCountElement) attendanceCountElement.textContent = attendance_count;
+		if (totalClassesCountElement) {
+			totalClassesCountElement.textContent = total_completed_classes_count ?? '—';
+		}
 
 	}else{
 		console.error("Error fetching attendance count:", response.status, response.statusText);
