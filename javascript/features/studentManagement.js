@@ -55,6 +55,12 @@ function getStudentGroup(student) {
     return student?.group || student?.group_name || student?.groupName || student?.group_number || student?.groupNumber || '';
 }
 
+function normalizeStudentKey(value) {
+    if (value === null || value === undefined) return '';
+    const normalized = String(value).trim();
+    return normalized;
+}
+
 function fillMissing(target, source) {
     if (!source) return;
     if (!getStudentFullName(target)) {
@@ -733,16 +739,20 @@ export async function removeStudentFromClass(facultyNumber, className) {
         await apiRemoveStudentFromClass(classId, facultyNumber, teacherEmail);
 
         // Update UI: remove from storage
+        const targetKey = normalizeStudentKey(facultyNumber);
         const classStudents = loadClassStudentsFromStorage(className);
         if (classStudents && Array.isArray(classStudents)) {
             const filtered = classStudents.filter(s => 
-                s.faculty_number !== String(facultyNumber) && s.id !== String(facultyNumber)
+                normalizeStudentKey(getStudentFacultyNumber(s) || s.id || s.student_id) !== targetKey
             );
             addNewStudentsToStorage(className, filtered);
         }
 
         // Update in-memory assignments
-        removeStudentFromClassAssignments(className, String(facultyNumber));
+        removeStudentFromClassAssignments(className, targetKey);
+        if (/^\d+$/.test(targetKey)) {
+            removeStudentFromClassAssignments(className, Number(targetKey));
+        }
 
         // Close overlays and refresh
         closeStudentInfoOverlay();
@@ -1251,7 +1261,9 @@ async function renderAddStudentsList(className, options = {}) {
 
     // Build existing set from assignments map and stored students
     const assignments = getClassStudentAssignments(className);
-    const existingSet = new Set([...(assignments || new Set())]);
+    const existingSet = new Set(
+        Array.from(assignments || new Set()).map(normalizeStudentKey).filter(Boolean)
+    );
 
     let classStudents = [];
     let allStudents = [];
@@ -1266,7 +1278,7 @@ async function renderAddStudentsList(className, options = {}) {
             // Add to existing set
             if (classStudents && classStudents.length > 0) {
                 classStudents.forEach(student => {
-                    const id = (student.faculty_number || '').trim();
+                    const id = normalizeStudentKey(getStudentFacultyNumber(student) || student.id || student.student_id);
                     if (id) {
                         existingSet.add(id);
                     }
@@ -1339,12 +1351,13 @@ async function renderAddStudentsList(className, options = {}) {
         const li = document.createElement('li');
         li.className = 'list-item';
         const parts = (window.Students?.splitNames || (() => ({ fullName: '' })))(student);
-        const facultyNumber = student.faculty_number;
+        const facultyNumber = getStudentFacultyNumber(student);
         const studentId = (window.Students?.idForStudent
             ? window.Students.idForStudent(student, 'add', idx)
             : (facultyNumber || parts.fullName || `add_${idx}`));
+        const studentKey = normalizeStudentKey(studentId || facultyNumber);
 
-        if (existingSet.has(studentId)) {
+        if (studentKey && existingSet.has(studentKey)) {
             // Render without checkbox, with 'Already in' badge
             li.classList.add('already-in');
             const textWrap = document.createElement('div');
@@ -1385,10 +1398,10 @@ async function renderAddStudentsList(className, options = {}) {
 
         checkbox.addEventListener('change', () => {
             if (checkbox.checked) {
-                addStudentsSelections.add(studentId);
+                if (studentKey) addStudentsSelections.add(studentKey);
                 li.classList.add('selected');
             } else {
-                addStudentsSelections.delete(studentId);
+                if (studentKey) addStudentsSelections.delete(studentKey);
                 li.classList.remove('selected');
             }
             updateAddStudentsCounter();
@@ -1419,12 +1432,23 @@ export async function finalizeAddStudentsToClass(className) {
     }
 
     const assignSet = ensureClassStudentAssignments(className);
+    const normalizedAssignSet = new Set();
+    assignSet.forEach((value) => {
+        const normalized = normalizeStudentKey(value);
+        if (normalized) normalizedAssignSet.add(normalized);
+    });
+    if (normalizedAssignSet.size !== assignSet.size) {
+        assignSet.clear();
+        normalizedAssignSet.forEach(value => assignSet.add(value));
+    }
 
     const newlyAdded = [];
     addStudentsSelections.forEach(id => {
-        if (!assignSet.has(id)) {
-            assignSet.add(id);
-            newlyAdded.push(id);
+        const normalized = normalizeStudentKey(id);
+        if (!normalized) return;
+        if (!assignSet.has(normalized)) {
+            assignSet.add(normalized);
+            newlyAdded.push(normalized);
         }
     });
 
