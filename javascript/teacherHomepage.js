@@ -278,6 +278,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (students && students.length > 0) {
                 addNewStudentsToStorage(className, students);
                 setClassReady(className, true);
+                const btn = Array.from(document.querySelectorAll('.newClassBtn')).find(b => {
+                    const btnName = (b.dataset.className || b.dataset.originalLabel || b.textContent || '')
+                        .replace(/✓\s*Ready/g, '')
+                        .trim();
+                    return btnName === className;
+                });
+                if (btn) updateClassStatusUI(btn);
             }
         } catch (e) {
             console.error('Failed to load class students:', e);
