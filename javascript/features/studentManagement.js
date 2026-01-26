@@ -108,15 +108,6 @@ function fillMissing(target, source) {
     }
 }
 
-function i18nText(key, fallback) {
-    try {
-        if (window.i18n && typeof window.i18n.t === 'function') {
-            return window.i18n.t(key);
-        }
-    } catch (_) {}
-    return fallback || key;
-}
-
 function applyI18n() {
     try {
         if (window.i18n && typeof window.i18n.applyTranslations === 'function') {
