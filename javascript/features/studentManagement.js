@@ -989,7 +989,8 @@ function updateAddStudentsCounter() {
     const overlay = getAddStudentsClassOverlay();
     const confirmBtn = overlay?.querySelector('#addStudentsOverlayBtn');
     if (confirmBtn) {
-        confirmBtn.textContent = `Add (${addStudentsSelections.size})`;
+        const label = i18nText('add_btn', 'Add');
+        confirmBtn.textContent = `${label} (${addStudentsSelections.size})`;
     }
 }
 
@@ -1170,7 +1171,10 @@ export async function openAddStudentsToClass(className, options = {}) {
 
     addStudentsSelections.clear();
 
-    if (confirmBtn) confirmBtn.textContent = 'Add (0)';
+    if (confirmBtn) {
+        const label = i18nText('add_btn', 'Add');
+        confirmBtn.textContent = `${label} (0)`;
+    }
 
     // Show overlay immediately with loading state
     if (overlay) {

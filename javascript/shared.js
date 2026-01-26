@@ -238,7 +238,8 @@
       class_options_title: 'Class Options',
       class_name_placeholder: 'Class name',
       rename_btn: 'Rename',
-      delete_class_btn: 'Delete Class'
+      delete_class_btn: 'Delete Class',
+      add_btn: 'Add'
     },
     bg: {
       language_change_title: 'Промяна на езика',
@@ -360,7 +361,8 @@
       class_options_title: 'Опции на клас',
       class_name_placeholder: 'Име на клас',
       rename_btn: 'Преименувай',
-      delete_class_btn: 'Изтрий клас'
+      delete_class_btn: 'Изтрий клас',
+      add_btn: 'Добави'
     }
   };
 
