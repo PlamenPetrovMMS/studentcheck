@@ -107,7 +107,11 @@ function ensureBillingOverlay() {
     document.body.appendChild(billingOverlay);
 
     const closeBtn = billingOverlay.querySelector('#closeBillingBtn');
+    const manageBtn = billingOverlay.querySelector('#manageBillingBtn');
     closeBtn?.addEventListener('click', () => closeBillingOverlay());
+    manageBtn?.addEventListener('click', () => {
+        window.location.href = 'billing.html';
+    });
     billingOverlay.addEventListener('click', (e) => {
         if (e.target === billingOverlay) closeBillingOverlay();
     });

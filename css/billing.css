@@ -1,0 +1,139 @@
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #f3f4f6;
+    color: #111827;
+    font-family: "Poppins", sans-serif;
+}
+
+.teacher-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.teacher-navbar .navbar-logo {
+    position: static;
+    margin: 0;
+}
+
+.teacher-navbar .navbar-language-slot {
+    display: flex;
+    align-items: center;
+}
+
+.teacher-navbar .lang-toggle-btn {
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: 1;
+}
+
+.billing-container {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 16px 40px 16px;
+}
+
+.billing-card {
+    width: min(92vw, 520px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    padding: 24px 22px;
+}
+
+.billing-card h1 {
+    margin: 0 0 18px 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.billing-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.billing-row:last-of-type {
+    border-bottom: none;
+}
+
+.billing-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.billing-value {
+    font-weight: 600;
+    color: #111827;
+    text-align: right;
+    word-break: break-word;
+}
+
+.billing-error {
+    margin: 12px 0 0 0;
+    color: #b91c1c;
+    font-size: 0.95rem;
+    min-height: 1.2em;
+    text-align: center;
+}
+
+.billing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.billing-btn {
+    width: 100%;
+    min-height: 50px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 120ms ease;
+}
+
+.billing-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.billing-btn--primary {
+    background: #059669;
+    color: #ffffff;
+}
+
+.billing-btn--primary:hover { background: #047857; }
+
+.billing-btn--secondary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.billing-btn--secondary:hover { background: #1d4ed8; }
+
+.billing-btn:active { transform: translateY(2px); }
+
+@media (max-width: 480px) {
+    .billing-card {
+        padding: 20px 18px;
+    }
+}
