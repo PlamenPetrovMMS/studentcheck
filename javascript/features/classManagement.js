@@ -25,6 +25,7 @@ import { getActiveClassName, getRawClassNameFromButton } from '../utils/helpers.
 import { getTeacherEmail, normalizeEmail } from '../config/api.js';
 
 let classOptionsOverlay = null;
+let billingOverlay = null;
 
 /**
  * Ensure class options overlay exists
@@ -69,12 +70,75 @@ function ensureClassOptionsOverlay() {
     
     const saveBtn = classOptionsOverlay.querySelector('#classOptionsSaveBtn');
     const deleteBtn = classOptionsOverlay.querySelector('#classOptionsDeleteBtn');
+    const billingBtn = classOptionsOverlay.querySelector('#classOptionsBillingBtn');
     saveBtn?.addEventListener('click', onSaveClassOptions);
     deleteBtn?.addEventListener('click', onDeleteClassFromOptions);
+    billingBtn?.addEventListener('click', () => {
+        closeClassOptionsOverlay();
+        openBillingOverlay();
+    });
     const nameInput = classOptionsOverlay.querySelector('#classOptionsNameInput');
     nameInput?.addEventListener('input', () => setClassOptionsError(''));
     
     return classOptionsOverlay;
+}
+
+/**
+ * Ensure billing overlay exists
+ * @returns {HTMLElement} Overlay element
+ */
+function ensureBillingOverlay() {
+    if (billingOverlay) return billingOverlay;
+    billingOverlay = document.createElement('div');
+    billingOverlay.id = 'billingOverlay';
+    billingOverlay.className = 'overlay';
+    billingOverlay.style.visibility = 'hidden';
+    billingOverlay.innerHTML = `
+        <div class="ready-class-popup billing-popup" role="dialog" aria-modal="true" aria-labelledby="billingTitle">
+            <div class="overlay-top-bar">
+                <h2 id="billingTitle">Billing</h2>
+                <button type="button" id="closeBillingBtn" class="close-small" aria-label="Close">×</button>
+            </div>
+            <p class="billing-current-plan">Current Plan</p>
+            <div class="billing-actions">
+                <button type="button" id="manageBillingBtn" class="role-button secondary-green">Manage billing</button>
+            </div>
+        </div>`;
+    document.body.appendChild(billingOverlay);
+
+    const closeBtn = billingOverlay.querySelector('#closeBillingBtn');
+    closeBtn?.addEventListener('click', () => closeBillingOverlay());
+    billingOverlay.addEventListener('click', (e) => {
+        if (e.target === billingOverlay) closeBillingOverlay();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOverlayVisible(billingOverlay)) {
+            closeBillingOverlay();
+        }
+    });
+
+    return billingOverlay;
+}
+
+/**
+ * Open billing overlay
+ */
+function openBillingOverlay() {
+    ensureBillingOverlay();
+    showOverlay(billingOverlay);
+}
+
+/**
+ * Close billing overlay
+ */
+function closeBillingOverlay() {
+    if (billingOverlay) {
+        hideOverlay(billingOverlay, false);
+    }
+    const readyPopupOverlay = getOverlay('readyClassPopupOverlay');
+    if (!readyPopupOverlay || !isOverlayVisible(readyPopupOverlay)) {
+        document.body.style.overflow = '';
+    }
 }
 
 /**
