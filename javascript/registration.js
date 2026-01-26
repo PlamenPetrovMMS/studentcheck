@@ -468,11 +468,63 @@
         }
     }
 
+    async function checkFacultyNumberAvailability() {
+        const facultyValue = (facultyNumber.value || '').trim().replace(/\s+/g,'');
+        if (!facultyValue) return false;
+
+        const normalized = facultyValue.toUpperCase();
+        nextBtn.disabled = true;
+
+        try {
+            const result = await fetch('https://studentcheck-server.onrender.com/students', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!result.ok) {
+                setError(errorSlide4, 'err_faculty_verify');
+                errorSlide4.style.display = 'block';
+                contactErrorActivated = true;
+                return false;
+            }
+
+            const data = await result.json();
+            const students = Array.isArray(data?.students) ? data.students : (Array.isArray(data) ? data : []);
+
+            const exists = students.some((student) => {
+                const candidate = (student?.faculty_number || student?.facultyNumber || student?.faculty || '')
+                    .toString()
+                    .trim()
+                    .toUpperCase();
+                return candidate && candidate === normalized;
+            });
+
+            if (exists) {
+                lastDuplicateFaculty = facultyValue;
+                facultyNumber.classList.add('invalid');
+                contactErrorActivated = true;
+                setError(errorSlide4, 'err_faculty_exists');
+                errorSlide4.style.display = 'block';
+                return false;
+            }
+
+            return true;
+        } catch (_) {
+            setError(errorSlide4, 'err_faculty_verify');
+            errorSlide4.style.display = 'block';
+            contactErrorActivated = true;
+            return false;
+        } finally {
+            nextBtn.disabled = false;
+        }
+    }
+
 
 
 
 
     let lastDuplicateEmail = null; // tracks last server-rejected email to clear red state on change
+    let lastDuplicateFaculty = null; // tracks last server-rejected faculty number to clear red state on change
     function liveContactValidation() {
         // Only perform live updates if user has already triggered error display OR duplicate email state is active.
         if (step !== 3) return;
@@ -484,6 +536,17 @@
             } else {
                 email.classList.remove('invalid');
                 lastDuplicateEmail = null;
+                contactErrorActivated = true; // allow live validation after duplicate cleared
+            }
+        }
+        const currentFaculty = facultyNumber.value.trim().replace(/\s+/g,'');
+        if (lastDuplicateFaculty) {
+            if (currentFaculty === lastDuplicateFaculty) {
+                errorSlide4.style.display = 'block';
+                return;
+            } else {
+                facultyNumber.classList.remove('invalid');
+                lastDuplicateFaculty = null;
                 contactErrorActivated = true; // allow live validation after duplicate cleared
             }
         }
@@ -572,7 +635,12 @@
             if (!available) {
                 return;
             }
+            const facultyAvailable = await checkFacultyNumberAvailability();
+            if (!facultyAvailable) {
+                return;
+            }
             email.classList.remove('invalid');
+            facultyNumber.classList.remove('invalid');
         }
 
         if (step < TOTAL_STEPS - 1) {
@@ -656,6 +724,16 @@
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
                     return;
                 }
+                if (/duplicate|exists|already/i.test(serverMsg) && /faculty/i.test(serverMsg)) {
+                    lastDuplicateFaculty = facultyNumber.value.trim().replace(/\s+/g,'');
+                    facultyNumber.classList.add('invalid');
+                    contactErrorActivated = true;
+                    setError(errorSlide4, 'err_faculty_exists');
+                    errorSlide4.style.display = 'block';
+                    step = 3;
+                    updateUI();
+                    return;
+                }
                 alert(t('err_registration_failed_prefix') + serverMsg);
                 return;
             } else {
@@ -706,6 +784,13 @@
                     errorSlide4.style.display = 'block';
                     step = 3; updateUI();
                     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
+                } else if (/duplicate|exists|already/i.test(data.message || '') && /faculty/i.test(data.message || '')) {
+                    lastDuplicateFaculty = facultyNumber.value.trim().replace(/\s+/g,'');
+                    facultyNumber.classList.add('invalid');
+                    contactErrorActivated = true;
+                    setError(errorSlide4, 'err_faculty_exists');
+                    errorSlide4.style.display = 'block';
+                    step = 3; updateUI();
                 } else {
                     alert(t('err_registration_failed_prefix') + (data.message || t('err_registration_failed_unknown')));
                 }
