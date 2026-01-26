@@ -351,7 +351,7 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 
 		if (attendanceCountElement) attendanceCountElement.textContent = attendance_count;
 		if (totalClassesCountElement) {
-			totalClassesCountElement.textContent = total_completed_classes_count ?? '—';
+			totalClassesCountElement.textContent = total_completed_classes_count ?? 0;
 		}
 
 	}else{
