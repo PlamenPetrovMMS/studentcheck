@@ -39,9 +39,7 @@
     justify-content: flex-start;
     gap: 20px;
     padding: 48px 20px 32px 20px;
-    /* If content exceeds the viewport, scroll this section instead of the page */
     width: 100%;
-    overflow-y: auto;
     flex: 1 1 auto; /* fill remaining height of container */
     min-height: 0;  /* allow shrinking inside flex container to avoid forced overflow */
 }
@@ -63,6 +61,21 @@
     align-items: center;
     gap: 14px;
     width: 100%;
+}
+
+.classes-controls {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.class-list-scroll {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 12px;
 }
 
 

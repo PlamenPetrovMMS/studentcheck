@@ -348,11 +348,12 @@
 
         <section id="classesSection" aria-labelledby="classesTitle">
             <h1 id="classesTitle">Classes</h1>
-            <ul id="classList" class="classes-list">
-                <li>
-                    <button id="addClassBtn" type="button" class="add-class-btn" aria-label="New Class">+ New Class</button>
-                </li>
-            </ul>
+            <div class="classes-controls">
+                <button id="addClassBtn" type="button" class="add-class-btn" aria-label="New Class">+ New Class</button>
+            </div>
+            <div class="class-list-scroll" aria-label="Classes list">
+                <ul id="classList" class="classes-list"></ul>
+            </div>
         </section>
 
     </main>
