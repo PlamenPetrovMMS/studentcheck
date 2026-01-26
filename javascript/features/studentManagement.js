@@ -1486,25 +1486,12 @@ async function renderAddStudentsList(className, options = {}) {
  * @param {string} className - Class name
  */
 export async function finalizeAddStudentsToClass(className) {
-    console.log('[AddStudents] finalizeAddStudentsToClass:start', {
-        className,
-        selectionCount: addStudentsSelections.size,
-        selections: Array.from(addStudentsSelections)
-    });
     if (!className || addStudentsSelections.size === 0) {
-        console.log('[AddStudents] finalizeAddStudentsToClass:early-exit', {
-            className,
-            selectionCount: addStudentsSelections.size
-        });
         closeAddStudentsToClass();
         return;
     }
 
     const assignSet = ensureClassStudentAssignments(className);
-    console.log('[AddStudents] assignmentSet:before-normalize', {
-        size: assignSet.size,
-        values: Array.from(assignSet)
-    });
     const normalizedAssignSet = new Set();
     assignSet.forEach((value) => {
         const normalized = normalizeStudentKey(value);
@@ -1514,22 +1501,11 @@ export async function finalizeAddStudentsToClass(className) {
         assignSet.clear();
         normalizedAssignSet.forEach(value => assignSet.add(value));
     }
-    console.log('[AddStudents] assignmentSet:after-normalize', {
-        size: assignSet.size,
-        values: Array.from(assignSet)
-    });
 
     const studentsFromDatabase = await fetchAllStudents();
-    console.log('[AddStudents] studentsFromDatabase:loaded', {
-        count: Array.isArray(studentsFromDatabase) ? studentsFromDatabase.length : 0
-    });
 
     // Update per-class student objects list
     const existingStudentsInClass = loadClassStudentsFromStorage(className) || [];
-    console.log('[AddStudents] existingStudentsInClass:loaded', {
-        count: existingStudentsInClass.length,
-        keys: existingStudentsInClass.map(getStudentFacultyNumber).filter(Boolean)
-    });
     const newlyAddedStudents = [];
     const existingFacultySet = new Set(
         existingStudentsInClass
@@ -1548,29 +1524,15 @@ export async function finalizeAddStudentsToClass(className) {
         if (!studentInfo) {
             studentInfo = findStudentByKey(studentKey, studentsFromDatabase);
         }
-        console.log('[AddStudents] resolveStudentInfo', {
-            studentKey,
-            fromIndex: Boolean(addStudentsIndex.get(studentKey)),
-            found: Boolean(studentInfo),
-            fullName: studentInfo?.full_name || studentInfo?.fullName || '',
-            facultyNumber: getStudentFacultyNumber(studentInfo)
-        });
         if (!studentInfo) return;
 
         const facultyNumber = normalizeStudentKey(getStudentFacultyNumber(studentInfo));
         if (!facultyNumber) {
-            console.log('[AddStudents] skipMissingFaculty', { studentKey });
             return;
         }
 
         // Prevent duplicates (faculty-number based)
         const duplicate = existingFacultySet.has(facultyNumber) || selectedFacultyNumbers.has(facultyNumber);
-        console.log('[AddStudents] duplicateCheck', {
-            studentKey,
-            duplicate,
-            matchedName: studentInfo?.full_name || studentInfo?.fullName || '',
-            matchedFaculty: facultyNumber
-        });
 
         if (!duplicate) {
             selectedFacultyNumbers.add(facultyNumber);
@@ -1578,19 +1540,9 @@ export async function finalizeAddStudentsToClass(className) {
                 ...studentInfo,
                 faculty_number: facultyNumber
             });
-            console.log('[AddStudents] queuedForAdd', {
-                studentKey,
-                facultyNumber,
-                fullName: studentInfo?.full_name || studentInfo?.fullName || ''
-            });
         }
     });
     selectedFacultyNumbers.forEach((facultyNumber) => assignSet.add(facultyNumber));
-    console.log('[AddStudents] newlyAddedStudents:final', {
-        count: newlyAddedStudents.length,
-        facultyNumbers: newlyAddedStudents.map(s => getStudentFacultyNumber(s)).filter(Boolean),
-        names: newlyAddedStudents.map(s => s.full_name || s.fullName || '').filter(Boolean)
-    });
 
     addNewStudentsToStorage(className, [...existingStudentsInClass, ...newlyAddedStudents]);
 
