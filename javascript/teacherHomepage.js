@@ -382,11 +382,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!btn.dataset.className) btn.dataset.className = className;
         if (!btn.dataset.originalLabel) btn.dataset.originalLabel = className;
 
-        if (isClassReady(className)) {
-            openReadyClassPopup(className);
-        } else {
-            await openAddStudentsToClass(className);
-        }
+        openReadyClassPopup(className);
     }
 
     // Expose handlers for class creation module to attach new buttons
