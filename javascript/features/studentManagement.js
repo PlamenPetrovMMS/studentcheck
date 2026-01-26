@@ -55,6 +55,15 @@ function getStudentGroup(student) {
     return student?.group || student?.group_name || student?.groupName || student?.group_number || student?.groupNumber || '';
 }
 
+function i18nText(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key);
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
 function normalizeStudentKey(value) {
     if (value === null || value === undefined) return '';
     const normalized = String(value).trim();
@@ -1397,7 +1406,7 @@ async function renderAddStudentsList(className, options = {}) {
             textWrap.appendChild(facEl);
             const badge = document.createElement('span');
             badge.className = 'already-in-badge';
-            badge.textContent = 'Missing ID';
+            badge.textContent = i18nText('already_in_badge', 'Already in');
             li.appendChild(textWrap);
             li.appendChild(badge);
             ul.appendChild(li);
@@ -1423,7 +1432,7 @@ async function renderAddStudentsList(className, options = {}) {
             textWrap.appendChild(facEl);
             const badge = document.createElement('span');
             badge.className = 'already-in-badge';
-            badge.textContent = 'Already in';
+            badge.textContent = i18nText('already_in_badge', 'Already in');
             li.appendChild(textWrap);
             li.appendChild(badge);
             ul.appendChild(li);

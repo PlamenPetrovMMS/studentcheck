@@ -39,17 +39,17 @@ function ensureClassOptionsOverlay() {
     classOptionsOverlay.innerHTML = `
         <div class="ready-class-popup class-options-popup" role="dialog" aria-modal="true" aria-labelledby="classOptionsTitle">
             <div class="overlay-top-bar">
-                <h2 id="classOptionsTitle">Class Options</h2>
+                <h2 id="classOptionsTitle" data-i18n="class_options_title">Class Options</h2>
                 <button type="button" id="closeClassOptionsBtn" class="close-small" aria-label="Close">×</button>
             </div>
             <p id="classOptionsClassName" class="class-options-name"></p>
             <div class="class-options-row">
-                <input type="text" id="classOptionsNameInput" placeholder="Class name" />
-                <button type="button" id="classOptionsSaveBtn" class="role-button primary">Rename</button>
+                <input type="text" id="classOptionsNameInput" data-i18n-placeholder="class_name_placeholder" placeholder="Class name" />
+                <button type="button" id="classOptionsSaveBtn" class="role-button primary" data-i18n="rename_btn">Rename</button>
             </div>
             <p id="classOptionsError" class="class-options-error" aria-live="polite"></p>
             <div class="class-options-footer">
-                <button type="button" id="classOptionsDeleteBtn" class="role-button danger">Delete Class</button>
+                <button type="button" id="classOptionsDeleteBtn" class="role-button danger" data-i18n="delete_class_btn">Delete Class</button>
             </div>
         </div>`;
     document.body.appendChild(classOptionsOverlay);
@@ -82,6 +82,7 @@ function ensureClassOptionsOverlay() {
  */
 export function openClassOptionsOverlay(className) {
     ensureClassOptionsOverlay();
+    applyI18n();
     const input = classOptionsOverlay.querySelector('#classOptionsNameInput');
     const resolvedName = (className || getActiveClassName() || '').trim();
     if (input) input.value = resolvedName;
@@ -355,6 +356,14 @@ function setClassOptionsError(message) {
     if (!errorEl) return;
     errorEl.textContent = message || '';
     errorEl.style.display = message ? 'block' : 'none';
+}
+
+function applyI18n() {
+    try {
+        if (window.i18n && typeof window.i18n.applyTranslations === 'function') {
+            window.i18n.applyTranslations();
+        }
+    } catch (_) {}
 }
 
 function i18nText(key, fallback) {

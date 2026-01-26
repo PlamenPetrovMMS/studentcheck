@@ -224,6 +224,7 @@
       toast_student_removed: 'Student removed.',
       toast_student_added: 'Successfully added student.',
       toast_students_added: 'Successfully added students.',
+      already_in_badge: 'Already in',
       err_class_name_taken: 'This class name is already used.',
       err_password_requirements: 'Please meet all password requirements before finishing.',
       err_registration_failed_prefix: 'Registration failed: ',
@@ -233,7 +234,11 @@
       err_login_failed: 'Login failed',
       err_invalid_credentials: 'Invalid credentials',
       err_login_network: 'Login failed: Network error or unavailable server.',
-      err_login_failed_response: 'Login failed: response is not OK'
+      err_login_failed_response: 'Login failed: response is not OK',
+      class_options_title: 'Class Options',
+      class_name_placeholder: 'Class name',
+      rename_btn: 'Rename',
+      delete_class_btn: 'Delete Class'
     },
     bg: {
       language_change_title: 'Промяна на езика',
@@ -341,6 +346,7 @@
       toast_student_removed: 'Студентът е премахнат.',
       toast_student_added: 'Успешно добавен студент.',
       toast_students_added: 'Успешно добавени студенти.',
+      already_in_badge: 'Добавен',
       err_class_name_taken: 'Това име на клас вече е използвано.',
       err_password_requirements: 'Моля, изпълнете всички изисквания за паролата.',
       err_registration_failed_prefix: 'Неуспешна регистрация: ',
@@ -350,7 +356,11 @@
       err_login_failed: 'Неуспешен вход',
       err_invalid_credentials: 'Невалидни данни',
       err_login_network: 'Неуспешен вход: Мрежова грешка или недостъпен сървър.',
-      err_login_failed_response: 'Неуспешен вход: неуспешен отговор от сървъра'
+      err_login_failed_response: 'Неуспешен вход: неуспешен отговор от сървъра',
+      class_options_title: 'Опции на клас',
+      class_name_placeholder: 'Име на клас',
+      rename_btn: 'Преименувай',
+      delete_class_btn: 'Изтрий клас'
     }
   };
 
