@@ -1268,11 +1268,16 @@ async function renderAddStudentsList(className, options = {}) {
         // Still try to show all students even without classId
     }
 
-    // Build existing set from assignments map and stored students
+    // Build existing set from assignments map and local storage (source of truth after removals)
     const assignments = getClassStudentAssignments(className);
     const existingSet = new Set(
         Array.from(assignments || new Set()).map(normalizeStudentKey).filter(Boolean)
     );
+    const storedStudents = loadClassStudentsFromStorage(className) || [];
+    const storedSet = new Set(
+        storedStudents.map(getStudentPrimaryKey).filter(Boolean)
+    );
+    storedSet.forEach(key => existingSet.add(key));
 
     let classStudents = [];
     let allStudents = [];
@@ -1286,27 +1291,28 @@ async function renderAddStudentsList(className, options = {}) {
             
             // Add to existing set
             if (classStudents && classStudents.length > 0) {
-                classStudents.forEach(student => {
-                    const id = getStudentPrimaryKey(student);
-                    if (id) {
-                        existingSet.add(id);
-                    }
-                });
+                // If we have local storage, trust it over server (server may be stale after removals)
+                if (storedSet.size === 0) {
+                    classStudents.forEach(student => {
+                        const id = getStudentPrimaryKey(student);
+                        if (id) {
+                            existingSet.add(id);
+                        }
+                    });
+                }
             }
         } catch (e) {
             console.error('[Render Add Students] Failed to fetch class students:', className, e);
             fetchError = true;
             // Try loading from storage as fallback
-            const stored = loadClassStudentsFromStorage(className);
-            if (stored) {
-                classStudents = stored;
+            if (storedStudents.length > 0) {
+                classStudents = storedStudents;
             }
         }
     } else {
         // No classId, try storage only
-        const stored = loadClassStudentsFromStorage(className);
-        if (stored) {
-            classStudents = stored;
+        if (storedStudents.length > 0) {
+            classStudents = storedStudents;
         }
     }
 
