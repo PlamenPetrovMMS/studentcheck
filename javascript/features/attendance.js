@@ -26,6 +26,15 @@ import { getActiveClassName, logError } from '../utils/helpers.js';
 import { openConfirmOverlay, getOverlay, hideOverlay } from '../ui/overlays.js';
 import { closeScanner } from './scanner.js';
 
+function i18nText(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            return window.i18n.t(key);
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
 function showScanToast(message, tone) {
     const existing = document.querySelector('.toast-bubble');
     if (existing) existing.remove();
@@ -241,7 +250,7 @@ export function getStudentAttendanceCountForClass(className, studentId, updateCo
  */
 export async function openCloseScannerConfirm(className, onClosed) {
     openConfirmOverlay(
-        'Attendance data will be saved.',
+        i18nText('scanner_finish_message', 'Attendance data will be saved.'),
         async () => {
             try {
                 const classId = getClassIdByName(className);
@@ -345,7 +354,12 @@ export async function openCloseScannerConfirm(className, onClosed) {
             }
         },
         () => { /* canceled */ },
-        { okText: 'Finish', cancelText: 'Cancel', okClass: 'confirm-accept', title: 'Finish class?' }
+        {
+            okText: i18nText('finish_btn', 'Finish'),
+            cancelText: i18nText('cancel_btn', 'Cancel'),
+            okClass: 'confirm-accept',
+            title: i18nText('scanner_finish_title', 'Finish class?')
+        }
     );
 }
 
@@ -373,12 +387,17 @@ export async function closeScannerDiscard(className, onClosed) {
 
 export async function openDiscardScannerConfirm(className, onClosed) {
     openConfirmOverlay(
-        'Closing the scanner will discard attendance data.',
+        i18nText('scanner_close_message', 'Closing the scanner will discard attendance data.'),
         async () => {
             await closeScannerDiscard(className, onClosed);
         },
         null,
-        { title: 'Close Scanner', okText: 'Confirm', okClass: 'danger' }
+        {
+            title: i18nText('scanner_close_title', 'Close Scanner'),
+            okText: i18nText('confirm_btn', 'Confirm'),
+            okClass: 'danger',
+            cancelText: i18nText('cancel_btn', 'Cancel')
+        }
     );
 }
 
