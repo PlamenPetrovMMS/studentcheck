@@ -239,7 +239,14 @@
       class_name_placeholder: 'Class name',
       rename_btn: 'Rename',
       delete_class_btn: 'Delete Class',
-      add_btn: 'Add'
+      add_btn: 'Add',
+      finish_btn: 'Finish',
+      cancel_btn: 'Cancel',
+      confirm_btn: 'Confirm',
+      scanner_finish_title: 'Finish class?',
+      scanner_finish_message: 'Attendance data will be saved.',
+      scanner_close_title: 'Close Scanner',
+      scanner_close_message: 'Closing the scanner will discard attendance data.'
     },
     bg: {
       language_change_title: 'Промяна на езика',
@@ -305,6 +312,10 @@
       create_class: 'Създай дисциплина',
       name: 'Име',
       add: 'Добави',
+      add_btn: 'Добави',
+      finish_btn: 'Завърши',
+      cancel_btn: 'Отказ',
+      confirm_btn: 'Потвърди',
       class_ready: 'Готово',
       manage_students: 'Управление на студенти',
       start_scanner: 'Стартирай скенер',
@@ -350,6 +361,10 @@
       already_in_badge: 'Добавен',
       err_class_name_taken: 'Това име на клас вече е използвано.',
       err_password_requirements: 'Моля, изпълнете всички изисквания за паролата.',
+      scanner_finish_title: 'Завърши дисциплината?',
+      scanner_finish_message: 'Данните за присъствието ще бъдат записани.',
+      scanner_close_title: 'Затвори скенера',
+      scanner_close_message: 'Затварянето на скенера ще отхвърли данните за присъствие.',
       err_registration_failed_prefix: 'Неуспешна регистрация: ',
       err_registration_failed_unknown: 'Неизвестна грешка',
       err_network_unavailable: 'Мрежова грешка или сървърът е недостъпен.',
@@ -362,7 +377,14 @@
       class_name_placeholder: 'Име на клас',
       rename_btn: 'Преименувай',
       delete_class_btn: 'Изтрий клас',
-      add_btn: 'Добави'
+      add_btn: 'Добави',
+      finish_btn: 'Завърши',
+      cancel_btn: 'Отказ',
+      confirm_btn: 'Потвърди',
+      scanner_finish_title: 'Да завършим ли дисциплината?',
+      scanner_finish_message: 'Данните за присъствието ще бъдат запазени.',
+      scanner_close_title: 'Затваряне на скенера',
+      scanner_close_message: 'Затварянето на скенера ще изтрие данните за присъствието.'
     }
   };
 
