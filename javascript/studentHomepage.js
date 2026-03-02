@@ -432,9 +432,7 @@ async function getClassMetaByName(className){
 async function fetchCompletedClassesCountFromClassRecord(classId) {
 	const id = encodeURIComponent(classId);
 	const attempts = [
-		`${serverBaseUrl}/classes?class_id=${id}`,
-		`${serverBaseUrl}/classes/${id}`,
-		`${serverBaseUrl}/get_class_by_id?class_id=${id}`
+		`${serverBaseUrl}/classes?class_id=${id}`
 	];
 
 	for (const url of attempts) {
