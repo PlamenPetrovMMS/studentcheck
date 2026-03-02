@@ -334,9 +334,11 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 		return;
 	}
 
-	// Prefer value from class record (classes.completed_classes_count)
-	if (total_completed_classes_count === null || total_completed_classes_count === undefined) {
-		total_completed_classes_count = await fetchCompletedClassesCountFromClassRecord(classId);
+	// Always prefer authoritative class-record value when available.
+	// Metadata endpoint may return stale/derived counters.
+	const classRecordCompletedCount = await fetchCompletedClassesCountFromClassRecord(classId);
+	if (classRecordCompletedCount !== null && classRecordCompletedCount !== undefined) {
+		total_completed_classes_count = normalizeCount(classRecordCompletedCount);
 	}
 
 	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`, {
