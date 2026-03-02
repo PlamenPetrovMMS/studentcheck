@@ -432,8 +432,8 @@ async function getClassMetaByName(className){
 async function fetchCompletedClassesCountFromClassRecord(classId) {
 	const id = encodeURIComponent(classId);
 	const attempts = [
-		`${serverBaseUrl}/classes/${id}`,
 		`${serverBaseUrl}/classes?class_id=${id}`,
+		`${serverBaseUrl}/classes/${id}`,
 		`${serverBaseUrl}/get_class_by_id?class_id=${id}`
 	];
 
@@ -445,7 +445,16 @@ async function fetchCompletedClassesCountFromClassRecord(classId) {
 			});
 			if (!response.ok) continue;
 			const data = await response.json();
-			const record = Array.isArray(data) ? data[0] : (data?.class || data?.data || data);
+			const record = Array.isArray(data)
+				? data[0]
+				: (
+					data?.class
+					|| (Array.isArray(data?.classes) ? data.classes[0] : null)
+					|| (Array.isArray(data?.rows) ? data.rows[0] : null)
+					|| (Array.isArray(data?.items) ? data.items[0] : null)
+					|| (Array.isArray(data?.data) ? data.data[0] : data?.data)
+					|| data
+				);
 			const value = record?.completed_classes_count;
 			if (value !== null && value !== undefined) {
 				const parsed = Number(value);
