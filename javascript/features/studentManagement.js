@@ -499,9 +499,12 @@ export async function renderManageStudentsForClass(className) {
                 li.className = 'list-item';
                 const studentId = student.faculty_number || student.facultyNumber || student.id || student.student_id;
                 li.dataset.studentId = studentId;
-                const lookup = infoLookup ? infoLookup.get(String(studentId || '').trim()) : null;
+                const lookupIdKey = String(student.id || student.student_id || '').trim();
+                const lookup = infoLookup
+                    ? (infoLookup.get(lookupIdKey) || infoLookup.get(String(studentId || '').trim()))
+                    : null;
                 const fullName = getStudentFullName(student) || lookup?.fullName || '';
-                const facultyNumber = getStudentFacultyNumber(student) || lookup?.faculty_number || studentId || '';
+                const facultyNumber = getStudentFacultyNumber(student) || lookup?.faculty_number || '';
                 const email = getStudentEmail(student) || lookup?.email || '';
                 const group = getStudentGroup(student) || lookup?.group || '';
 
