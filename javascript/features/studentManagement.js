@@ -886,7 +886,7 @@ function closeStudentInfoOverlay() {
  * @param {string} className - Class name
  */
 export async function removeStudentFromClass(facultyNumber, className) {
-    const classId = getClassIdByName(className);
+    const classId = await resolveClassId(className);
     if (!classId) {
         console.error('[removeStudentFromClass] Unable to get class ID for class:', className);
         alert('Error: Class ID not found.');

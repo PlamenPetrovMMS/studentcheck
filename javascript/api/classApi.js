@@ -297,20 +297,31 @@ export async function addStudentsToClass(classId, students) {
  * @returns {Promise<{success: boolean}>} Response data
  */
 export async function removeStudentFromClass(classId, facultyNumber, teacherEmail) {
-    const requestBody = {
-        class_id: classId,
-        faculty_number: facultyNumber,
-        teacherEmail: teacherEmail
-    };
+    const numericClassId = Number(classId);
+    const payloads = [
+        { class_id: numericClassId, faculty_number: facultyNumber, teacherEmail: teacherEmail || undefined },
+        { classId: numericClassId, faculty_number: facultyNumber, teacherEmail: teacherEmail || undefined },
+        { class_id: numericClassId, facultyNumber: facultyNumber, teacherEmail: teacherEmail || undefined },
+        { classId: numericClassId, facultyNumber: facultyNumber, teacherEmail: teacherEmail || undefined },
+        { class_id: numericClassId, faculty_number: facultyNumber, teacher_email: teacherEmail || undefined },
+        { classId: numericClassId, faculty_number: facultyNumber, teacher_email: teacherEmail || undefined },
+        { class_id: numericClassId, facultyNumber: facultyNumber, teacher_email: teacherEmail || undefined },
+        { classId: numericClassId, facultyNumber: facultyNumber, teacher_email: teacherEmail || undefined }
+    ];
 
-    try {
-        return await authJsonFetch(`${SERVER_BASE_URL}/class_students/remove`, {
-            method: 'POST',
-            body: JSON.stringify(requestBody)
-        });
-    } catch (err) {
-        handleMutationApiError('/class_students/remove', err);
+    let lastErr = null;
+    for (const requestBody of payloads) {
+        try {
+            return await authJsonFetch(`${SERVER_BASE_URL}/class_students/remove`, {
+                method: 'POST',
+                body: JSON.stringify(requestBody)
+            });
+        } catch (err) {
+            lastErr = err;
+        }
     }
+
+    handleMutationApiError('/class_students/remove', lastErr);
 }
 
 /**
