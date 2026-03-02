@@ -28,8 +28,19 @@ export const ENDPOINTS = {
         if (facultyNumber) params.append('faculty_number', facultyNumber);
         return `/attendance/history?${params.toString()}`;
     },
-    getStudentAttendanceCount: (classId, studentId) =>
-        `/get_student_attendance_count?class_id=${classId}&student_id=${studentId}`
+    getStudentAttendanceCount: (classId, { studentId, facultyNumber } = {}) => {
+        const params = new URLSearchParams();
+        if (classId !== null && classId !== undefined && String(classId).trim() !== '') {
+            params.append('class_id', String(classId));
+        }
+        if (studentId !== null && studentId !== undefined && String(studentId).trim() !== '') {
+            params.append('student_id', String(studentId));
+        }
+        if (facultyNumber !== null && facultyNumber !== undefined && String(facultyNumber).trim() !== '') {
+            params.append('faculty_number', String(facultyNumber));
+        }
+        return `/get_student_attendance_count?${params.toString()}`;
+    }
 };
 
 /**

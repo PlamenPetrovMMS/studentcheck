@@ -281,7 +281,19 @@ async function fetchAttendedClassesCount(className, studentId, updateEl) {
     const classId = await resolveClassId(className);
     if (!classId || !studentId) return;
     try {
-        const url = SERVER_BASE_URL + ENDPOINTS.getStudentAttendanceCount(classId, studentId);
+        const normalizedInput = normalizeStudentKey(studentId);
+        const info = studentIndex.get(normalizedInput) || {};
+        const infoId = normalizeStudentKey(info?.id || info?.student_id);
+        const infoFaculty = normalizeStudentKey(getStudentFacultyNumber(info));
+        const isNumeric = (value) => /^\d+$/.test(String(value || '').trim());
+
+        const resolvedStudentId = isNumeric(infoId) ? infoId : (isNumeric(normalizedInput) ? normalizedInput : '');
+        const resolvedFacultyNumber = infoFaculty || (!resolvedStudentId ? normalizedInput : '');
+
+        const url = SERVER_BASE_URL + ENDPOINTS.getStudentAttendanceCount(classId, {
+            studentId: resolvedStudentId || undefined,
+            facultyNumber: resolvedFacultyNumber || undefined
+        });
         const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
         if (!res.ok) return;
         const data = await res.json();
