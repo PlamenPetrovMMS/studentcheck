@@ -287,6 +287,11 @@ async function loadClassesForStudent(studentData) {
 // Class Details Overlay functions ===============================
 
 function openClassDetailsOverlay(className, studentId, facultyNumber) {
+	console.log('[ClassDetails] openClassDetailsOverlay:start', {
+		className,
+		studentId,
+		facultyNumber
+	});
 
 
 	closeViewClassesOverlay();
@@ -301,8 +306,13 @@ function openClassDetailsOverlay(className, studentId, facultyNumber) {
 	if (classTitle) classTitle.textContent = 'Class Details';
 	const classNameEl = document.getElementById('classDetailsOverlayClassName');
 	if (classNameEl) classNameEl.textContent = className || '';
+	console.log('[ClassDetails] openClassDetailsOverlay:ui_ready', {
+		titleSet: Boolean(classTitle),
+		classNameSet: Boolean(classNameEl)
+	});
 
 	loadAttendedClassesCount(className, studentId, facultyNumber);
+	console.log('[ClassDetails] openClassDetailsOverlay:load_triggered');
 
 }
 
@@ -318,7 +328,13 @@ function closeClassDetailsOverlay(){
 }
 
 async function loadAttendedClassesCount(className, studentId, facultyNumber){
+	console.log('[ClassDetails] loadAttendedClassesCount:start', {
+		className,
+		studentId,
+		facultyNumber
+	});
 	const classMeta = await getClassMetaByName(className);
+	console.log('[ClassDetails] loadAttendedClassesCount:class_meta', classMeta);
 	const classId = classMeta?.class_id ?? classMeta?.id ?? null;
 	let total_completed_classes_count = classMeta?.completed_classes_count
 		?? classMeta?.total_completed_classes_count
@@ -328,34 +344,59 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 		return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 	};
 	total_completed_classes_count = normalizeCount(total_completed_classes_count);
+	console.log('[ClassDetails] loadAttendedClassesCount:meta_resolved', {
+		classId,
+		totalCompletedFromMeta: total_completed_classes_count
+	});
 
 	if (!classId) {
 		console.error("Error resolving class ID for class:", className);
+		console.error('[ClassDetails] loadAttendedClassesCount:abort_missing_classId');
 		return;
 	}
 
 	// Always prefer authoritative class-record value when available.
 	// Metadata endpoint may return stale/derived counters.
 	const classRecordCompletedCount = await fetchCompletedClassesCountFromClassRecord(classId);
+	console.log('[ClassDetails] loadAttendedClassesCount:class_record_count', {
+		classId,
+		classRecordCompletedCount
+	});
 	if (classRecordCompletedCount !== null && classRecordCompletedCount !== undefined) {
 		total_completed_classes_count = normalizeCount(classRecordCompletedCount);
 	}
+	console.log('[ClassDetails] loadAttendedClassesCount:count_after_class_record', {
+		totalCompleted: total_completed_classes_count
+	});
 
+	const summaryUrl = serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`;
+	console.log('[ClassDetails] loadAttendedClassesCount:summary_fetch:start', { summaryUrl });
 	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
 		}
 	});
+	console.log('[ClassDetails] loadAttendedClassesCount:summary_fetch:response', {
+		ok: response.ok,
+		status: response.status,
+		statusText: response.statusText
+	});
 
 	if(response.ok){
 		
 		const data = await response.json();
+		console.log('[ClassDetails] loadAttendedClassesCount:summary_payload', data);
 
 		const list = data.attendances || data.items || data.summary || data.attendance_summary || data.records || [];
 		const studentKey = String(studentId || '').trim();
 		const facultyKey = String(facultyNumber || '').trim();
 		let attendance_count = 0;
+		console.log('[ClassDetails] loadAttendedClassesCount:summary_list_info', {
+			listLength: Array.isArray(list) ? list.length : null,
+			studentKey,
+			facultyKey
+		});
 
 		if (Array.isArray(list)) {
 			const row = list.find((item) => {
@@ -363,11 +404,13 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 				const fac = String(item?.faculty_number ?? item?.facultyNumber ?? '').trim();
 				return (studentKey && id === studentKey) || (facultyKey && fac === facultyKey);
 			});
+			console.log('[ClassDetails] loadAttendedClassesCount:matched_row', row || null);
 			if (row) {
 				const countVal = Number(row.count ?? row.attendance_count ?? row.attended_classes_count ?? 0);
 				attendance_count = Number.isFinite(countVal) ? countVal : 0;
 			}
 		}
+		console.log('[ClassDetails] loadAttendedClassesCount:attendance_count_resolved', { attendance_count });
 
 		// Derive class total from summary rows when class-level counter is missing/stale.
 		let derivedTotalFromRows = null;
@@ -378,6 +421,9 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 			}, 0);
 			derivedTotalFromRows = Number.isFinite(maxFromRows) ? maxFromRows : null;
 		}
+		console.log('[ClassDetails] loadAttendedClassesCount:derived_total_from_rows', {
+			derivedTotalFromRows
+		});
 
 		// Only fallback to summary-level aggregate if class-record value is unavailable.
 		if (total_completed_classes_count === null || total_completed_classes_count === undefined || total_completed_classes_count === 0) {
@@ -393,11 +439,18 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 				?? derivedTotalFromRows
 				?? 0;
 		}
+		console.log('[ClassDetails] loadAttendedClassesCount:count_after_summary_fallback', {
+			totalCompleted: total_completed_classes_count
+		});
 		total_completed_classes_count = normalizeCount(total_completed_classes_count) ?? 0;
 		// Sanity floor: total classes cannot be lower than this student's attended classes.
 		if (total_completed_classes_count < attendance_count) {
 			total_completed_classes_count = attendance_count;
 		}
+		console.log('[ClassDetails] loadAttendedClassesCount:final_counts', {
+			attendance_count,
+			total_completed_classes_count
+		});
 
 		const attendanceCountElement = document.getElementById('attendedClassesCount');
 		const totalClassesCountElement = document.getElementById('totalClassesCount'); 
@@ -406,9 +459,19 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 		if (totalClassesCountElement) {
 			totalClassesCountElement.textContent = total_completed_classes_count ?? 0;
 		}
+		console.log('[ClassDetails] loadAttendedClassesCount:ui_updated', {
+			attendanceElementFound: Boolean(attendanceCountElement),
+			totalElementFound: Boolean(totalClassesCountElement),
+			attendance_count,
+			total_completed_classes_count
+		});
 
 	}else{
 		console.error("Error fetching attendance count:", response.status, response.statusText);
+		console.error('[ClassDetails] loadAttendedClassesCount:summary_fetch:failed', {
+			status: response.status,
+			statusText: response.statusText
+		});
 	}
 
 }
@@ -416,16 +479,26 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 // End of Class Details Overlay functions ========================
 
 async function getClassMetaByName(className){
+	const url = serverBaseUrl + ENDPOINTS.getClassIdByName + `?class_name=${encodeURIComponent(className)}`;
+	console.log('[ClassDetails] getClassMetaByName:request', { className, url });
 	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassIdByName + `?class_name=${encodeURIComponent(className)}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
 		}
 	});
+	console.log('[ClassDetails] getClassMetaByName:response', {
+		ok: response.ok,
+		status: response.status,
+		statusText: response.statusText
+	});
 
 	if(response.ok){
-		return await response.json();
+		const payload = await response.json();
+		console.log('[ClassDetails] getClassMetaByName:payload', payload);
+		return payload;
 	}
+	console.warn('[ClassDetails] getClassMetaByName:failed', { className });
 	return null;
 }
 
@@ -434,15 +507,27 @@ async function fetchCompletedClassesCountFromClassRecord(classId) {
 	const attempts = [
 		`${serverBaseUrl}/classes?class_id=${id}`
 	];
+	console.log('[ClassDetails] fetchCompletedClassesCountFromClassRecord:start', {
+		classId,
+		attempts
+	});
 
 	for (const url of attempts) {
 		try {
+			console.log('[ClassDetails] fetchCompletedClassesCountFromClassRecord:request', { url });
 			const response = await fetch(url, {
 				method: 'GET',
 				headers: { 'Content-Type': 'application/json' }
 			});
+			console.log('[ClassDetails] fetchCompletedClassesCountFromClassRecord:response', {
+				url,
+				ok: response.ok,
+				status: response.status,
+				statusText: response.statusText
+			});
 			if (!response.ok) continue;
 			const data = await response.json();
+			console.log('[ClassDetails] fetchCompletedClassesCountFromClassRecord:payload', { url, data });
 			const record = Array.isArray(data)
 				? data[0]
 				: (
@@ -453,14 +538,23 @@ async function fetchCompletedClassesCountFromClassRecord(classId) {
 					|| (Array.isArray(data?.data) ? data.data[0] : data?.data)
 					|| data
 				);
+			console.log('[ClassDetails] fetchCompletedClassesCountFromClassRecord:record_resolved', {
+				url,
+				record
+			});
 			const value = record?.completed_classes_count;
 			if (value !== null && value !== undefined) {
 				const parsed = Number(value);
+				console.log('[ClassDetails] fetchCompletedClassesCountFromClassRecord:value_resolved', {
+					raw: value,
+					parsed
+				});
 				return Number.isFinite(parsed) ? parsed : 0;
 			}
 		} catch (_) {}
 	}
 
+	console.warn('[ClassDetails] fetchCompletedClassesCountFromClassRecord:not_found', { classId });
 	return null;
 }
 
