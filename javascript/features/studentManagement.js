@@ -898,13 +898,20 @@ export async function removeStudentFromClass(facultyNumber, className) {
     try {
         await apiRemoveStudentFromClass(classId, facultyNumber, teacherEmail);
 
-        // Update UI: remove from storage
+        // Optimistic local update using stable matching:
+        // prefer ID match, then faculty number match.
         const targetKey = normalizeStudentKey(facultyNumber);
         const classStudents = loadClassStudentsFromStorage(className);
         if (classStudents && Array.isArray(classStudents)) {
-            const filtered = classStudents.filter(s => 
-                normalizeStudentKey(getStudentFacultyNumber(s) || s.id || s.student_id) !== targetKey
-            );
+            const targetNum = Number(targetKey);
+            const hasNumericTarget = Number.isFinite(targetNum) && /^\d+$/.test(targetKey);
+            const filtered = classStudents.filter((s) => {
+                const idKey = normalizeStudentKey(s?.id || s?.student_id);
+                const facultyKey = normalizeStudentKey(getStudentFacultyNumber(s));
+                const directMatch = targetKey && (idKey === targetKey || facultyKey === targetKey);
+                const numericIdMatch = hasNumericTarget && /^\d+$/.test(idKey) && Number(idKey) === targetNum;
+                return !(directMatch || numericIdMatch);
+            });
             addNewStudentsToStorage(className, filtered);
         }
 
@@ -914,12 +921,17 @@ export async function removeStudentFromClass(facultyNumber, className) {
             removeStudentFromClassAssignments(className, Number(targetKey));
         }
 
-        // Close overlays and refresh
-        closeStudentInfoOverlay();
-        const manageOverlay = getManageStudentsOverlay();
-        if (manageOverlay && isOverlayVisible(manageOverlay)) {
-            await renderManageStudentsForClass(className);
+        // Canonical refresh from API, then re-render list.
+        // If refresh fails, keep optimistic local update.
+        try {
+            await fetchClassStudents(classId, className);
+        } catch (refreshError) {
+            console.warn('[removeStudentFromClass] Post-remove refresh failed, using optimistic state', refreshError);
         }
+
+        // Close overlays and refresh UI without requiring page reload.
+        closeStudentInfoOverlay();
+        await renderManageStudentsForClass(className);
 
         showToast(i18nText('toast_student_removed', 'Student removed'), 'error');
     } catch (error) {
