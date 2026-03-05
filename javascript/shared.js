@@ -469,6 +469,7 @@
       phd: t('phd') || 'PhD'
     };
     const emptyOptionBySelectId = {
+      specialization: '',
       filterLevel: t('level') || 'Level',
       createClassFilterLevel: t('level') || 'Level',
       addStudentsFilterLevel: t('level') || 'Level',
