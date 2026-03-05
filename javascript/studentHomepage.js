@@ -27,6 +27,37 @@ function deriveDisplayName(loginData) {
 	return null;
 }
 
+function resolveStudentData(parsed) {
+	if (!parsed || typeof parsed !== 'object') return null;
+	const sources = [
+		{ candidate: parsed.data?.student, owner: parsed.data },
+		{ candidate: parsed.data?.user, owner: parsed.data },
+		{ candidate: parsed.student, owner: parsed },
+		{ candidate: parsed.user, owner: parsed },
+		{ candidate: parsed.data, owner: parsed }
+	];
+	for (const source of sources) {
+		const candidate = source?.candidate;
+		if (candidate && typeof candidate === 'object') {
+			const resolvedId = candidate.id
+				|| candidate.student_id
+				|| source?.owner?.id
+				|| source?.owner?.student_id
+				|| parsed?.id
+				|| parsed?.student_id
+				|| parsed?.data?.id
+				|| parsed?.data?.student_id
+				|| null;
+			return {
+				...candidate,
+				id: candidate.id || candidate.student_id || resolvedId || undefined,
+				student_id: candidate.student_id || candidate.id || resolvedId || undefined
+			};
+		}
+	}
+	return null;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const revealPage = () => {
 		try {
@@ -52,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		parsedData = JSON.parse(rawData);
-		studentData = parsedData.data.student;
+		studentData = resolveStudentData(parsedData);
 
 	}catch(e){
 		console.error("Error during extracting data.", e);
@@ -62,6 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	if (!studentData) {
 		console.error("No student data found in sessionStorage.");
+		alert('Your session data is incomplete. Please log in again.');
+		window.location.replace('studentLogin.html');
 		revealPage();
 		return;
 	}
@@ -84,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	// Determine a reasonable display name
-	const displayName = studentData.full_name || "Error: No Name Found";
+	const displayName = studentData.full_name || deriveDisplayName(parsedData) || "Error: No Name Found";
 	const facultyNumber = studentData.faculty_number || '---';
 
 	if (nameElement) nameElement.textContent = displayName;
@@ -233,48 +266,75 @@ async function loadClassesForStudent(studentData) {
 
 	let classNames = [];
 
-	var response = await fetch(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${studentData.id}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json'
+	const studentId = studentData?.id || studentData?.student_id || null;
+	const facultyNumber = studentData?.faculty_number || studentData?.facultyNumber || null;
+	const requestUrls = [];
+	if (studentId) {
+		requestUrls.push(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${encodeURIComponent(studentId)}`);
+	}
+	if (facultyNumber) {
+		requestUrls.push(serverBaseUrl + ENDPOINTS.getStudentClasses + `?faculty_number=${encodeURIComponent(facultyNumber)}`);
+	}
+	if (requestUrls.length === 0) {
+		classesList.innerHTML = '<p class="no-classes-message">Unable to load classes. Missing student identifier.</p>';
+		return;
+	}
+	try {
+		let response = null;
+		for (const url of requestUrls) {
+			const attempt = await fetch(url, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (attempt.ok) {
+				response = attempt;
+				break;
+			}
+			response = attempt;
 		}
-	});
 
 
-	if (response.ok) {
-		const data = await response.json();
+		if (response && response.ok) {
+			const data = await response.json();
 
 
-		classNames = data.class_names;
+			classNames = Array.isArray(data?.class_names) ? data.class_names : [];
 
-		if(classNames.length > 0){
+			if(classNames.length > 0){
 
-			classNames.forEach((className) => {
-				const classItem = document.createElement('li');
-				classItem.className = 'class-list-item';
+				classNames.forEach((className) => {
+					const classItem = document.createElement('li');
+					classItem.className = 'class-list-item';
 
-				const btn = document.createElement('button');
-				btn.className = 'class-button';
-    			btn.textContent = className;
+					const btn = document.createElement('button');
+					btn.className = 'class-button';
+    				btn.textContent = className;
 				
-				btn.addEventListener('click', () => {
+					btn.addEventListener('click', () => {
 
-					openClassDetailsOverlay(className, studentData.id, studentData.faculty_number);
+						openClassDetailsOverlay(className, studentId, studentData.faculty_number);
 
+					});
+
+					classItem.appendChild(btn);
+
+					classesList.appendChild(classItem);
 				});
 
-				classItem.appendChild(btn);
 
-				classesList.appendChild(classItem);
-			});
-
-
+			}else{
+				classesList.innerHTML = '<p class="no-classes-message">No classes found.</p>';
+			}
+			
 		}else{
-			classesList.innerHTML = '<p class="no-classes-message">No classes found.</p>';
+			console.error("Error fetching classes:", response.status, response.statusText);
+			classesList.innerHTML = '<p class="no-classes-message">Unable to load classes right now. Please try again.</p>';
 		}
-		
-	}else{
-		console.error("Error fetching classes:", response.status, response.statusText);
+	} catch (e) {
+		console.error("Error fetching classes:", e);
+		classesList.innerHTML = '<p class="no-classes-message">Network error while loading classes. Please try again.</p>';
 	}
 
 }
@@ -333,7 +393,12 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 		studentId,
 		facultyNumber
 	});
-	const classMeta = await getClassMetaByName(className);
+	let classMeta = null;
+	try {
+		classMeta = await getClassMetaByName(className);
+	} catch (e) {
+		console.error('[ClassDetails] loadAttendedClassesCount:getClassMetaByName failed', e);
+	}
 	console.log('[ClassDetails] loadAttendedClassesCount:class_meta', classMeta);
 	const classId = classMeta?.class_id ?? classMeta?.id ?? null;
 	let total_completed_classes_count = classMeta?.completed_classes_count
@@ -352,6 +417,10 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 	if (!classId) {
 		console.error("Error resolving class ID for class:", className);
 		console.error('[ClassDetails] loadAttendedClassesCount:abort_missing_classId');
+		const attendanceCountElement = document.getElementById('attendedClassesCount');
+		const totalClassesCountElement = document.getElementById('totalClassesCount');
+		if (attendanceCountElement) attendanceCountElement.textContent = '0';
+		if (totalClassesCountElement) totalClassesCountElement.textContent = '0';
 		return;
 	}
 
@@ -371,12 +440,22 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 
 	const summaryUrl = serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`;
 	console.log('[ClassDetails] loadAttendedClassesCount:summary_fetch:start', { summaryUrl });
-	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	});
+	let response = null;
+	try {
+		response = await fetch(serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+	} catch (e) {
+		console.error('[ClassDetails] summary request failed', e);
+		const attendanceCountElement = document.getElementById('attendedClassesCount');
+		const totalClassesCountElement = document.getElementById('totalClassesCount');
+		if (attendanceCountElement) attendanceCountElement.textContent = '0';
+		if (totalClassesCountElement) totalClassesCountElement.textContent = String(total_completed_classes_count ?? 0);
+		return;
+	}
 	console.log('[ClassDetails] loadAttendedClassesCount:summary_fetch:response', {
 		ok: response.ok,
 		status: response.status,

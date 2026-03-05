@@ -262,17 +262,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ===== ATTENDANCE OVERLAY SETUP =====
     const attendanceOverlay = getOverlay('attendanceOverlay');
+    let attendanceOverlayInitialized = false;
 
     function openAttendanceOverlay(className) {
-        attendanceOverlay?.addEventListener('click', (e) => {
-            if (e.target === attendanceOverlay) closeAttendanceOverlay();
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
-                closeAttendanceOverlay();
-            }
-        });
+        if (!attendanceOverlayInitialized) {
+            attendanceOverlay?.addEventListener('click', (e) => {
+                if (e.target === attendanceOverlay) closeAttendanceOverlay();
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
+                    closeAttendanceOverlay();
+                }
+            });
+            attendanceOverlayInitialized = true;
+        }
 
         const current = getCurrentClass();
         const titleEl = attendanceOverlay?.querySelector('#attendanceTitle');

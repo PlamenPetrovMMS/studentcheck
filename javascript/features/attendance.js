@@ -55,6 +55,10 @@ function showScanToast(message, tone) {
     }, 2200);
 }
 
+function showInvalidQrToast() {
+    showScanToast(i18nText('err_invalid_qr', 'Invalid QR code.'), 'error');
+}
+
 function scannerDraftKey(className) {
     return `${SCANNER_DRAFT_KEY_PREFIX}${String(className || '').trim()}`;
 }
@@ -266,6 +270,7 @@ export function handleScannedCode(data, mode, className, updateStudentInfoCountF
         payload = JSON.parse(data);
     } catch (_) {
         console.error('[handleScannedCode] Failed to parse JSON from scanned data');
+        showInvalidQrToast();
         return;
     }
 
@@ -299,6 +304,8 @@ export function handleScannedCode(data, mode, className, updateStudentInfoCountF
                 showScanToast(name, tone);
             }
         }
+    } else {
+        showInvalidQrToast();
     }
 
     // For UX feedback, briefly flash camera border

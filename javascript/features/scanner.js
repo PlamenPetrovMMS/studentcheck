@@ -335,24 +335,34 @@ export function openScannerOverlay(className) {
     bindCloseButton(closeBtn, 'closeScannerDiscardRequested');
     bindCloseButton(finishBtn, 'closeScannerRequested');
     
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') {
-            e.stopPropagation();
-            e.preventDefault();
-        }
-    });
+    if (scannerOverlay.dataset.escapeBound !== 'true') {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && scannerOverlay.style.visibility === 'visible') {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        });
+        scannerOverlay.dataset.escapeBound = 'true';
+    }
     
     const radios = scannerOverlay.querySelectorAll('input[name="scanMode"]');
-    radios.forEach(r => r.addEventListener('change', (ev) => {
-        const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
-        setScanMode(mode);
-    }));
+    radios.forEach(r => {
+        if (r.dataset.modeBound === 'true') return;
+        r.dataset.modeBound = 'true';
+        r.addEventListener('change', (ev) => {
+            const mode = ev.target.value === 'leaving' ? 'leaving' : 'joining';
+            setScanMode(mode);
+        });
+    });
     
     const stopBtn = scannerOverlay.querySelector('#scannerStopBtn');
-    stopBtn?.addEventListener('click', () => {
-        const event = new CustomEvent('openAttendanceOverlay', { detail: { className: className || current.name } });
-        document.dispatchEvent(event);
-    });
+    if (stopBtn && stopBtn.dataset.stopBound !== 'true') {
+        stopBtn.dataset.stopBound = 'true';
+        stopBtn.addEventListener('click', () => {
+            const event = new CustomEvent('openAttendanceOverlay', { detail: { className: className || current.name } });
+            document.dispatchEvent(event);
+        });
+    }
     
     // Close button handlers are delegated on the overlay (see above)
     
