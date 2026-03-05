@@ -563,8 +563,7 @@
         { selector: '#reqMatch', key: 'password_req_match' },
         { selector: '#backBtn', key: 'back' },
         { selector: '#nextBtn', key: 'continue' },
-        { selector: '#finishBtn', key: 'finish' },
-        { selector: '.muted', key: 'already_have_account_html', html: true }
+        { selector: '#finishBtn', key: 'finish' }
       ],
       'studenthomepage.html': [
         { selector: '#studentHomeTitle', key: 'student_home_title' },
