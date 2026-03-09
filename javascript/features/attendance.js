@@ -357,11 +357,12 @@ export async function openCloseScannerConfirm(className, onClosed) {
         i18nText('scanner_finish_message', 'Attendance data will be saved.'),
         async () => {
             try {
+                let saveFailed = false;
                 const classId = getClassIdByName(className);
                 
                 if (!classId) {
+                    saveFailed = true;
                     logError('closeScannerConfirm', new Error('Missing class ID'), { className });
-                    // Still attempt to close scanner even without classId
                 } else {
                     // Persist completed attendance in bulk
                     try {
@@ -377,9 +378,18 @@ export async function openCloseScannerConfirm(className, onClosed) {
                             });
                         }
                         if (completedIds.length > 0) {
-                            await saveAttendanceData(classId, completedIds);
+                            const response = await saveAttendanceData(classId, completedIds);
+                            if (!response?.ok) {
+                                saveFailed = true;
+                                logError(
+                                    'closeScannerConfirm',
+                                    new Error(`Attendance save failed with status ${response?.status ?? 'unknown'}`),
+                                    { className, classId, action: 'saveAttendanceData', completedIds: completedIds.length }
+                                );
+                            }
                         }
                     } catch (e) {
+                        saveFailed = true;
                         logError('closeScannerConfirm', e, { className, classId, action: 'saveAttendanceData' });
                     }
 
@@ -389,6 +399,7 @@ export async function openCloseScannerConfirm(className, onClosed) {
                         try {
                             const result = await saveStudentTimestamps(classId, timestamps);
                             if (result.failed > 0) {
+                                saveFailed = true;
                                 logError('closeScannerConfirm', new Error(`Failed to save timestamps for ${result.failed} student(s)`), {
                                     className,
                                     classId,
@@ -397,21 +408,36 @@ export async function openCloseScannerConfirm(className, onClosed) {
                                 });
                             }
                         } catch (e) {
+                            saveFailed = true;
                             logError('closeScannerConfirm', e, { className, classId, action: 'saveStudentTimestamps' });
-                            // Continue with cleanup even if save fails
                         }
                     }
 
-                    try {
-                        await updateCompletedClassesCount(classId);
-                    } catch (e) {
-                        logError('closeScannerConfirm', e, { className, classId, action: 'updateCompletedClassesCount' });
-                        // Continue with cleanup
+                    if (!saveFailed) {
+                        try {
+                            await updateCompletedClassesCount(classId);
+                        } catch (e) {
+                            logError('closeScannerConfirm', e, { className, classId, action: 'updateCompletedClassesCount' });
+                            // Continue with cleanup
+                        }
                     }
 
                 }
 
-                // Always clear state and close overlays, even if saves failed
+                if (saveFailed) {
+                    // Keep draft + in-memory state so the teacher can retry when network/server is stable.
+                    saveScannerDraftForClass(className);
+                    showScanToast(
+                        i18nText(
+                            'scanner_save_failed_keep_draft',
+                            'Could not save attendance. Session was kept on this device. Please retry Finish.'
+                        ),
+                        'error'
+                    );
+                    return;
+                }
+
+                // Save completed successfully, now clear local state and close scanner.
                 clearAttendanceState(className);
                 clearScannerDraftForClass(className);
                 const attendanceOverlay = getOverlay('attendanceOverlay');
