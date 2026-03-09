@@ -5,7 +5,7 @@
  */
 
 import { ensureAttendanceState, getAttendanceState, getAttendanceDotIndex, setAttendanceDotIndex } from '../state/appState.js';
-import { loadClassStudentsFromStorage } from '../storage/studentStorage.js';
+import { loadClassStudentsFromStorage, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
 
 /**
  * Apply state class to attendance dot element
@@ -32,13 +32,14 @@ export function applyDotStateClass(dotEl, state) {
 export function renderAttendanceForClass(className, container) {
     if (!container) return;
 
-    const students = loadClassStudentsFromStorage(className);
+    const students = loadClassStudentsFromStorage(className) || [];
     const stateMap = ensureAttendanceState(className);
 
     // Initialize state for all students
     students.forEach(student => {
-        if (!stateMap.has(student.faculty_number)) {
-            stateMap.set(student.faculty_number, 'none');
+        const facultyNumber = String(resolveStudentFacultyNumber(student) || '').trim();
+        if (facultyNumber && !stateMap.has(facultyNumber)) {
+            stateMap.set(facultyNumber, 'none');
         }
     });
 
@@ -60,12 +61,14 @@ export function renderAttendanceForClass(className, container) {
 
         const name = document.createElement('span');
         name.className = 'attendance-name';
-        name.textContent = `${student.full_name} ${student.faculty_number}`;
+        const fullName = String(student?.full_name || student?.fullName || student?.name || '').trim();
+        const facultyNumber = String(resolveStudentFacultyNumber(student) || '').trim();
+        name.textContent = `${fullName} ${facultyNumber}`.trim();
 
         const dot = document.createElement('span');
         dot.className = 'status-dot';
 
-        const state = stateMap.get(student.faculty_number) || 'none';
+        const state = (facultyNumber && stateMap.get(facultyNumber)) || 'none';
         applyDotStateClass(dot, state);
 
         li.appendChild(name);
@@ -73,7 +76,9 @@ export function renderAttendanceForClass(className, container) {
         ul.appendChild(li);
 
         // Index by faculty_number for updates
-        dotIndex.set(student.faculty_number, dot);
+        if (facultyNumber) {
+            dotIndex.set(facultyNumber, dot);
+        }
     });
 
     container.appendChild(ul);

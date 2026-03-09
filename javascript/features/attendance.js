@@ -19,7 +19,7 @@ import {
     clearStudentTimestamps,
     getAttendanceDotIndex
 } from '../state/appState.js';
-import { loadClassStudentsFromStorage, getStudentInfoForFacultyNumber } from '../storage/studentStorage.js';
+import { loadClassStudentsFromStorage, getStudentInfoForFacultyNumber, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
 import { fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData } from '../api/attendanceApi.js';
 import { updateAttendanceDot } from '../ui/attendanceUI.js';
 import { getActiveClassName, logError } from '../utils/helpers.js';
@@ -163,7 +163,7 @@ export function isStudentInClass(className, studentFacultyNumber) {
 
     if (stored && stored.length > 0) {
         const found = stored.some(student => {
-            const facultyNumber = (student.faculty_number || '').trim();
+            const facultyNumber = String(resolveStudentFacultyNumber(student) || '').trim();
             return facultyNumber && facultyNumber === String(studentFacultyNumber).trim();
         });
 
@@ -184,9 +184,10 @@ export function isStudentInClass(className, studentFacultyNumber) {
 export function initAttendanceStateForClass(className, students) {
     const map = ensureAttendanceState(className);
 
-    students.forEach(student => {
-        if (!map.has(student.faculty_number)) {
-            map.set(student.faculty_number, 'none');
+    (students || []).forEach(student => {
+        const facultyNumber = String(resolveStudentFacultyNumber(student) || '').trim();
+        if (facultyNumber && !map.has(facultyNumber)) {
+            map.set(facultyNumber, 'none');
         }
     });
 

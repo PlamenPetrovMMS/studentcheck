@@ -16,7 +16,7 @@ import {
     clearStudentTimestamps,
     setStudentTimestamp
 } from '../state/appState.js';
-import { loadClassStudentsFromStorage } from '../storage/studentStorage.js';
+import { loadClassStudentsFromStorage, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
 import {
     initAttendanceStateForClass,
     handleScannedCode,
@@ -175,12 +175,15 @@ export function handleRadioChange(mode) {
  * @returns {Promise<void>} Initialization promise
  */
 export function initializeScanner(mode, className, onScanCallback) {
-    const classStudents = loadClassStudentsFromStorage(className);
+    const classStudents = loadClassStudentsFromStorage(className) || [];
     initAttendanceStateForClass(className, classStudents);
 
     // Initialize student timestamps
     classStudents.forEach(student => {
-        setStudentTimestamp(student.faculty_number, null, null);
+        const facultyNumber = String(resolveStudentFacultyNumber(student) || '').trim();
+        if (facultyNumber) {
+            setStudentTimestamp(facultyNumber, null, null);
+        }
     });
 
     return ensureHtml5QrcodeLoaded().then((Html5Qrcode) => {
