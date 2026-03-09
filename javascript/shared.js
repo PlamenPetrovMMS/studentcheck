@@ -726,6 +726,14 @@
       }
     }
 
+    function resolveHomepageBySession() {
+      try {
+        if (sessionStorage.getItem('teacherData')) return 'teacherHomepage.html';
+        if (sessionStorage.getItem('studentData')) return 'studentHomepage.html';
+      } catch (_) {}
+      return 'index.html';
+    }
+
     function syncLogoutVisibility() {
       if (!logoutBtn || !logoutRow) return;
       const visible = hasActiveProfileSession();
@@ -768,8 +776,12 @@
       backdrop.addEventListener('click', closeMenu);
       if (brandBtn) {
         brandBtn.addEventListener('click', () => {
+          const destination = resolveHomepageBySession();
           closeMenu();
-          window.location.reload();
+          const currentPage = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+          if (currentPage !== destination.toLowerCase()) {
+            window.location.href = destination;
+          }
         });
       }
       if (billingBtn) {
