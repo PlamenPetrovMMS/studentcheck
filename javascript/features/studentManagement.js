@@ -128,6 +128,80 @@ function getStudentEmail(student) {
     return '';
 }
 
+function summarizeEmailCandidate(rawValue) {
+    const raw = String(rawValue || '').trim();
+    if (!raw) return { present: false, status: 'missing' };
+
+    if (looksLikeEmail(raw)) {
+        return {
+            present: true,
+            status: 'plain_valid',
+            preview: raw.slice(0, 48),
+            length: raw.length
+        };
+    }
+
+    const decoded = decryptStudentEmail(raw);
+    if (looksLikeEmail(decoded)) {
+        return {
+            present: true,
+            status: 'decoded_valid',
+            preview: raw.slice(0, 48),
+            length: raw.length
+        };
+    }
+
+    return {
+        present: true,
+        status: 'invalid_or_undecodable',
+        preview: raw.slice(0, 48),
+        length: raw.length
+    };
+}
+
+function summarizeEmailSource(source) {
+    if (!source || typeof source !== 'object') {
+        return { exists: false };
+    }
+
+    const fields = [
+        'email',
+        'email_address',
+        'emailAddress',
+        'student_email',
+        'decrypted_email',
+        'plain_email',
+        'original_email',
+        'encrypted_email',
+        'email_encrypted'
+    ];
+
+    const candidates = fields
+        .map((field) => ({ field, ...summarizeEmailCandidate(source[field]) }))
+        .filter((entry) => entry.present);
+
+    return {
+        exists: true,
+        id: String(source.id || source.student_id || '').trim() || null,
+        faculty_number: String(getStudentFacultyNumber(source) || '').trim() || null,
+        resolved_email: getStudentEmail(source) || null,
+        candidates
+    };
+}
+
+function logMissingEmailDiagnostics({ studentId, className, studentObj, storageInfo, allInfo, mergedInfo }) {
+    console.warn('[student-info] Missing resolvable email for student', {
+        studentId: String(studentId || '').trim(),
+        className: String(className || '').trim(),
+        sources: {
+            overlayStudent: summarizeEmailSource(studentObj),
+            classStorage: summarizeEmailSource(storageInfo),
+            allStudentsCache: summarizeEmailSource(allInfo),
+            merged: summarizeEmailSource(mergedInfo)
+        }
+    });
+}
+
 function getStudentGroup(student) {
     return student?.group || student?.group_name || student?.groupName || student?.group_number || student?.groupNumber || '';
 }
@@ -721,6 +795,18 @@ function buildStudentInfoContent(studentObj, studentId, className) {
     const studentData = { ...(studentObj || {}) };
     fillMissing(studentData, storageInfo);
     fillMissing(studentData, allInfo);
+    const resolvedEmail = getStudentEmail(studentData);
+
+    if (!resolvedEmail) {
+        logMissingEmailDiagnostics({
+            studentId,
+            className,
+            studentObj,
+            storageInfo,
+            allInfo,
+            mergedInfo: studentData
+        });
+    }
 
     const nameP = document.createElement('p');
     nameP.textContent = `${i18nText('full_name_label', 'Full Name')}: ${getStudentFullName(studentData) || '—'}`;
