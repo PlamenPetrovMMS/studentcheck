@@ -497,8 +497,9 @@ export async function openCloseScannerConfirm(className, onClosed) {
 
 export async function closeScannerDiscard(className, onClosed) {
     try {
-        clearAttendanceState(className);
-        clearScannerDraftForClass(className);
+        if (String(className || '').trim()) {
+            saveScannerDraftForClass(className);
+        }
         clearStudentTimestamps();
         const attendanceOverlay = getOverlay('attendanceOverlay');
         if (attendanceOverlay && attendanceOverlay.style.visibility === 'visible') {
@@ -520,13 +521,16 @@ export async function closeScannerDiscard(className, onClosed) {
 
 export async function openDiscardScannerConfirm(className, onClosed) {
     openConfirmOverlay(
-        i18nText('scanner_close_message', 'Closing the scanner will discard attendance data.'),
+        i18nText(
+            'scanner_close_keep_message',
+            'Closing the scanner will keep attendance as an unsaved draft on this device.'
+        ),
         async () => {
             await closeScannerDiscard(className, onClosed);
         },
         null,
         {
-            title: i18nText('scanner_close_title', 'Close Scanner'),
+            title: i18nText('scanner_close_keep_title', 'Close Scanner'),
             okText: i18nText('confirm_btn', 'Confirm'),
             okClass: 'danger',
             cancelText: i18nText('cancel_btn', 'Cancel')

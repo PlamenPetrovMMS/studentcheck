@@ -81,11 +81,6 @@ export function resolveStudentFacultyNumber(student) {
         if (decoded) return decoded;
     }
 
-    for (const candidate of candidates) {
-        const raw = String(candidate || '').trim();
-        if (raw) return raw;
-    }
-
     const fallbackId = String(student?.id || student?.student_id || '').trim();
     return fallbackId || '';
 }

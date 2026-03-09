@@ -84,6 +84,15 @@ function bindScannerLifecyclePersistence(className) {
     };
 }
 
+function resolveActiveScannerClassName() {
+    const overlay = getOverlay('scannerOverlay');
+    const fromOverlay = String(overlay?.dataset?.activeClassName || '').trim();
+    if (fromOverlay) return fromOverlay;
+    const fromState = String(getCurrentClass().name || '').trim();
+    if (fromState) return fromState;
+    return String(activeScannerClassName || '').trim();
+}
+
 /**
  * Stop all camera tracks (safety cleanup)
  */
@@ -244,7 +253,10 @@ export function closeScanner(onClosed) {
         }
         activeScannerClassName = '';
         const scannerOverlay = getOverlay('scannerOverlay');
-        if (scannerOverlay) hideOverlay(scannerOverlay);
+        if (scannerOverlay) {
+            delete scannerOverlay.dataset.activeClassName;
+            hideOverlay(scannerOverlay);
+        }
         stopAllCameraTracks();
         try {
             if (typeof onClosed === 'function') onClosed();
@@ -305,6 +317,7 @@ export function openScannerOverlay(className) {
     if (!scannerOverlay) return;
     
     activeScannerClassName = (className || current.name || '').trim();
+    scannerOverlay.dataset.activeClassName = activeScannerClassName;
     const restored = restoreScannerDraftForClass(activeScannerClassName);
     if (!restored) {
         clearStudentTimestamps();
@@ -362,7 +375,8 @@ export function openScannerOverlay(className) {
     if (stopBtn && stopBtn.dataset.stopBound !== 'true') {
         stopBtn.dataset.stopBound = 'true';
         stopBtn.addEventListener('click', () => {
-            const event = new CustomEvent('openAttendanceOverlay', { detail: { className: className || current.name } });
+            const activeClassName = resolveActiveScannerClassName();
+            const event = new CustomEvent('openAttendanceOverlay', { detail: { className: activeClassName } });
             document.dispatchEvent(event);
         });
     }
@@ -386,7 +400,7 @@ export function openScannerOverlay(className) {
     showOverlay(scannerOverlay);
     bindScannerLifecyclePersistence(activeScannerClassName);
     
-    initializeScanner('joining', className || current.name, (decodedText, mode, clsName) => {
+    initializeScanner('joining', activeScannerClassName, (decodedText, mode, clsName) => {
         handleScannedCode(decodedText, mode, clsName, null);
     }).then(() => {
         if (restored) {

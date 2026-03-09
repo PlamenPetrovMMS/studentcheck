@@ -23,7 +23,7 @@ import {
 import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from '../ui/overlays.js';
 import { renderClassItem, updateClassStatusUI, flashReadyBadge, attachNewClassButtonBehavior } from '../ui/classUI.js';
 import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
-import { saveClassStudents } from '../storage/studentStorage.js';
+import { saveClassStudents, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
 import { getStoredClassesMap, saveClassesMap } from '../storage/classStorage.js';
 
 const WIZARD_TOTAL_SLIDES = 2;
@@ -381,10 +381,8 @@ function renderStudentsInWizard(students) {
         const li = document.createElement('li');
         li.className = 'list-item';
         const splitNames = (window.Students?.splitNames || (() => ({ fullName: '' })))(s);
-        const facultyNumber = s.faculty_number;
-        const studentId = (window.Students?.idForStudent
-            ? window.Students.idForStudent(s, 'wizard', idx)
-            : (facultyNumber || splitNames.fullName || `wizard_${idx}`));
+        const facultyNumber = resolveStudentFacultyNumber(s);
+        const studentId = facultyNumber || splitNames.fullName || `wizard_${idx}`;
         
         studentIndex.set(studentId, { fullName: splitNames.fullName, facultyNumber: facultyNumber || '' });
         

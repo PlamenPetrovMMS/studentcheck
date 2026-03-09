@@ -279,14 +279,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const current = getCurrentClass();
+        const resolvedClassName = (className || current.name || '').trim();
         const titleEl = attendanceOverlay?.querySelector('#attendanceTitle');
         if (titleEl) {
-            titleEl.textContent = 'Attendance';
+            titleEl.textContent = resolvedClassName ? `Attendance — ${resolvedClassName}` : 'Attendance';
         }
 
         const listEl = document.getElementById('attendanceList');
         if (listEl) {
-            renderAttendanceForClass(className || current.name, listEl);
+            renderAttendanceForClass(resolvedClassName, listEl);
         }
 
         if (attendanceOverlay) {
