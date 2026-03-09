@@ -9,7 +9,7 @@ import { removeStudentFromClass as apiRemoveStudentFromClass, addStudentsToClass
 import { fetchAllStudents } from '../api/studentApi.js';
 import { fetchClassStudents } from '../api/classApi.js';
 import { getStudentAttendanceCountForClass } from './attendance.js';
-import { fetchStudentAttendanceHistory, fetchClassAttendanceTimestamps } from '../api/attendanceApi.js';
+import { fetchStudentAttendanceHistory, fetchClassAttendanceTimestamps, fetchClassAttendance } from '../api/attendanceApi.js';
 import {
     getCurrentClass,
     setCurrentClass,
@@ -224,19 +224,26 @@ async function fetchAttendedClassesCount(className, studentId, updateEl) {
         const info = studentIndex.get(normalizedInput) || {};
         const infoId = normalizeStudentKey(info?.id || info?.student_id);
         const infoFaculty = normalizeStudentKey(getStudentFacultyNumber(info));
-        const isNumeric = (value) => /^\d+$/.test(String(value || '').trim());
+        const studentKey = infoId || normalizedInput;
+        const facultyKey = infoFaculty || (!infoId ? normalizedInput : '');
 
-        const resolvedStudentId = isNumeric(infoId) ? infoId : (isNumeric(normalizedInput) ? normalizedInput : '');
-        const resolvedFacultyNumber = infoFaculty || (!resolvedStudentId ? normalizedInput : '');
+        const data = await fetchClassAttendance(classId);
+        const list = data?.attendances || data?.items || data?.summary || data?.attendance_summary || data?.records || [];
+        let count = 0;
 
-        const url = SERVER_BASE_URL + ENDPOINTS.getStudentAttendanceCount(classId, {
-            studentId: resolvedStudentId || undefined,
-            facultyNumber: resolvedFacultyNumber || undefined
-        });
-        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) return;
-        const data = await res.json();
-        const count = Number(data?.attendance_count ?? 0);
+        if (Array.isArray(list)) {
+            const row = list.find((item) => {
+                const rowStudentId = normalizeStudentKey(item?.student_id ?? item?.studentId ?? item?.id);
+                const rowFaculty = normalizeStudentKey(item?.faculty_number ?? item?.facultyNumber);
+                return (studentKey && rowStudentId && rowStudentId === studentKey)
+                    || (facultyKey && rowFaculty && rowFaculty === facultyKey);
+            });
+            if (row) {
+                const rawCount = Number(row?.count ?? row?.attendance_count ?? row?.attended_classes_count ?? 0);
+                count = Number.isFinite(rawCount) ? rawCount : 0;
+            }
+        }
+
         if (updateEl && updateEl.isConnected) {
             updateEl.textContent = `${i18nText('attended_classes_label', 'Attended Classes')}: ${Number.isFinite(count) ? count : 0}`;
         }
