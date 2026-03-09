@@ -67,20 +67,60 @@ function isDraftFresh(savedAt) {
     return Number.isFinite(savedAt) && (Date.now() - savedAt) <= SCANNER_DRAFT_MAX_AGE_MS;
 }
 
+function normalizeDraftAttendanceEntries(entries) {
+    if (!Array.isArray(entries)) return [];
+    const normalized = [];
+    entries.forEach((entry) => {
+        if (!Array.isArray(entry) || entry.length < 2) return;
+        const studentId = String(entry[0] || '').trim();
+        const status = entry[1];
+        if (!studentId) return;
+        if (status !== 'joined' && status !== 'completed') return;
+        normalized.push([studentId, status]);
+    });
+    return normalized;
+}
+
+function normalizeDraftTimestampEntries(entries) {
+    if (!Array.isArray(entries)) return [];
+    const normalized = [];
+    entries.forEach((entry) => {
+        if (!Array.isArray(entry) || entry.length < 2) return;
+        const facultyNumber = String(entry[0] || '').trim();
+        const ts = entry[1];
+        if (!facultyNumber || !ts || typeof ts !== 'object') return;
+        const joinedAt = Number.isFinite(ts.joined_at) ? ts.joined_at : null;
+        const leftAt = Number.isFinite(ts.left_at) ? ts.left_at : null;
+        if (joinedAt === null && leftAt === null) return;
+        normalized.push([facultyNumber, { joined_at: joinedAt, left_at: leftAt }]);
+    });
+    return normalized;
+}
+
 export function saveScannerDraftForClass(className) {
     const key = scannerDraftKey(className);
     if (!String(className || '').trim()) return false;
     try {
+        const classLabel = String(className);
         const attendanceMap = getAttendanceState(className) || new Map();
         const timestampsMap = getStudentTimestamps() || new Map();
+        const attendance = normalizeDraftAttendanceEntries(Array.from(attendanceMap.entries()));
+        const timestamps = normalizeDraftTimestampEntries(Array.from(timestampsMap.entries()));
+        if (attendance.length === 0 && timestamps.length === 0) {
+            if (localStorage.getItem(key) !== null) {
+                localStorage.removeItem(key);
+                document.dispatchEvent(new CustomEvent('scannerDraftChanged', { detail: { className: classLabel } }));
+            }
+            return false;
+        }
         const payload = {
-            className: String(className),
+            className: classLabel,
             savedAt: Date.now(),
-            attendance: Array.from(attendanceMap.entries()),
-            timestamps: Array.from(timestampsMap.entries())
+            attendance,
+            timestamps
         };
         localStorage.setItem(key, JSON.stringify(payload));
-        document.dispatchEvent(new CustomEvent('scannerDraftChanged', { detail: { className: String(className) } }));
+        document.dispatchEvent(new CustomEvent('scannerDraftChanged', { detail: { className: classLabel } }));
         return true;
     } catch (_) {
         return false;
@@ -99,22 +139,21 @@ export function restoreScannerDraftForClass(className) {
             clearScannerDraftForClass(className);
             return false;
         }
-        const attendanceEntries = Array.isArray(parsed?.attendance) ? parsed.attendance : [];
-        const timestampEntries = Array.isArray(parsed?.timestamps) ? parsed.timestamps : [];
+        const attendanceEntries = normalizeDraftAttendanceEntries(parsed?.attendance);
+        const timestampEntries = normalizeDraftTimestampEntries(parsed?.timestamps);
+        if (attendanceEntries.length === 0 && timestampEntries.length === 0) {
+            clearScannerDraftForClass(className);
+            return false;
+        }
 
         const attendanceMap = ensureAttendanceState(className);
         attendanceEntries.forEach(([studentId, status]) => {
-            if (!studentId) return;
-            const normalizedStatus = (status === 'joined' || status === 'completed') ? status : 'none';
-            attendanceMap.set(String(studentId), normalizedStatus);
-            updateAttendanceDot(String(studentId), normalizedStatus);
+            attendanceMap.set(String(studentId), status);
+            updateAttendanceDot(String(studentId), status);
         });
 
         timestampEntries.forEach(([facultyNumber, ts]) => {
-            if (!facultyNumber || !ts || typeof ts !== 'object') return;
-            const joinedAt = Number.isFinite(ts.joined_at) ? ts.joined_at : null;
-            const leftAt = Number.isFinite(ts.left_at) ? ts.left_at : null;
-            setStudentTimestamp(String(facultyNumber), joinedAt, leftAt);
+            setStudentTimestamp(String(facultyNumber), ts.joined_at, ts.left_at);
         });
         return attendanceEntries.length > 0 || timestampEntries.length > 0;
     } catch (_) {
@@ -142,9 +181,13 @@ export function hasScannerDraftForClass(className) {
             clearScannerDraftForClass(className);
             return false;
         }
-        const attendanceEntries = Array.isArray(parsed?.attendance) ? parsed.attendance : [];
-        const timestampEntries = Array.isArray(parsed?.timestamps) ? parsed.timestamps : [];
-        return attendanceEntries.length > 0 || timestampEntries.length > 0;
+        const attendanceEntries = normalizeDraftAttendanceEntries(parsed?.attendance);
+        const timestampEntries = normalizeDraftTimestampEntries(parsed?.timestamps);
+        const hasDraft = attendanceEntries.length > 0 || timestampEntries.length > 0;
+        if (!hasDraft) {
+            clearScannerDraftForClass(className);
+        }
+        return hasDraft;
     } catch (_) {
         return false;
     }
@@ -250,7 +293,6 @@ export function updateAttendanceState(className, studentFacultyNumber, mode, upd
         // Update UI dot
         updateAttendanceDot(studentFacultyNumber, next);
         changed = true;
-        saveScannerDraftForClass(className);
 
         // When completing a session, only update local state; server update happens on scanner close.
     }
@@ -297,6 +339,7 @@ export function handleScannedCode(data, mode, className, updateStudentInfoCountF
             recentScanTimestamps.set(scanKey, now);
 
             const result = updateAttendanceState(activeClass, studentFacultyNumber, mode, updateStudentInfoCountFn);
+            saveScannerDraftForClass(activeClass);
             if (result?.changed) {
                 const storedStudents = loadClassStudentsFromStorage(activeClass) || [];
                 const info = getStudentInfoForFacultyNumber(studentFacultyNumber, storedStudents);
@@ -497,8 +540,10 @@ export async function openCloseScannerConfirm(className, onClosed) {
 
 export async function closeScannerDiscard(className, onClosed) {
     try {
-        if (String(className || '').trim()) {
-            saveScannerDraftForClass(className);
+        const resolvedClassName = String(className || '').trim();
+        if (resolvedClassName) {
+            clearAttendanceState(resolvedClassName);
+            clearScannerDraftForClass(resolvedClassName);
         }
         clearStudentTimestamps();
         const attendanceOverlay = getOverlay('attendanceOverlay');
@@ -522,15 +567,15 @@ export async function closeScannerDiscard(className, onClosed) {
 export async function openDiscardScannerConfirm(className, onClosed) {
     openConfirmOverlay(
         i18nText(
-            'scanner_close_keep_message',
-            'Closing the scanner will keep attendance as an unsaved draft on this device.'
+            'scanner_close_message',
+            'Closing the scanner will discard attendance data.'
         ),
         async () => {
             await closeScannerDiscard(className, onClosed);
         },
         null,
         {
-            title: i18nText('scanner_close_keep_title', 'Close Scanner'),
+            title: i18nText('scanner_close_title', 'Close Scanner'),
             okText: i18nText('confirm_btn', 'Confirm'),
             okClass: 'danger',
             cancelText: i18nText('cancel_btn', 'Cancel')
