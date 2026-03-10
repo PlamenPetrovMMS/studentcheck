@@ -290,22 +290,9 @@ function parseTimestamp(value) {
     return Number.isNaN(parsed) ? null : parsed;
 }
 
-function logAttendanceHistoryDebug(stage, payload = {}) {
-    try {
-        console.log(`[attendance-history-debug] ${stage}`, payload);
-    } catch (_) {}
-}
-
 async function fetchAttendedClassesCount(className, studentId, updateEl) {
     const classId = await resolveClassId(className);
-    if (!classId || !studentId) {
-        logAttendanceHistoryDebug('fetchAttendedClassesCount:skip', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim()
-        });
-        return;
-    }
+    if (!classId || !studentId) return;
     try {
         const normalizedInput = normalizeStudentKey(studentId);
         const info = studentIndex.get(normalizedInput) || {};
@@ -313,23 +300,10 @@ async function fetchAttendedClassesCount(className, studentId, updateEl) {
         const infoFaculty = normalizeStudentKey(getStudentFacultyNumber(info));
         const studentKey = infoId || normalizedInput;
         const facultyKey = infoFaculty || (!infoId ? normalizedInput : '');
-        logAttendanceHistoryDebug('fetchAttendedClassesCount:start', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            normalizedInput,
-            infoId,
-            infoFaculty,
-            studentKey,
-            facultyKey
-        });
 
         const data = await fetchClassAttendance(classId);
         const list = data?.attendances || data?.items || data?.summary || data?.attendance_summary || data?.records || [];
         let count = 0;
-        let matchedByStudentId = false;
-        let matchedByFaculty = false;
-        let matchedRow = null;
 
         if (Array.isArray(list)) {
             const row = list.find((item) => {
@@ -339,42 +313,16 @@ async function fetchAttendedClassesCount(className, studentId, updateEl) {
                     || (facultyKey && rowFaculty && rowFaculty === facultyKey);
             });
             if (row) {
-                const rowStudentId = normalizeStudentKey(row?.student_id ?? row?.studentId ?? row?.id);
-                const rowFaculty = normalizeStudentKey(row?.faculty_number ?? row?.facultyNumber);
-                matchedByStudentId = Boolean(studentKey && rowStudentId && rowStudentId === studentKey);
-                matchedByFaculty = Boolean(facultyKey && rowFaculty && rowFaculty === facultyKey);
-                matchedRow = {
-                    student_id: row?.student_id ?? row?.studentId ?? row?.id ?? null,
-                    faculty_number: row?.faculty_number ?? row?.facultyNumber ?? null,
-                    count: row?.count ?? row?.attendance_count ?? row?.attended_classes_count ?? null
-                };
                 const rawCount = Number(row?.count ?? row?.attendance_count ?? row?.attended_classes_count ?? 0);
                 count = Number.isFinite(rawCount) ? rawCount : 0;
             }
         }
 
-        logAttendanceHistoryDebug('fetchAttendedClassesCount:summary', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            listLength: Array.isArray(list) ? list.length : null,
-            matchedByStudentId,
-            matchedByFaculty,
-            matchedRow,
-            resolvedCount: Number.isFinite(count) ? count : 0
-        });
-
         if (updateEl && updateEl.isConnected) {
             updateEl.textContent = `${i18nText('attended_classes_label', 'Attended Classes')}: ${Number.isFinite(count) ? count : 0}`;
         }
-    } catch (error) {
-        logAttendanceHistoryDebug('fetchAttendedClassesCount:error', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            message: error?.message || String(error)
-        });
-        // Keep default count
+    } catch (_) {
+        // Silent fail; keep default count
     }
 }
 
@@ -414,30 +362,12 @@ function getAttendanceHistoryOverlay() { return getOverlay('attendanceHistoryOve
  */
 async function loadAttendanceLog(className, studentId) {
     const classId = await resolveClassId(className);
-    if (!classId) {
-        logAttendanceHistoryDebug('loadAttendanceLog:skip-no-class-id', {
-            className: String(className || '').trim(),
-            studentId: String(studentId || '').trim()
-        });
-        return [];
-    }
+    if (!classId) return [];
 
     const info = studentIndex.get(String(studentId)) || {};
     const facultyNumber = info.faculty_number || studentId;
     const studentKey = String(studentId || '').trim();
     const facultyKey = String(facultyNumber || '').trim();
-    logAttendanceHistoryDebug('loadAttendanceLog:start', {
-        className: String(className || '').trim(),
-        classId,
-        studentId: String(studentId || '').trim(),
-        studentKey,
-        facultyKey,
-        hasStudentIndexEntry: studentIndex.has(String(studentId)),
-        resolvedInfo: {
-            id: String(info?.id || info?.student_id || '').trim() || null,
-            faculty_number: String(info?.faculty_number || info?.facultyNumber || '').trim() || null
-        }
-    });
 
     const normalize = (row) => {
         const joinedAt = parseTimestamp(
@@ -452,58 +382,19 @@ async function loadAttendanceLog(className, studentId) {
     try {
         const numericStudentId = /^\d+$/.test(String(studentId || '')) ? String(studentId) : '';
         const useStudentId = numericStudentId && numericStudentId !== facultyKey;
-        logAttendanceHistoryDebug('loadAttendanceLog:request-history', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            queryStudentId: useStudentId ? numericStudentId : null,
-            queryFacultyNumber: facultyKey || null,
-            useStudentId
-        });
         const data = await fetchStudentAttendanceHistory(classId, {
             studentId: useStudentId ? numericStudentId : null,
             facultyNumber: facultyKey
         });
         const raw = data?.records || data?.sessions || data?.history || data?.attendance || data?.items || [];
-        const normalizedSessions = Array.isArray(raw) ? raw.map(normalize).filter(r => r.joinAt || r.leaveAt) : [];
-        logAttendanceHistoryDebug('loadAttendanceLog:response-history', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            rawLength: Array.isArray(raw) ? raw.length : null,
-            normalizedSessionsLength: normalizedSessions.length,
-            rawSample: Array.isArray(raw)
-                ? raw.slice(0, 3).map((row) => ({
-                    student_id: row?.student_id ?? row?.studentId ?? null,
-                    faculty_number: row?.faculty_number ?? row?.facultyNumber ?? null,
-                    joined_at: row?.joined_at ?? row?.joinedAt ?? row?.join_time ?? row?.joinTime ?? null,
-                    left_at: row?.left_at ?? row?.leftAt ?? row?.leave_time ?? row?.leaveTime ?? null
-                }))
-                : []
-        });
         if (Array.isArray(raw) && raw.length > 0) {
-            return normalizedSessions;
+            return raw.map(normalize).filter(r => r.joinAt || r.leaveAt);
         }
     } catch (e) {
-        logAttendanceHistoryDebug('loadAttendanceLog:history-error', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            studentKey,
-            facultyKey,
-            message: e?.message || String(e)
-        });
         console.warn('[loadAttendanceLog] Attendance history endpoint failed, falling back', e);
     }
 
     try {
-        logAttendanceHistoryDebug('loadAttendanceLog:request-fallback', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            studentKey,
-            facultyKey
-        });
         const data = await fetchClassAttendanceTimestamps(classId);
         const raw = data?.timestamps || data?.items || data?.records || data?.rows || [];
         if (!Array.isArray(raw)) return [];
@@ -513,38 +404,9 @@ async function loadAttendanceLog(className, studentId) {
             return (studentKey && rowStudentId && rowStudentId === studentKey)
                 || (facultyKey && rowFaculty && rowFaculty === facultyKey);
         });
-        const normalizedSessions = filtered.map(normalize).filter(r => r.joinAt || r.leaveAt);
-        logAttendanceHistoryDebug('loadAttendanceLog:response-fallback', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            rawLength: raw.length,
-            filteredLength: filtered.length,
-            normalizedSessionsLength: normalizedSessions.length,
-            rawSample: raw.slice(0, 3).map((row) => ({
-                student_id: row?.student_id ?? row?.studentId ?? null,
-                faculty_number: row?.faculty_number ?? row?.facultyNumber ?? null,
-                joined_at: row?.joined_at ?? row?.joinedAt ?? row?.join_time ?? row?.joinTime ?? null,
-                left_at: row?.left_at ?? row?.leftAt ?? row?.leave_time ?? row?.leaveTime ?? null
-            })),
-            filteredSample: filtered.slice(0, 3).map((row) => ({
-                student_id: row?.student_id ?? row?.studentId ?? null,
-                faculty_number: row?.faculty_number ?? row?.facultyNumber ?? null,
-                joined_at: row?.joined_at ?? row?.joinedAt ?? row?.join_time ?? row?.joinTime ?? null,
-                left_at: row?.left_at ?? row?.leftAt ?? row?.leave_time ?? row?.leaveTime ?? null
-            }))
-        });
         if (filtered.length === 0) return [];
-        return normalizedSessions;
+        return filtered.map(normalize).filter(r => r.joinAt || r.leaveAt);
     } catch (e) {
-        logAttendanceHistoryDebug('loadAttendanceLog:fallback-error', {
-            className: String(className || '').trim(),
-            classId,
-            studentId: String(studentId || '').trim(),
-            studentKey,
-            facultyKey,
-            message: e?.message || String(e)
-        });
         console.error('[loadAttendanceLog] Failed to load attendance history fallback', e);
         return [];
     }
@@ -1133,12 +995,6 @@ async function renderAttendanceHistoryList(className, studentId) {
 
     container.innerHTML = '<p class="muted" style="text-align:center;">Loading...</p>';
     const sessions = await loadAttendanceLog(className, studentId);
-    logAttendanceHistoryDebug('renderAttendanceHistoryList:result', {
-        className: String(className || '').trim(),
-        studentId: String(studentId || '').trim(),
-        sessionsLength: Array.isArray(sessions) ? sessions.length : null,
-        sessionsSample: Array.isArray(sessions) ? sessions.slice(0, 3) : []
-    });
 
     container.innerHTML = '';
     if (!Array.isArray(sessions) || sessions.length === 0) {
@@ -1244,11 +1100,6 @@ export function openAttendanceHistoryOverlay(className, studentId) {
         overlay.dataset.studentId = String(studentId);
         overlay.dataset.className = String(className || getCurrentClass().name || '');
     }
-    logAttendanceHistoryDebug('openAttendanceHistoryOverlay', {
-        className: String(className || '').trim(),
-        studentId: String(studentId || '').trim(),
-        overlayFound: Boolean(overlay)
-    });
     renderAttendanceHistoryList(className, studentId);
 }
 
