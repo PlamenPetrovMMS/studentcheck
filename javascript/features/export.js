@@ -103,6 +103,23 @@ function parseTimestamp(value) {
     return Number.isNaN(parsed) ? null : parsed;
 }
 
+function sanitizeFileNamePart(value, fallback = 'class') {
+    const cleaned = String(value || '')
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ')
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    return (cleaned || fallback).slice(0, 80);
+}
+
+function sanitizeSheetName(value, fallback = 'Attendance') {
+    const cleaned = String(value || '')
+        .replace(/[:\\\/\?\*\[\]]/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+    return (cleaned || fallback).slice(0, 31);
+}
+
 /**
  * Collect attendance entries for a class
  * @param {string} className - Class name
@@ -165,17 +182,24 @@ function sortAttendanceEntries(entries) {
 
 /**
  * Build worksheet data array
+ * @param {string} className - Class name
  * @param {Array<Object>} entries - Attendance entries
  * @returns {Array<Array>} Worksheet data (rows)
  */
-function buildWorksheetData(entries) {
+function buildWorksheetData(className, entries) {
+    const title = `Class: ${String(className || '').trim() || 'N/A'}`;
     const header = ['Student Name', 'Faculty Number', 'Joined At', 'Left At'];
-    return [header, ...entries.map(e => [
+    return [
+        [title],
+        [],
+        header,
+        ...entries.map(e => [
         e.studentName,
         e.facultyNumber,
         formatDateTime(e.joinedAt),
         formatDateTime(e.leftAt)
-    ])];
+    ])
+    ];
 }
 
 /**
@@ -192,11 +216,14 @@ async function generateAndDownloadAttendanceXlsx(className, entries) {
         alert('Unable to load XLSX library. Attendance export failed.');
         return;
     }
-    const wsData = buildWorksheetData(entries);
+    const wsData = buildWorksheetData(className, entries);
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
-    const safeClass = (className || 'class').replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').slice(0, 50) || 'class';
+    ws['!merges'] = ws['!merges'] || [];
+    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } });
+    const sheetName = sanitizeSheetName(`Attendance ${className || ''}`, 'Attendance');
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    const safeClass = sanitizeFileNamePart(className, 'class');
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
