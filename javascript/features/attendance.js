@@ -421,8 +421,20 @@ export async function openCloseScannerConfirm(className, onClosed) {
                                 completedIds.push(apiStudentId);
                             });
                         }
+                        console.log('[attendance-history-debug] closeScannerConfirm:completed-ids', {
+                            className: String(className || '').trim(),
+                            classId,
+                            completedIdsCount: completedIds.length,
+                            completedIdsPreview: completedIds.slice(0, 10)
+                        });
                         if (completedIds.length > 0) {
                             const response = await saveAttendanceData(classId, completedIds);
+                            console.log('[attendance-history-debug] closeScannerConfirm:saveAttendanceData-response', {
+                                className: String(className || '').trim(),
+                                classId,
+                                ok: Boolean(response?.ok),
+                                status: response?.status ?? null
+                            });
                             if (!response?.ok) {
                                 saveFailed = true;
                                 logError(
@@ -439,9 +451,26 @@ export async function openCloseScannerConfirm(className, onClosed) {
 
                     // Safely get timestamps (may be empty map, which is fine)
                     const timestamps = getStudentTimestamps();
+                    console.log('[attendance-history-debug] closeScannerConfirm:timestamps-before-save', {
+                        className: String(className || '').trim(),
+                        classId,
+                        timestampsSize: timestamps?.size ?? 0,
+                        timestampsPreview: Array.from((timestamps || new Map()).entries())
+                            .slice(0, 10)
+                            .map(([facultyNumber, ts]) => ({
+                                facultyNumber,
+                                joined_at: ts?.joined_at ?? null,
+                                left_at: ts?.left_at ?? null
+                            }))
+                    });
                     if (timestamps && timestamps.size > 0) {
                         try {
                             const result = await saveStudentTimestamps(classId, timestamps);
+                            console.log('[attendance-history-debug] closeScannerConfirm:saveStudentTimestamps-result', {
+                                className: String(className || '').trim(),
+                                classId,
+                                result
+                            });
                             if (result.failed > 0) {
                                 saveFailed = true;
                                 logError('closeScannerConfirm', new Error(`Failed to save timestamps for ${result.failed} student(s)`), {
