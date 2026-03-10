@@ -20,7 +20,7 @@ import {
     getAttendanceDotIndex
 } from '../state/appState.js';
 import { loadClassStudentsFromStorage, getStudentInfoForFacultyNumber, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
-import { fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData } from '../api/attendanceApi.js';
+import { fetchClassAttendance, saveStudentTimestamps, updateCompletedClassesCount, saveAttendanceData, saveAttendanceSession } from '../api/attendanceApi.js';
 import { updateAttendanceDot } from '../ui/attendanceUI.js';
 import { getActiveClassName, logError } from '../utils/helpers.js';
 import { openConfirmOverlay, getOverlay, hideOverlay } from '../ui/overlays.js';
@@ -391,6 +391,52 @@ export function getStudentAttendanceCountForClass(className, studentId, updateCo
     return 0;
 }
 
+function shouldFallbackToLegacyAttendanceSave(error) {
+    const status = Number(error?.status || 0);
+    return status === 404 || status === 405 || status === 501;
+}
+
+function buildAttendanceSessionRecords(attendanceMap, timestamps, storedStudents) {
+    const keys = new Set();
+    if (attendanceMap && typeof attendanceMap.forEach === 'function') {
+        attendanceMap.forEach((_, facultyNumber) => {
+            const key = String(facultyNumber || '').trim();
+            if (key) keys.add(key);
+        });
+    }
+    if (timestamps && typeof timestamps.forEach === 'function') {
+        timestamps.forEach((_, facultyNumber) => {
+            const key = String(facultyNumber || '').trim();
+            if (key) keys.add(key);
+        });
+    }
+
+    const records = [];
+    keys.forEach((facultyNumber) => {
+        const status = attendanceMap?.get(facultyNumber) || 'none';
+        const ts = timestamps?.get(facultyNumber) || null;
+        const joinedAt = Number.isFinite(ts?.joined_at) ? ts.joined_at : null;
+        const leftAt = Number.isFinite(ts?.left_at) ? ts.left_at : null;
+        if (status === 'none' && joinedAt === null && leftAt === null) return;
+
+        const info = getStudentInfoForFacultyNumber(facultyNumber, storedStudents);
+        const studentIdRaw = info?.id ?? info?.student_id ?? null;
+        const studentId = studentIdRaw !== null && studentIdRaw !== undefined
+            ? String(studentIdRaw).trim() || null
+            : null;
+
+        records.push({
+            student_id: studentId,
+            faculty_number: facultyNumber,
+            status,
+            joined_at: joinedAt,
+            left_at: leftAt
+        });
+    });
+
+    return records;
+}
+
 /**
  * Open confirmation dialog for closing scanner
  * @param {string} className - Class name
@@ -408,81 +454,118 @@ export async function openCloseScannerConfirm(className, onClosed) {
                     saveFailed = true;
                     logError('closeScannerConfirm', new Error('Missing class ID'), { className });
                 } else {
-                    // Persist completed attendance in bulk
+                    const attendanceMap = getAttendanceState(className) || new Map();
+                    const storedStudents = loadClassStudentsFromStorage(className) || [];
+                    const timestamps = getStudentTimestamps() || new Map();
+                    const sessionRecords = buildAttendanceSessionRecords(attendanceMap, timestamps, storedStudents);
+                    console.log('[attendance-history-debug] closeScannerConfirm:session-records', {
+                        className: String(className || '').trim(),
+                        classId,
+                        recordsCount: sessionRecords.length,
+                        recordsPreview: sessionRecords.slice(0, 10)
+                    });
+
+                    let persistedTransactionally = false;
                     try {
-                        const attendanceMap = getAttendanceState(className);
-                        const storedStudents = loadClassStudentsFromStorage(className) || [];
-                        const completedIds = [];
-                        if (attendanceMap) {
+                        const sessionResult = await saveAttendanceSession(classId, sessionRecords, { className });
+                        persistedTransactionally = true;
+                        console.log('[attendance-history-debug] closeScannerConfirm:saveAttendanceSession-response', {
+                            className: String(className || '').trim(),
+                            classId,
+                            status: sessionResult?.status ?? null,
+                            ok: Boolean(sessionResult?.ok)
+                        });
+                    } catch (e) {
+                        const fallbackToLegacy = shouldFallbackToLegacyAttendanceSave(e);
+                        logError('closeScannerConfirm', e, {
+                            className,
+                            classId,
+                            action: 'saveAttendanceSession',
+                            records: sessionRecords.length,
+                            fallbackToLegacy
+                        });
+                        if (!fallbackToLegacy) {
+                            saveFailed = true;
+                        } else {
+                            console.warn('[closeScannerConfirm] saveAttendanceSession unavailable, falling back to legacy endpoints.', {
+                                className: String(className || '').trim(),
+                                classId,
+                                status: e?.status ?? null
+                            });
+                        }
+                    }
+
+                    if (!saveFailed && !persistedTransactionally) {
+                        // Legacy fallback for environments where /attendance/finish is not deployed yet.
+                        try {
+                            const completedIds = [];
                             attendanceMap.forEach((status, facultyNumber) => {
                                 if (status !== 'completed') return;
                                 const info = getStudentInfoForFacultyNumber(facultyNumber, storedStudents);
                                 const apiStudentId = info?.id || info?.student_id || info?.faculty_number || info?.facultyNumber || facultyNumber;
                                 completedIds.push(apiStudentId);
                             });
-                        }
-                        console.log('[attendance-history-debug] closeScannerConfirm:completed-ids', {
-                            className: String(className || '').trim(),
-                            classId,
-                            completedIdsCount: completedIds.length,
-                            completedIdsPreview: completedIds.slice(0, 10)
-                        });
-                        if (completedIds.length > 0) {
-                            const response = await saveAttendanceData(classId, completedIds);
-                            console.log('[attendance-history-debug] closeScannerConfirm:saveAttendanceData-response', {
+                            console.log('[attendance-history-debug] closeScannerConfirm:completed-ids', {
                                 className: String(className || '').trim(),
                                 classId,
-                                ok: Boolean(response?.ok),
-                                status: response?.status ?? null
+                                completedIdsCount: completedIds.length,
+                                completedIdsPreview: completedIds.slice(0, 10)
                             });
-                            if (!response?.ok) {
-                                saveFailed = true;
-                                logError(
-                                    'closeScannerConfirm',
-                                    new Error(`Attendance save failed with status ${response?.status ?? 'unknown'}`),
-                                    { className, classId, action: 'saveAttendanceData', completedIds: completedIds.length }
-                                );
-                            }
-                        }
-                    } catch (e) {
-                        saveFailed = true;
-                        logError('closeScannerConfirm', e, { className, classId, action: 'saveAttendanceData' });
-                    }
-
-                    // Safely get timestamps (may be empty map, which is fine)
-                    const timestamps = getStudentTimestamps();
-                    console.log('[attendance-history-debug] closeScannerConfirm:timestamps-before-save', {
-                        className: String(className || '').trim(),
-                        classId,
-                        timestampsSize: timestamps?.size ?? 0,
-                        timestampsPreview: Array.from((timestamps || new Map()).entries())
-                            .slice(0, 10)
-                            .map(([facultyNumber, ts]) => ({
-                                facultyNumber,
-                                joined_at: ts?.joined_at ?? null,
-                                left_at: ts?.left_at ?? null
-                            }))
-                    });
-                    if (timestamps && timestamps.size > 0) {
-                        try {
-                            const result = await saveStudentTimestamps(classId, timestamps);
-                            console.log('[attendance-history-debug] closeScannerConfirm:saveStudentTimestamps-result', {
-                                className: String(className || '').trim(),
-                                classId,
-                                result
-                            });
-                            if (result.failed > 0) {
-                                saveFailed = true;
-                                logError('closeScannerConfirm', new Error(`Failed to save timestamps for ${result.failed} student(s)`), {
-                                    className,
+                            if (completedIds.length > 0) {
+                                const response = await saveAttendanceData(classId, completedIds);
+                                console.log('[attendance-history-debug] closeScannerConfirm:saveAttendanceData-response', {
+                                    className: String(className || '').trim(),
                                     classId,
-                                    action: 'saveStudentTimestamps',
-                                    result
+                                    ok: Boolean(response?.ok),
+                                    status: response?.status ?? null
                                 });
+                                if (!response?.ok) {
+                                    saveFailed = true;
+                                    logError(
+                                        'closeScannerConfirm',
+                                        new Error(`Attendance save failed with status ${response?.status ?? 'unknown'}`),
+                                        { className, classId, action: 'saveAttendanceData', completedIds: completedIds.length }
+                                    );
+                                }
                             }
                         } catch (e) {
                             saveFailed = true;
-                            logError('closeScannerConfirm', e, { className, classId, action: 'saveStudentTimestamps' });
+                            logError('closeScannerConfirm', e, { className, classId, action: 'saveAttendanceData' });
+                        }
+
+                        console.log('[attendance-history-debug] closeScannerConfirm:timestamps-before-save', {
+                            className: String(className || '').trim(),
+                            classId,
+                            timestampsSize: timestamps?.size ?? 0,
+                            timestampsPreview: Array.from((timestamps || new Map()).entries())
+                                .slice(0, 10)
+                                .map(([facultyNumber, ts]) => ({
+                                    facultyNumber,
+                                    joined_at: ts?.joined_at ?? null,
+                                    left_at: ts?.left_at ?? null
+                                }))
+                        });
+                        if (!saveFailed && timestamps && timestamps.size > 0) {
+                            try {
+                                const result = await saveStudentTimestamps(classId, timestamps);
+                                console.log('[attendance-history-debug] closeScannerConfirm:saveStudentTimestamps-result', {
+                                    className: String(className || '').trim(),
+                                    classId,
+                                    result
+                                });
+                                if (result.failed > 0) {
+                                    saveFailed = true;
+                                    logError('closeScannerConfirm', new Error(`Failed to save timestamps for ${result.failed} student(s)`), {
+                                        className,
+                                        classId,
+                                        action: 'saveStudentTimestamps',
+                                        result
+                                    });
+                                }
+                            } catch (e) {
+                                saveFailed = true;
+                                logError('closeScannerConfirm', e, { className, classId, action: 'saveStudentTimestamps' });
+                            }
                         }
                     }
 

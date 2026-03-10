@@ -104,6 +104,69 @@ export async function saveAttendanceData(classId, studentIds) {
 }
 
 /**
+ * Save attendance session in a single request (attendance + timestamps).
+ * Backend should persist records transactionally.
+ * @param {number} classId - Class ID
+ * @param {Array<Object>} records - Session records
+ * @param {Object} [options] - Optional metadata
+ * @param {string} [options.className] - Class name
+ * @returns {Promise<{ok:boolean,status:number,data:any}>} Result object
+ */
+export async function saveAttendanceSession(classId, records, { className } = {}) {
+    const payload = {
+        class_id: classId,
+        class_name: String(className || '').trim() || undefined,
+        records: Array.isArray(records)
+            ? records.map((record) => {
+                const joinedAt = serializeTimestamp(record?.joined_at ?? null);
+                const leftAt = serializeTimestamp(record?.left_at ?? null);
+                const normalized = {
+                    student_id: record?.student_id !== null && record?.student_id !== undefined
+                        ? String(record.student_id).trim() || undefined
+                        : undefined,
+                    faculty_number: record?.faculty_number !== null && record?.faculty_number !== undefined
+                        ? String(record.faculty_number).trim() || undefined
+                        : undefined,
+                    status: record?.status ? String(record.status) : undefined
+                };
+                if (joinedAt !== undefined) normalized.joined_at = joinedAt;
+                if (leftAt !== undefined) normalized.left_at = leftAt;
+                return normalized;
+            }).filter((record) => record.student_id || record.faculty_number)
+            : []
+    };
+
+    const response = await fetch(SERVER_BASE_URL + ENDPOINTS.finishAttendanceSession, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    let bodyText = '';
+    let data = null;
+    try {
+        bodyText = await response.text();
+        data = bodyText ? JSON.parse(bodyText) : null;
+    } catch (_) {
+        data = bodyText || null;
+    }
+
+    if (!response.ok) {
+        const error = new Error(`Attendance session save failed: ${response.status} ${response.statusText}`);
+        error.status = response.status;
+        error.responseBody = bodyText || null;
+        error.payload = payload;
+        throw error;
+    }
+
+    return {
+        ok: true,
+        status: response.status,
+        data
+    };
+}
+
+/**
  * Save student timestamps to database (single student)
  * @param {number} classId - Class ID
  * @param {string} facultyNumber - Faculty number

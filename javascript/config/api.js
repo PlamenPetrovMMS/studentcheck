@@ -14,6 +14,7 @@ export const ENDPOINTS = {
     deleteClass: '/classes',
     updateClass: '/classes',
     attendance: '/attendance',
+    finishAttendanceSession: '/attendance/finish',
     class_students: '/class_students',
     students: '/students',
     updateCompletedClassesCount: '/update_completed_classes_count',
