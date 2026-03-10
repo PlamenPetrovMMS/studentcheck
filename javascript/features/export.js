@@ -203,9 +203,8 @@ function buildWorksheetData(className, entries) {
         'Student Name',
         'Faculty Number',
         'Joined At',
-        'Joined Date',
         'Left At',
-        'Left Date'
+        'Date'
     ];
     return [
         [title],
@@ -215,9 +214,8 @@ function buildWorksheetData(className, entries) {
         e.studentName,
         e.facultyNumber,
         formatTime(e.joinedAt),
-        formatDate(e.joinedAt),
         formatTime(e.leftAt),
-        formatDate(e.leftAt)
+        formatDate(e.joinedAt ?? e.leftAt)
     ])
     ];
 }
@@ -240,7 +238,7 @@ async function generateAndDownloadAttendanceXlsx(className, entries) {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     ws['!merges'] = ws['!merges'] || [];
-    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
+    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
     const sheetName = sanitizeSheetName(`Attendance ${className || ''}`, 'Attendance');
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
     const safeClass = sanitizeFileNamePart(className, 'class');
