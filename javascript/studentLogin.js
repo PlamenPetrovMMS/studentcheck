@@ -1,14 +1,27 @@
 // Loading overlay now handled by shared LoadingOverlay utility
 
 
+const facultyNumberInput = document.getElementById('facultyNumber');
+if (facultyNumberInput) {
+    facultyNumberInput.addEventListener('input', () => {
+        const digitsOnly = facultyNumberInput.value.replace(/\D+/g, '');
+        if (facultyNumberInput.value !== digitsOnly) {
+            facultyNumberInput.value = digitsOnly;
+        }
+    });
+}
+
 // --- Login submit handler ---
 document.getElementById('studentLoginForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
     const errorMessage = document.getElementById('error-message');
 
-    const facultyNumber = document.getElementById('facultyNumber').value;
+    const facultyNumber = (document.getElementById('facultyNumber').value || '').replace(/\D+/g, '');
     const password = document.getElementById('password').value;
+    if (facultyNumberInput && facultyNumberInput.value !== facultyNumber) {
+        facultyNumberInput.value = facultyNumber;
+    }
 
     const studentData = { facultyNumber, password };
 
