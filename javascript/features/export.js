@@ -60,19 +60,30 @@ function ensureXlsxLoaded() {
 }
 
 /**
- * Format timestamp to "YYYY-MM-DD HH:MM"
+ * Format timestamp to "HH:MM"
  * @param {number} ms - Timestamp in milliseconds
- * @returns {string} Formatted date string
+ * @returns {string} Time string
  */
-function formatDateTime(ms) {
+function formatTime(ms) {
+    if (!ms && ms !== 0) return '';
+    const d = new Date(ms);
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mi}`;
+}
+
+/**
+ * Format timestamp to "YYYY-MM-DD"
+ * @param {number} ms - Timestamp in milliseconds
+ * @returns {string} Date string
+ */
+function formatDate(ms) {
     if (!ms && ms !== 0) return '';
     const d = new Date(ms);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 function parseTimestamp(value) {
@@ -188,7 +199,14 @@ function sortAttendanceEntries(entries) {
  */
 function buildWorksheetData(className, entries) {
     const title = `Class: ${String(className || '').trim() || 'N/A'}`;
-    const header = ['Student Name', 'Faculty Number', 'Joined At', 'Left At'];
+    const header = [
+        'Student Name',
+        'Faculty Number',
+        'Joined At',
+        'Joined Date',
+        'Left At',
+        'Left Date'
+    ];
     return [
         [title],
         [],
@@ -196,8 +214,10 @@ function buildWorksheetData(className, entries) {
         ...entries.map(e => [
         e.studentName,
         e.facultyNumber,
-        formatDateTime(e.joinedAt),
-        formatDateTime(e.leftAt)
+        formatTime(e.joinedAt),
+        formatDate(e.joinedAt),
+        formatTime(e.leftAt),
+        formatDate(e.leftAt)
     ])
     ];
 }
@@ -220,7 +240,7 @@ async function generateAndDownloadAttendanceXlsx(className, entries) {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     ws['!merges'] = ws['!merges'] || [];
-    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } });
+    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
     const sheetName = sanitizeSheetName(`Attendance ${className || ''}`, 'Attendance');
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
     const safeClass = sanitizeFileNamePart(className, 'class');
