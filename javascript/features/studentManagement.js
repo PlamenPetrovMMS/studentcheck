@@ -209,7 +209,8 @@ function getStudentGroup(student) {
 function i18nText(key, fallback) {
     try {
         if (window.i18n && typeof window.i18n.t === 'function') {
-            return window.i18n.t(key);
+            const value = window.i18n.t(key);
+            if (value && value !== key) return value;
         }
     } catch (_) {}
     return fallback || key;
@@ -582,32 +583,18 @@ export async function renderManageStudentsForClass(className) {
             
             if (classId) {
                 try {
+                    // fetchClassStudents internally retries once (with 1s delay) when the server
+                    // returns empty but localStorage has data (workaround for server insert lag).
                     const fetched = await fetchClassStudents(classId, className);
                     students = fetched || [];
-                    
-                    // WORKAROUND: If fetch returned empty but we have students in localStorage,
-                    // the server inserts may still be processing. Wait and retry once.
+
+                    // If still empty after the internal retry, fall back to localStorage.
                     if (students.length === 0) {
                         const storedStudents = loadClassStudentsFromStorage(className);
                         if (storedStudents && storedStudents.length > 0) {
-                            await new Promise(resolve => setTimeout(resolve, 1500));
-                            
-                            try {
-                                const retryFetched = await fetchClassStudents(classId, className, 1);
-                                if (retryFetched && retryFetched.length > 0) {
-                                    students = retryFetched;
-                                }
-                            } catch (retryError) {
-                                console.warn('[Class Overlay Render] Retry failed, using localStorage fallback', {
-                                    className,
-                                    error: retryError.message
-                                });
-                                // Use localStorage as fallback if retry fails
-                                students = storedStudents;
-                            }
+                            students = storedStudents;
                         }
                     }
-                    
                 } catch (e) {
                     console.error(`[${module}] Failed to fetch class students from API:`, {
                         className,

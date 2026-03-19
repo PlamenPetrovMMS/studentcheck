@@ -174,7 +174,7 @@ export async function fetchClassStudents(classId, className, retryCount = 0) {
         `${SERVER_BASE_URL + ENDPOINTS.class_students}?class_id=${encodeURIComponent(numericClassId)}`,
         {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Accept': 'application/json' }
         }
     );
 
@@ -312,7 +312,7 @@ export async function removeStudentFromClass(classId, facultyNumber, teacherEmai
     let lastErr = null;
     for (const requestBody of payloads) {
         try {
-            return await authJsonFetch(`${SERVER_BASE_URL}/class_students/remove`, {
+            return await authJsonFetch(`${SERVER_BASE_URL + ENDPOINTS.removeStudentFromClass}`, {
                 method: 'POST',
                 body: JSON.stringify(requestBody)
             });

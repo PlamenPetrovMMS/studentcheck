@@ -95,8 +95,7 @@ export async function saveAttendanceData(classId, studentIds) {
         })
     });
 
-    if (response.ok) {
-    } else {
+    if (!response.ok) {
         console.error('[saveAttendanceData] Failed to save attendance data. Status:', response.status);
     }
 
