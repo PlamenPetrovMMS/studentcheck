@@ -33,7 +33,7 @@ export function flashReadyBadge(button) {
     if (!button) return;
     const badge = document.createElement('div');
     badge.className = 'ready-badge';
-    badge.textContent = '✓ Ready';
+    badge.textContent = (window.i18n && typeof window.i18n.t === 'function') ? window.i18n.t('class_ready_badge') : '✓ Ready';
     button.appendChild(badge);
     setTimeout(() => {
         badge.remove();

@@ -46,7 +46,8 @@ export function renderAttendanceForClass(className, container) {
     container.innerHTML = '';
 
     if (!students || students.length === 0) {
-        container.innerHTML = '<p class="muted" style="text-align:center;">No students in this class.</p>';
+        const emptyText = (window.i18n && typeof window.i18n.t === 'function') ? window.i18n.t('no_students_in_class') : 'No students in this class.';
+        container.innerHTML = `<p class="muted" style="text-align:center;">${emptyText}</p>`;
         return;
     }
 

@@ -42,20 +42,9 @@ function t(key, fallback) {
 }
 
 function showUnsavedAttendanceNotice() {
-    const isBg = (() => {
-        try {
-            return (localStorage.getItem('language') || 'en') === 'bg';
-        } catch (_) {
-            return false;
-        }
-    })();
-    const title = isBg
-        ? 'Незапазени присъствия'
-        : t('unsaved_scanner_notice_title', 'Unsaved Attendances');
-    const message = isBg
-        ? 'Има незапазени присъствия за тази дисциплина. Моля, завършете или откажете сесията на сканиране.'
-        : t('unsaved_scanner_notice_message', 'There are unsaved attendances for this class. Please finish or discard the scanner session when done.');
-    const okText = isBg ? 'Разбирам' : 'I understand';
+    const title = t('unsaved_scanner_notice_title', 'Unsaved Attendances');
+    const message = t('unsaved_scanner_notice_message', 'There are unsaved attendances for this class. Please finish or discard the scanner session when done.');
+    const okText = t('unsaved_scanner_notice_ok_btn', 'I understand');
     openConfirmOverlay(
         message,
         () => {},

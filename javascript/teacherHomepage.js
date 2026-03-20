@@ -45,6 +45,16 @@ import { handleDownloadAttendanceTable } from './features/export.js';
 import { showOverlay, hideOverlay, getOverlay, openConfirmOverlay } from './ui/overlays.js';
 import { getActiveClassName, getRawClassNameFromButton } from './utils/helpers.js';
 
+function i18nText(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            const value = window.i18n.t(key);
+            if (value && value !== key) return value;
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
 // ===== MAIN INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', async () => {
     if (!bootstrapTeacherAuthState()) {
@@ -61,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     deletePopup.id = 'unreadyDeletePopup';
     deletePopup.className = 'unready-delete-popup';
     deletePopup.type = 'button';
-    deletePopup.textContent = 'Delete class';
+    deletePopup.textContent = i18nText('delete_class_btn', 'Delete class');
     deletePopup.style.display = 'none';
     document.body.appendChild(deletePopup);
 
@@ -274,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resolvedClassName = (className || current.name || '').trim();
         const titleEl = attendanceOverlay?.querySelector('#attendanceTitle');
         if (titleEl) {
-            titleEl.textContent = 'Attendances';
+            titleEl.textContent = i18nText('attendance', 'Attendance');
         }
 
         const listEl = document.getElementById('attendanceList');

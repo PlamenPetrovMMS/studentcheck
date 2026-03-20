@@ -363,7 +363,7 @@ function openClassDetailsOverlay(className, studentId, facultyNumber) {
 	background.style.visibility = 'visible';
 	
 	const classTitle = document.getElementById('classDetailsOverlayTitle');
-	if (classTitle) classTitle.textContent = 'Class Details';
+	if (classTitle) classTitle.textContent = (window.i18n && typeof window.i18n.t === 'function') ? window.i18n.t('class_details') : 'Class Details';
 	const classNameEl = document.getElementById('classDetailsOverlayClassName');
 	if (classNameEl) classNameEl.textContent = className || '';
 	console.log('[ClassDetails] openClassDetailsOverlay:ui_ready', {

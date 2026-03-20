@@ -1,5 +1,15 @@
 import { SERVER_BASE_URL } from './config/api.js';
 
+function t(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            const value = window.i18n.t(key);
+            if (value && value !== key) return value;
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
 const planEl = document.getElementById('billingPlan');
 const statusEl = document.getElementById('billingStatus');
 const renewalEl = document.getElementById('billingRenewal');
@@ -7,10 +17,6 @@ const errorEl = document.getElementById('billingError');
 const manageBtn = document.getElementById('manageBillingBtn');
 const upgradeBtn = document.getElementById('upgradeBillingBtn');
 
-const MANAGE_LABEL = 'Manage billing';
-const OPENING_LABEL = 'Opening...';
-const UPGRADE_LABEL = 'Upgrade';
-const STARTING_LABEL = 'Starting...';
 let canManageBilling = true;
 
 function setError(message) {
@@ -69,7 +75,7 @@ async function fetchBillingStatus() {
 async function openBillingPortal() {
     if (!canManageBilling) return;
     setError('');
-    setLoadingState(manageBtn, true, OPENING_LABEL, MANAGE_LABEL);
+    setLoadingState(manageBtn, true, t('billing_opening', 'Opening...'), t('billing_manage', 'Manage billing'));
     try {
         const url = `${SERVER_BASE_URL}/api/billing/portal`;
         const res = await fetch(url, {
@@ -87,8 +93,8 @@ async function openBillingPortal() {
         window.location.assign(data.url);
     } catch (error) {
         console.error('Billing portal error:', error);
-        setError('Unable to open billing portal. Please try again.');
-        setLoadingState(manageBtn, false, OPENING_LABEL, MANAGE_LABEL);
+        setError(t('billing_err_portal', 'Unable to open billing portal. Please try again.'));
+        setLoadingState(manageBtn, false, t('billing_opening', 'Opening...'), t('billing_manage', 'Manage billing'));
         if (manageBtn) manageBtn.disabled = !canManageBilling;
     }
 }
@@ -98,11 +104,11 @@ async function startUpgradeCheckout() {
     setError('');
     const priceId = upgradeBtn.dataset.priceId;
     if (!priceId) {
-        setError('Upgrade is not configured yet.');
+        setError(t('billing_upgrade_not_configured', 'Upgrade is not configured yet.'));
         return;
     }
 
-    setLoadingState(upgradeBtn, true, STARTING_LABEL, UPGRADE_LABEL);
+    setLoadingState(upgradeBtn, true, t('billing_starting', 'Starting...'), t('billing_upgrade', 'Upgrade'));
     try {
         const url = `${SERVER_BASE_URL}/api/billing/checkout`;
         const res = await fetch(url, {
@@ -120,8 +126,8 @@ async function startUpgradeCheckout() {
         window.location.assign(data.url);
     } catch (error) {
         console.error('Checkout error:', error);
-        setError('Unable to start checkout. Please try again.');
-        setLoadingState(upgradeBtn, false, STARTING_LABEL, UPGRADE_LABEL);
+        setError(t('billing_err_checkout', 'Unable to start checkout. Please try again.'));
+        setLoadingState(upgradeBtn, false, t('billing_starting', 'Starting...'), t('billing_upgrade', 'Upgrade'));
     }
 }
 
@@ -138,7 +144,7 @@ async function initBilling() {
         renderBillingState(state);
     } catch (error) {
         console.error('Billing status error:', error);
-        setError('Unable to load billing status.');
+        setError(t('billing_err_status', 'Unable to load billing status.'));
     }
 }
 

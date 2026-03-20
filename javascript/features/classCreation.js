@@ -26,6 +26,16 @@ import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from '../config/api.js';
 import { saveClassStudents, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
 import { getStoredClassesMap, saveClassesMap } from '../storage/classStorage.js';
 
+function i18nText(key, fallback) {
+    try {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            const value = window.i18n.t(key);
+            if (value && value !== key) return value;
+        }
+    } catch (_) {}
+    return fallback || key;
+}
+
 const WIZARD_TOTAL_SLIDES = 2;
 let createClassSlideIndex = 0;
 let createClassFiltersInitialized = false;
@@ -105,12 +115,12 @@ async function handleWizardNext() {
     
     const name = nameInput.value.trim();
     if (!name) {
-        errorEl.textContent = 'Name is required.';
+        errorEl.textContent = i18nText('err_name_required', 'Name is required.');
         // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
     if (name.length > 50) {
-        errorEl.textContent = 'Name must be 50 characters or less.';
+        errorEl.textContent = i18nText('err_name_too_long', 'Name must be 50 characters or less.');
         return;
     }
 
@@ -239,7 +249,7 @@ async function submitNewClass() {
     const finishBtn = getCreateClassFinishBtn();
     if (finishBtn) {
         finishBtn.disabled = true;
-        finishBtn.textContent = 'Creating...';
+        finishBtn.textContent = i18nText('creating', 'Creating...');
     }
 
     try {
@@ -329,7 +339,7 @@ async function submitNewClass() {
     } finally {
         if (finishBtn) {
             finishBtn.disabled = false;
-            finishBtn.textContent = 'Finish';
+            finishBtn.textContent = i18nText('finish', 'Finish');
         }
         clearWizardSelections();
         setWizardClassName('');
@@ -457,7 +467,7 @@ function filterStudentsWizard(query) {
     if (!msgEl) {
         msgEl = document.createElement('p');
         msgEl.id = 'wizardNoMatch';
-        msgEl.textContent = 'No matching students.';
+        msgEl.textContent = i18nText('no_matching_students', 'No matching students.');
         msgEl.style.display = 'none';
         msgEl.style.fontStyle = 'italic';
         msgEl.style.color = '#6b7280';

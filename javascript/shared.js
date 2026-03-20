@@ -260,7 +260,34 @@
       scanner_close_title: 'Close Scanner',
       scanner_close_message: 'Closing the scanner will discard attendance data.',
       unsaved_scanner_notice_title: 'Unsaved Attendances',
-      unsaved_scanner_notice_message: 'There are unsaved attendances for this class. Please finish or discard the scanner session when done.'
+      unsaved_scanner_notice_message: 'There are unsaved attendances for this class. Please finish or discard the scanner session when done.',
+      unsaved_scanner_notice_ok_btn: 'I understand',
+      discard: 'Discard',
+      no_students_found: 'No students found.',
+      no_students_in_class: 'No students in this class.',
+      no_students_assigned: 'No students assigned to this class.',
+      no_matching_students: 'No matching students.',
+      err_name_required: 'Name is required.',
+      err_name_too_long: 'Name must be 50 characters or less.',
+      creating: 'Creating...',
+      submitting: 'Submitting...',
+      err_load_students: 'Unable to load students. Please check your connection and try again.',
+      err_no_students_db: 'No students available in the database.',
+      total_attendance_tooltip: 'Total sessions attended',
+      attendance_count_label: 'Attended',
+      class_ready_badge: '✓ Ready',
+      billing_title: 'Billing',
+      billing_current_plan: 'Current plan',
+      billing_subscription_status: 'Subscription status',
+      billing_renews_on: 'Renews on',
+      billing_manage: 'Manage billing',
+      billing_opening: 'Opening...',
+      billing_upgrade: 'Upgrade',
+      billing_starting: 'Starting...',
+      billing_err_portal: 'Unable to open billing portal. Please try again.',
+      billing_err_checkout: 'Unable to start checkout. Please try again.',
+      billing_err_status: 'Unable to load billing status.',
+      billing_upgrade_not_configured: 'Upgrade is not configured yet.'
     },
     bg: {
       language_label: 'Език',
@@ -402,7 +429,36 @@
       scanner_finish_title: 'Да завършим ли дисциплината?',
       scanner_finish_message: 'Данните за присъствието ще бъдат запазени.',
       scanner_close_title: 'Затваряне на скенера',
-      scanner_close_message: 'Затварянето на скенера ще изтрие данните за присъствието.'
+      scanner_close_message: 'Затварянето на скенера ще изтрие данните за присъствието.',
+      unsaved_scanner_notice_title: 'Незапазени присъствия',
+      unsaved_scanner_notice_message: 'Има незапазени присъствия за тази дисциплина. Моля, завършете или откажете сесията на сканиране.',
+      unsaved_scanner_notice_ok_btn: 'Разбирам',
+      discard: 'Откажи',
+      no_students_found: 'Няма намерени студенти.',
+      no_students_in_class: 'Няма студенти в тази дисциплина.',
+      no_students_assigned: 'Няма назначени студенти в тази дисциплина.',
+      no_matching_students: 'Няма съответстващи студенти.',
+      err_name_required: 'Името е задължително.',
+      err_name_too_long: 'Името трябва да е 50 символа или по-малко.',
+      creating: 'Създаване...',
+      submitting: 'Изпращане...',
+      err_load_students: 'Неуспешно зареждане на студентите. Проверете връзката си и опитайте отново.',
+      err_no_students_db: 'Няма налични студенти в базата данни.',
+      total_attendance_tooltip: 'Общо посетени занятия',
+      attendance_count_label: 'Посетени',
+      class_ready_badge: '✓ Готово',
+      billing_title: 'Плащания',
+      billing_current_plan: 'Текущ план',
+      billing_subscription_status: 'Статус на абонамент',
+      billing_renews_on: 'Подновяване на',
+      billing_manage: 'Управление на плащания',
+      billing_opening: 'Отваряне...',
+      billing_upgrade: 'Надграждане',
+      billing_starting: 'Стартиране...',
+      billing_err_portal: 'Неуспешно отваряне на портала за плащания. Опитайте отново.',
+      billing_err_checkout: 'Неуспешно стартиране на плащането. Опитайте отново.',
+      billing_err_status: 'Неуспешно зареждане на статуса на плащанията.',
+      billing_upgrade_not_configured: 'Надграждането все още не е конфигурирано.'
     }
   };
 
@@ -609,7 +665,16 @@
         { selector: '#addClassBtn', key: 'new_class' },
         { selector: '#createClassSearchInput', key: 'search_students_placeholder', attr: 'placeholder' },
         { selector: '#addStudentsSearchInput', key: 'search_placeholder', attr: 'placeholder' },
-        { selector: '#overlaySearchInput', key: 'search_placeholder', attr: 'placeholder' }
+        { selector: '#overlaySearchInput', key: 'search_placeholder', attr: 'placeholder' },
+        { selector: '#scannerDiscardBtn', key: 'discard' }
+      ],
+      'billing.html': [
+        { selector: '#billingTitle', key: 'billing_title' },
+        { selector: '.billing-row:nth-child(1) .billing-label', key: 'billing_current_plan' },
+        { selector: '.billing-row:nth-child(2) .billing-label', key: 'billing_subscription_status' },
+        { selector: '.billing-row:nth-child(3) .billing-label', key: 'billing_renews_on' },
+        { selector: '#manageBillingBtn', key: 'billing_manage' },
+        { selector: '#upgradeBillingBtn', key: 'billing_upgrade' }
       ]
     };
 

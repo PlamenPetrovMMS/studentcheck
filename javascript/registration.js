@@ -245,7 +245,7 @@
         btn.type = 'button';
         btn.id = 'backBtn';
         btn.className = 'btn btn-secondary';
-        btn.textContent = 'Back';
+        btn.textContent = t('back', 'Back');
         btn.addEventListener('click', back);
 
         actions.prepend(btn);
@@ -749,8 +749,8 @@
             submitting = true;
             finishBtn.disabled = true;
             const originalText = finishBtn.textContent;
-            finishBtn.textContent = 'Submitting...';
-            LoadingOverlay.show('Submitting...');
+            finishBtn.textContent = t('submitting', 'Submitting...');
+            LoadingOverlay.show(t('submitting', 'Submitting...'));
 
             const resp = await fetch('https://studentcheck-server.onrender.com/registration', {
                 method: 'POST',
@@ -864,7 +864,7 @@
         } finally {
             submitting = false;
             finishBtn.disabled = false;
-            finishBtn.textContent = 'Finish';
+            finishBtn.textContent = t('finish', 'Finish');
             LoadingOverlay.hide();
         }
     }

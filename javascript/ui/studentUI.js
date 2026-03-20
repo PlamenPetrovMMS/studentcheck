@@ -28,7 +28,8 @@ export function renderStudentList(container, students, options = {}) {
     container.innerHTML = '';
 
     if (!Array.isArray(students) || students.length === 0) {
-        container.innerHTML = '<p>No students found.</p>';
+        const emptyText = (window.i18n && typeof window.i18n.t === 'function') ? window.i18n.t('no_students_found') : 'No students found.';
+        container.innerHTML = `<p>${emptyText}</p>`;
         return;
     }
 

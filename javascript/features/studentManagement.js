@@ -823,7 +823,7 @@ export async function renderManageStudentsForClass(className) {
         p.className = 'muted';
         p.style.textAlign = 'center';
         p.style.padding = '20px';
-        p.textContent = 'No students assigned to this class.';
+        p.textContent = i18nText('no_students_assigned', 'No students assigned to this class.');
         listEl.appendChild(p);
         
     } catch (error) {
@@ -1781,9 +1781,9 @@ async function renderAddStudentsList(className, options = {}) {
         emptyMsg.style.textAlign = 'center';
         emptyMsg.style.padding = '20px';
         if (fetchError) {
-            emptyMsg.textContent = 'Unable to load students. Please check your connection and try again.';
+            emptyMsg.textContent = i18nText('err_load_students', 'Unable to load students. Please check your connection and try again.');
         } else {
-            emptyMsg.textContent = 'No students available in the database.';
+            emptyMsg.textContent = i18nText('err_no_students_db', 'No students available in the database.');
         }
         listEl.appendChild(emptyMsg);
         return;

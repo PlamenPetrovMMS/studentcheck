@@ -214,7 +214,7 @@ export function renameClass(oldName, newName) {
     const manageTitle = document.getElementById('manageStudentsTitle');
     const manageStudentsOverlay = getOverlay('manageStudentsOverlay');
     if (manageTitle && manageStudentsOverlay && isOverlayVisible(manageStudentsOverlay)) {
-        manageTitle.textContent = 'Students';
+        manageTitle.textContent = i18nText('students', 'Students');
     }
     
     const scannerTitle = document.getElementById('scannerTitle');
@@ -226,7 +226,7 @@ export function renameClass(oldName, newName) {
     const attendanceTitle = document.getElementById('attendanceTitle');
     const attendanceOverlay = getOverlay('attendanceOverlay');
     if (attendanceTitle && attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
-        attendanceTitle.textContent = `Attendance — ${to}`;
+        attendanceTitle.textContent = `${i18nText('attendance', 'Attendance')} — ${to}`;
     }
     
     return true;
@@ -319,12 +319,12 @@ async function onSaveClassOptions() {
     const oldName = getActiveClassName();
     
     if (!proposed) {
-        setClassOptionsError('Name cannot be empty.');
+        setClassOptionsError(i18nText('err_name_required', 'Name is required.'));
         // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
         return;
     }
     if (proposed.length > 50) {
-        setClassOptionsError('Name must be 50 characters or less.');
+        setClassOptionsError(i18nText('err_name_too_long', 'Name must be 50 characters or less.'));
         return;
     }
     
