@@ -145,7 +145,7 @@
     box-shadow: none;
     transition: background 0.25s ease, transform 120ms ease, box-shadow 0.25s ease;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 .newClassBtn:hover {
     /* Highlight on hover: slightly brighter and stronger glow */
