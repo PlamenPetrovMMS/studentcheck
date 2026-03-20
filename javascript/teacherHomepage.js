@@ -259,7 +259,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             attendanceOverlay?.addEventListener('click', (e) => {
                 if (e.target === attendanceOverlay) closeAttendanceOverlay();
             });
-            
+
+            document.getElementById('closeAttendanceBtn')?.addEventListener('click', () => closeAttendanceOverlay());
+
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && attendanceOverlay && isOverlayVisible(attendanceOverlay)) {
                     closeAttendanceOverlay();
@@ -272,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resolvedClassName = (className || current.name || '').trim();
         const titleEl = attendanceOverlay?.querySelector('#attendanceTitle');
         if (titleEl) {
-            titleEl.textContent = resolvedClassName ? `Attendance — ${resolvedClassName}` : 'Attendance';
+            titleEl.textContent = 'Attendances';
         }
 
         const listEl = document.getElementById('attendanceList');

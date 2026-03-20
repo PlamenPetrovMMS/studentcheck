@@ -329,7 +329,10 @@
         <!-- Attendance Overlay -->
         <div class="overlay" id="attendanceOverlay">
             <div class="ready-class-popup attendance-popup" role="dialog" aria-modal="true" aria-labelledby="attendanceTitle">
-                <h2 id="attendanceTitle">Attendance</h2>
+                <div class="overlay-top-bar">
+                    <h2 id="attendanceTitle">Attendances</h2>
+                    <button type="button" id="closeAttendanceBtn" class="close-small" aria-label="Close">×</button>
+                </div>
                 <div id="attendanceList" class="attendance-list"></div>
             </div>
         </div>
