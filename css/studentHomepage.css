@@ -200,6 +200,7 @@ body {
 
 .student-navbar .navbar-logo {
 	position: relative;
+	top: 0;
 	margin: 4px;
 }
 
