@@ -594,6 +594,10 @@ export async function openCloseScannerConfirm(className, onClosed) {
                 }
 
                 // Save completed successfully, now clear local state and close scanner.
+                showScanToast(
+                    i18nText('scanner_save_success', 'Attendance saved successfully.'),
+                    'success'
+                );
                 clearAttendanceState(className);
                 clearScannerDraftForClass(className);
                 const attendanceOverlay = getOverlay('attendanceOverlay');

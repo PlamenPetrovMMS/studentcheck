@@ -646,6 +646,23 @@ export async function renderManageStudentsForClass(className) {
                 }
             }
 
+            // Fetch attendance counts so each student card can show their total.
+            // Build a map of numeric student_id -> count (falls back to 0 for missing entries).
+            let attendanceCountMap = new Map();
+            try {
+                const classId = await resolveClassId(className);
+                if (classId) {
+                    const attData = await fetchClassAttendance(classId);
+                    const attList = attData?.items || attData?.attendance || [];
+                    attList.forEach(r => {
+                        const sid = String(r.student_id ?? '').trim();
+                        if (sid) attendanceCountMap.set(sid, Number(r.attendance_count ?? r.count ?? 0));
+                    });
+                }
+            } catch (_) {
+                // Non-fatal: proceed without counts
+            }
+
             const ul = document.createElement('ul');
             ul.style.listStyle = 'none';
             ul.style.padding = '0';
@@ -678,6 +695,16 @@ export async function renderManageStudentsForClass(className) {
 
                 wrap.appendChild(nameEl);
                 wrap.appendChild(facEl);
+
+                // Attendance count badge
+                const numericId = String(student.id || student.student_id || '').trim();
+                const attCount = attendanceCountMap.get(numericId) ?? 0;
+                const countEl = document.createElement('span');
+                countEl.className = 'student-attendance-count';
+                countEl.title = i18nText('total_attendance_tooltip', 'Total sessions attended');
+                countEl.textContent = i18nText('attendance_count_label', 'Attended') + ': ' + attCount;
+                wrap.appendChild(countEl);
+
                 li.appendChild(wrap);
                 li.addEventListener('click', () => openStudentInfoOverlay(studentId, className));
 
@@ -1911,13 +1938,17 @@ export async function finalizeAddStudentsToClass(className) {
         // This ensures inserts complete before we try to fetch the updated list
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Verify by fetching the class students again
+        // Verify by fetching the class students again.
+        // Do NOT pass className here — fetchClassStudents writes to localStorage when className is
+        // given, and if the server hasn't committed the new student yet it would overwrite our
+        // optimistic localStorage update (written above) with an incomplete list, breaking
+        // isStudentInClass() for students that are already checked in.
         try {
             const verifyTimeout = setTimeout(() => {
                 console.warn('[finalizeAddStudentsToClass] Verification fetch timed out, proceeding anyway');
             }, 2000);
 
-            const verifiedStudents = await fetchClassStudents(classId, className);
+            const verifiedStudents = await fetchClassStudents(classId);
             clearTimeout(verifyTimeout);
 
             // If verification shows fewer students than expected, log warning but continue

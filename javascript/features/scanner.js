@@ -14,7 +14,8 @@ import {
     setLastScanAt,
     getCurrentClass,
     clearStudentTimestamps,
-    setStudentTimestamp
+    setStudentTimestamp,
+    getStudentTimestamp
 } from '../state/appState.js';
 import { loadClassStudentsFromStorage, resolveStudentFacultyNumber } from '../storage/studentStorage.js';
 import {
@@ -187,10 +188,12 @@ export function initializeScanner(mode, className, onScanCallback) {
     const classStudents = loadClassStudentsFromStorage(className) || [];
     initAttendanceStateForClass(className, classStudents);
 
-    // Initialize student timestamps
+    // Initialize student timestamps only for students that don't already have one.
+    // Skipping existing entries preserves timestamps restored from a saved draft
+    // (e.g. when the scanner is re-opened after adding a new student mid-session).
     classStudents.forEach(student => {
         const facultyNumber = String(resolveStudentFacultyNumber(student) || '').trim();
-        if (facultyNumber) {
+        if (facultyNumber && !getStudentTimestamp(facultyNumber)) {
             setStudentTimestamp(facultyNumber, null, null);
         }
     });
