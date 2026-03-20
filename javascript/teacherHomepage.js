@@ -37,7 +37,8 @@ import {
     openCloseScannerConfirm,
     openDiscardScannerConfirm,
     getStudentAttendanceCountForClass,
-    hasScannerDraftForClass
+    hasScannerDraftForClass,
+    saveScannerDraftForClass
 } from './features/attendance.js';
 import { renderAttendanceForClass } from './ui/attendanceUI.js';
 import { handleDownloadAttendanceTable } from './features/export.js';
@@ -147,17 +148,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const dot = document.createElement('span');
                 dot.className = 'scanner-unsaved-dot';
                 dot.setAttribute('aria-hidden', 'true');
-                dot.style.position = 'absolute';
-                dot.style.top = '-8px';
-                dot.style.right = '14px';
-                dot.style.left = 'auto';
-                dot.style.transform = 'none';
-                dot.style.width = '20px';
-                dot.style.height = '20px';
-                dot.style.borderRadius = '50%';
-                dot.style.background = '#dc2626';
-                dot.style.boxShadow = 'none';
-                dot.style.display = 'none';
                 scannerBtn.appendChild(dot);
             }
         }
@@ -321,6 +311,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeReadyClassPopup();
             openReadyClassPopup(current.name);
         });
+    });
+
+    // Minimize: save draft, stop camera, return to class popup — no server save, no data loss
+    document.addEventListener('minimizeScannerRequested', async () => {
+        const current = getCurrentClass();
+        saveScannerDraftForClass(current.name);
+        await closeScanner(() => {
+            closeReadyClassPopup();
+            openReadyClassPopup(current.name);
+        });
+    });
+
+    // ===== CLASS LIST DRAFT BADGE =====
+    function updateClassDraftBadges() {
+        const buttons = document.querySelectorAll('.newClassBtn');
+        buttons.forEach(btn => {
+            const className = (btn.dataset.className || btn.dataset.originalLabel || '').trim();
+            if (!className) return;
+            const hasDraft = hasScannerDraftForClass(className);
+            let dot = btn.querySelector('.class-draft-dot');
+            if (hasDraft) {
+                if (!dot) {
+                    dot = document.createElement('span');
+                    dot.className = 'class-draft-dot';
+                    dot.setAttribute('aria-hidden', 'true');
+                    btn.appendChild(dot);
+                }
+            } else if (dot) {
+                dot.remove();
+            }
+        });
+    }
+
+    document.addEventListener('scannerDraftChanged', () => {
+        updateClassDraftBadges();
     });
 
     // ===== CLASS LOADING =====
@@ -511,6 +536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadReadyClasses();
     classList?.querySelectorAll('.newClassBtn').forEach(b => updateClassStatusUI(b));
     classList?.querySelectorAll('.newClassBtn').forEach(attachUnreadyDeleteLongPress);
+    updateClassDraftBadges();
 
     if (classList) {
         const observer = new MutationObserver((mutations) => {

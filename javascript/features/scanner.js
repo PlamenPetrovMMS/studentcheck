@@ -350,8 +350,11 @@ export function openScannerOverlay(className) {
     };
 
     const closeBtn = scannerOverlay.querySelector('#closeScannerBtn');
+    const discardBtn = scannerOverlay.querySelector('#scannerDiscardBtn');
     const finishBtn = scannerOverlay.querySelector('#scannerCloseBtn');
-    bindCloseButton(closeBtn, 'closeScannerDiscardRequested');
+    // × minimizes the scanner (saves draft, stops camera) without discarding data
+    bindCloseButton(closeBtn, 'minimizeScannerRequested');
+    bindCloseButton(discardBtn, 'closeScannerDiscardRequested');
     bindCloseButton(finishBtn, 'closeScannerRequested');
     
     if (scannerOverlay.dataset.escapeBound !== 'true') {

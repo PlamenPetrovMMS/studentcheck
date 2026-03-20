@@ -158,6 +158,34 @@
 }
 .newClassBtn.class-ready:active { box-shadow: none; }
 
+/* Unsaved scanner draft indicator dot on class list buttons */
+.class-draft-dot {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #dc2626;
+    border: 2px solid #ffffff;
+    pointer-events: none;
+    display: block;
+    z-index: 1;
+}
+
+/* Unsaved scanner draft indicator dot on "Start Scanner" button in ready popup */
+.scanner-unsaved-dot {
+    position: absolute;
+    top: -8px;
+    right: 14px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #dc2626;
+    pointer-events: none;
+    display: none;
+}
+
 /* Temporary ready badge shown on top of class button */
 .newClassBtn .ready-badge {
     position: absolute;
@@ -546,6 +574,12 @@
     border-color: #059669;
 }
 #scannerOverlay .role-button.secondary-green:hover { background: #047857; }
+#scannerOverlay .role-button.danger {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+}
+#scannerOverlay .role-button.danger:hover { background: #b91c1c; }
 .close-small {
     position: static;
     background: transparent;
@@ -1436,11 +1470,17 @@ body.delete-popup-active #addClassBtn {
     }
 }
 
-/* Scanner footer buttons: match attendance overlay height on mobile */
+/* Scanner footer buttons: wrap and resize for 3 buttons on mobile */
 @media (max-width: 480px) {
+    #scannerOverlay .scanner-footer-actions {
+        flex-wrap: wrap;
+    }
     #scannerOverlay .scanner-footer-actions .role-button {
+        flex: 1 1 auto;
+        min-width: 0;
         padding-top: 10px !important;
         padding-bottom: 10px !important;
+        font-size: 0.9rem;
     }
 }
 
