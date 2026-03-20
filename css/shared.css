@@ -523,3 +523,12 @@ body[aria-busy="true"] .navbar-logo {
     overscroll-behavior-y: none;   /* prevent rubber-band pull creating scrollbars */
   }
 }
+
+/* Prevent iOS Safari from auto-zooming the page when an input is focused.
+   iOS zooms in whenever a focused input, select, or textarea has font-size < 16px.
+   This acts as a safety net; specific inputs should already use >= 1rem. */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: max(1rem, 16px);
+  }
+}

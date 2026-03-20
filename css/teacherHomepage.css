@@ -336,7 +336,7 @@
     }
     #overlaySearchInput {
         height: 34px;
-        font-size: 0.95rem;
+        font-size: 1rem; /* must stay >= 16px to prevent iOS Safari auto-zoom on focus */
         padding: 5px 9px;
     }
 }
@@ -878,7 +878,7 @@ body.delete-popup-active #addClassBtn {
         padding: 22px 18px 24px 18px;
         gap: 16px;
     }
-    #addStudentsClassOverlay #addStudentsSearchInput { height: 38px; font-size: 0.95rem; }
+    #addStudentsClassOverlay #addStudentsSearchInput { height: 38px; font-size: 1rem; /* >= 16px prevents iOS Safari auto-zoom */ }
     #addStudentsClassOverlay .add-students-footer .role-button { padding: 10px 16px; font-size: 0.95rem; }
 }
 #manageStudentsOverlay #manageStudentsTitle {

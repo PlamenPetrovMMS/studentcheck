@@ -287,7 +287,10 @@ function parseTimestamp(value) {
             return Number.isFinite(numeric) ? numeric : null;
         }
     }
-    const parsed = Date.parse(value);
+    // iOS Safari rejects date strings with a space separator (e.g. "2024-01-15 10:30:00").
+    // Normalize to ISO 8601 by replacing the space with 'T' before parsing.
+    const normalized = typeof value === 'string' ? value.replace(' ', 'T') : value;
+    const parsed = Date.parse(normalized);
     return Number.isNaN(parsed) ? null : parsed;
 }
 
