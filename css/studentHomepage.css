@@ -178,6 +178,15 @@ body {
 	}
 }
 
+/* Landscape on mobile: screen is wide but short — switch to auto height and allow scroll */
+@media (max-height: 500px) {
+	.mainSection {
+		height: auto;
+		max-height: calc(100dvh - 20px);
+		overflow-y: auto;
+	}
+}
+
 .student-navbar {
 	position: fixed;
 	top: 12px;
@@ -339,7 +348,7 @@ body {
 	z-index: 1000;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 600px), (max-height: 500px) {
 	#view-classes-overlay,
 	#class-details-overlay {
 		width: calc(100% - var(--student-mobile-gutter));
@@ -361,6 +370,14 @@ body {
 	#class-details-overlay .overlay-middle-section {
 		max-height: calc(100dvh - var(--student-overlay-middle-max-height-offset));
 		overflow-y: auto;
+	}
+}
+
+/* Landscape on mobile: QR should not exceed the available viewport height */
+@media (max-height: 500px) {
+	#qrContainer svg,
+	#qrContainer canvas {
+		width: clamp(140px, 35vh, 300px);
 	}
 }
 

@@ -48,9 +48,18 @@
     min-height: 0;  /* allow shrinking inside flex container to avoid forced overflow */
 }
 
+@media (max-width: 480px) {
+    #classesSection {
+        padding-top: 20px;
+        padding-left: 12px;
+        padding-right: 12px;
+        gap: 14px;
+    }
+}
+
 #classesTitle {
     margin: 0;
-    font-size: 2rem;
+    font-size: clamp(1.4rem, 5vw, 2rem);
     font-weight: 700;
     text-align: center;
     letter-spacing: .5px;
@@ -318,9 +327,10 @@
 
 .overlay-content{
     background: rgb(255, 255, 255);
-    width: 600px;
+    width: min(92vw, 600px);
     padding: 20px;
     border-radius: 8px;
+    box-sizing: border-box;
 }
 
 /* Create Class overlay: wider to fit filters and list */

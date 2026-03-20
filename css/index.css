@@ -47,3 +47,21 @@ body {
 
 /* Optional: center the heading text */
 /* Heading is provided via .card-header .title now; no extra rules needed */
+
+/* On small portrait screens, push content below the fixed logo */
+@media (max-width: 480px) {
+	body {
+		justify-content: flex-start;
+		padding-top: 90px;
+		overflow-y: auto !important;
+	}
+}
+
+/* In landscape (short viewports), also push content down to clear the logo */
+@media (max-height: 500px) {
+	body {
+		justify-content: flex-start;
+		padding-top: 100px;
+		overflow-y: auto !important;
+	}
+}

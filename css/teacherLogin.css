@@ -171,3 +171,21 @@ form#teacherLoginForm .field:first-child { margin-top: 12px; }
 		width: 100%;
 	}
 }
+
+/* On small portrait screens and landscape, push card below the fixed logo */
+@media (max-width: 480px) {
+	body {
+		align-items: flex-start;
+		padding-top: 80px;
+		overflow-y: auto !important;
+	}
+}
+
+@media (max-height: 500px) {
+	body {
+		align-items: flex-start;
+		justify-content: flex-start;
+		padding-top: 100px;
+		overflow-y: auto !important;
+	}
+}
