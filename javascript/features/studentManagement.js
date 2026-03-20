@@ -354,6 +354,26 @@ async function fetchAttendedClassesCount(className, studentId, updateEl) {
             }
         }
 
+        // Cross-check: if the summary says count > 0 but there are no actual history records,
+        // the count is stale/inconsistent — reset it to 0 for accurate display.
+        if (count > 0) {
+            try {
+                const sessions = await loadAttendanceLog(className, studentId);
+                if (!Array.isArray(sessions) || sessions.length === 0) {
+                    logAttendanceHistoryDebug('fetchAttendedClassesCount:count-reset', {
+                        className: String(className || '').trim(),
+                        classId,
+                        studentId: String(studentId || '').trim(),
+                        originalCount: count,
+                        reason: 'no_history_records'
+                    });
+                    count = 0;
+                }
+            } catch (_) {
+                // If history fetch fails, keep the summary count
+            }
+        }
+
         logAttendanceHistoryDebug('fetchAttendedClassesCount:summary', {
             className: String(className || '').trim(),
             classId,
@@ -658,6 +678,30 @@ export async function renderManageStudentsForClass(className) {
                         const sid = String(r.student_id ?? '').trim();
                         if (sid) attendanceCountMap.set(sid, Number(r.attendance_count ?? r.count ?? 0));
                     });
+
+                    // Validate counts against actual records to remove inconsistencies.
+                    // A count > 0 with no backing timestamp record is invalid and must be reset.
+                    const hasNonZero = Array.from(attendanceCountMap.values()).some(c => c > 0);
+                    if (hasNonZero) {
+                        try {
+                            const tsData = await fetchClassAttendanceTimestamps(classId);
+                            const tsRaw = tsData?.timestamps || tsData?.items || tsData?.records || tsData?.rows || [];
+                            if (Array.isArray(tsRaw)) {
+                                const studentsWithRecords = new Set();
+                                tsRaw.forEach(row => {
+                                    const sid = String(row.student_id ?? row.studentId ?? '').trim();
+                                    if (sid) studentsWithRecords.add(sid);
+                                });
+                                attendanceCountMap.forEach((count, sid) => {
+                                    if (count > 0 && !studentsWithRecords.has(sid)) {
+                                        attendanceCountMap.set(sid, 0);
+                                    }
+                                });
+                            }
+                        } catch (_) {
+                            // Non-fatal: keep existing counts if validation fails
+                        }
+                    }
                 }
             } catch (_) {
                 // Non-fatal: proceed without counts
