@@ -508,9 +508,6 @@
     width: 100%;
     box-sizing: border-box;
 }
-.teacher-navbar .navbar-logo {
-    margin: 0;
-}
 .teacher-navbar .navbar-language-slot {
     display: flex;
     align-items: center;
