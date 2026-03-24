@@ -347,13 +347,6 @@ async function loadClassesForStudent(studentData) {
 // Class Details Overlay functions ===============================
 
 function openClassDetailsOverlay(className, studentId, facultyNumber) {
-	console.log('[ClassDetails] openClassDetailsOverlay:start', {
-		className,
-		studentId,
-		facultyNumber
-	});
-
-
 	closeViewClassesOverlay();
 
 	const overlay = document.getElementById('class-details-overlay');
@@ -366,13 +359,8 @@ function openClassDetailsOverlay(className, studentId, facultyNumber) {
 	if (classTitle) classTitle.textContent = (window.i18n && typeof window.i18n.t === 'function') ? window.i18n.t('class_details') : 'Class Details';
 	const classNameEl = document.getElementById('classDetailsOverlayClassName');
 	if (classNameEl) classNameEl.textContent = className || '';
-	console.log('[ClassDetails] openClassDetailsOverlay:ui_ready', {
-		titleSet: Boolean(classTitle),
-		classNameSet: Boolean(classNameEl)
-	});
 
 	loadAttendedClassesCount(className, studentId, facultyNumber);
-	console.log('[ClassDetails] openClassDetailsOverlay:load_triggered');
 
 }
 
@@ -388,18 +376,12 @@ function closeClassDetailsOverlay(){
 }
 
 async function loadAttendedClassesCount(className, studentId, facultyNumber){
-	console.log('[ClassDetails] loadAttendedClassesCount:start', {
-		className,
-		studentId,
-		facultyNumber
-	});
 	let classMeta = null;
 	try {
 		classMeta = await getClassMetaByName(className);
 	} catch (e) {
 		console.error('[ClassDetails] loadAttendedClassesCount:getClassMetaByName failed', e);
 	}
-	console.log('[ClassDetails] loadAttendedClassesCount:class_meta', classMeta);
 	const classId = classMeta?.class_id ?? classMeta?.id ?? null;
 	let total_completed_classes_count = classMeta?.completed_classes_count
 		?? classMeta?.total_completed_classes_count
@@ -409,10 +391,6 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 		return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 	};
 	total_completed_classes_count = normalizeCount(total_completed_classes_count);
-	console.log('[ClassDetails] loadAttendedClassesCount:meta_resolved', {
-		classId,
-		totalCompletedFromMeta: total_completed_classes_count
-	});
 
 	if (!classId) {
 		console.error("Error resolving class ID for class:", className);
