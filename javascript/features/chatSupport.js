@@ -54,7 +54,17 @@ export function initSupportChat() {
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to fetch from chat API');
+            if (!response.ok) {
+                let serverError = 'Failed to fetch from chat API';
+                try {
+                    // Try to read the exact error message from the server
+                    const errData = await response.json();
+                    serverError = errData.error || errData.message || errData.details || serverError;
+                } catch (e) {
+                    serverError = await response.text() || serverError;
+                }
+                throw new Error(`Server Error (${response.status}): ${serverError}`);
+            }
 
             const data = await response.json();
             
