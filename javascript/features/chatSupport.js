@@ -12,9 +12,17 @@ export function initSupportChat() {
     // We keep track of the history exactly as your backend expects it
     let chatHistory = [];
 
+    console.log('[Debug Chat] openBtn found:', openBtn);
+    console.log('[Debug Chat] overlay found:', overlay);
+
     // --- Overlay Toggles ---
     openBtn?.addEventListener('click', () => {
-        if (overlay) showOverlay(overlay);
+        console.log('[Debug Chat] openBtn clicked. Overlay exists?', !!overlay);
+        if (overlay) {
+            showOverlay(overlay);
+        } else {
+            console.error('[Debug Chat] Cannot show overlay because it was not found in the DOM.');
+        }
     });
 
     closeBtn?.addEventListener('click', () => {
