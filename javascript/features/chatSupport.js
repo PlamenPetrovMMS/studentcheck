@@ -12,25 +12,10 @@ export function initSupportChat() {
     // We keep track of the history exactly as your backend expects it
     let chatHistory = [];
 
-    console.log('[Debug Chat] openBtn found:', openBtn);
-    console.log('[Debug Chat] overlay found:', overlay);
-
-    // Global click detector (catches the click even if the HTML ID is wrong)
-    document.body.addEventListener('click', (e) => {
-        const clickedEl = e.target.closest('button, a, div');
-        // Check if the element you clicked contains the word 'support'
-        if (clickedEl && clickedEl.textContent && clickedEl.textContent.toLowerCase().includes('support')) {
-            alert(`Support button clicked!\n\nIts actual HTML ID is: "${clickedEl.id}"\n\nThe script expects the ID: "openSupportChatBtn"`);
-        }
-    });
-
     // --- Overlay Toggles ---
     openBtn?.addEventListener('click', () => {
-        console.log('[Debug Chat] openBtn clicked. Overlay exists?', !!overlay);
         if (overlay) {
             showOverlay(overlay);
-        } else {
-            console.error('[Debug Chat] Cannot show overlay because it was not found in the DOM.');
         }
     });
 
@@ -60,8 +45,7 @@ export function initSupportChat() {
         sendBtn.disabled = true;
 
         try {
-            // Assuming the frontend runs on the same domain, or use SERVER_BASE_URL + '/support/chat'
-            const response = await fetch('/support/chat', { 
+            const response = await fetch(`${SERVER_BASE_URL}/support/chat`, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
