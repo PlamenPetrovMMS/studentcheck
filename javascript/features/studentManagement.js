@@ -295,9 +295,6 @@ function parseTimestamp(value) {
 }
 
 function logAttendanceHistoryDebug(stage, payload = {}) {
-    try {
-        console.log(`[attendance-history-debug] ${stage}`, payload);
-    } catch (_) {}
 }
 
 async function fetchAttendedClassesCount(className, studentId, updateEl) {
