@@ -10,6 +10,7 @@
  */
 
 // ===== IMPORTS =====
+import { initSupportChat } from './features/supportChat.js';
 import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from './config/api.js';
 import { bootstrapTeacherAuthState, clearAuthState } from './auth/authStore.js';
 import { fetchClasses } from './api/classApi.js';
@@ -63,6 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'teacherLogin.html';
         return;
     }
+
+    initSupportChat();
 
     const classList = document.getElementById('classList');
     const addBtn = document.getElementById('addClassBtn');

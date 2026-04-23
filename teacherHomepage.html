@@ -194,6 +194,35 @@
 
 
 
+
+
+        <button id="openSupportChatBtn" class="support-chat-fab" aria-label="Open Support Chat">
+            💬 Support
+        </button>
+
+        <div id="supportChatOverlay" class="overlay" style="visibility: hidden;">
+            <div class="chat-popup">
+                <div class="chat-header">
+                    <h2>Support Chat</h2>
+                    <button id="closeSupportChatBtn" class="close-small" aria-label="Close">×</button>
+                </div>
+
+                <div id="chatHistoryContainer" class="chat-history"> 
+                    <div class="chat-message model">Hello! I am the StudentCheck support assistant. How can I help you today?</div>
+                </div>
+
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Ask a question..." autocomplete="off" />
+                    <button id="sendChatBtn">Send</button>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
         <!-- Manage Students Overlay -->
         <div class="overlay" id="manageStudentsOverlay">
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">

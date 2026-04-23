@@ -1698,3 +1698,128 @@ body.delete-popup-active #addClassBtn {
     min-height: 1.1em;
     display: none;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Floating Action Button */
+.support-chat-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.support-chat-fab:hover { background-color: #0056b3; }
+
+/* Chat Popup Window */
+#supportChatOverlay .chat-popup {
+    background: white;
+    width: 350px;
+    max-width: 90vw;
+    height: 500px;
+    max-height: 80vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    
+    /* Center it in the overlay, or position it bottom-right */
+    position: absolute;
+    bottom: 80px;
+    right: 24px;
+}
+
+.chat-header {
+    padding: 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h3 { margin: 0; font-size: 16px; }
+.chat-header button { background: none; border: none; font-size: 20px; cursor: pointer; }
+
+.chat-history {
+    flex-grow: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-message {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.chat-message.user {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-message.model {
+    background-color: #f1f0f0;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-message.error {
+    background-color: #ffdddd;
+    color: #d8000c;
+    align-self: center;
+    font-size: 12px;
+}
+
+.chat-input-area {
+    padding: 16px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    gap: 8px;
+}
+
+.chat-input-area input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+}
+
+.chat-input-area button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.chat-input-area button:disabled { background-color: #ccc; cursor: not-allowed; }
