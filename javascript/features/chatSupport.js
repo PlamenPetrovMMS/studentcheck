@@ -15,6 +15,15 @@ export function initSupportChat() {
     console.log('[Debug Chat] openBtn found:', openBtn);
     console.log('[Debug Chat] overlay found:', overlay);
 
+    // Global click detector (catches the click even if the HTML ID is wrong)
+    document.body.addEventListener('click', (e) => {
+        const clickedEl = e.target.closest('button, a, div');
+        // Check if the element you clicked contains the word 'support'
+        if (clickedEl && clickedEl.textContent && clickedEl.textContent.toLowerCase().includes('support')) {
+            alert(`Support button clicked!\n\nIts actual HTML ID is: "${clickedEl.id}"\n\nThe script expects the ID: "openSupportChatBtn"`);
+        }
+    });
+
     // --- Overlay Toggles ---
     openBtn?.addEventListener('click', () => {
         console.log('[Debug Chat] openBtn clicked. Overlay exists?', !!overlay);
