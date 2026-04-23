@@ -10,7 +10,7 @@
  */
 
 // ===== IMPORTS =====
-import { initSupportChat } from './features/supportChat.js';
+import { initSupportChat } from './features/chatSupport.js';
 import { getTeacherEmail, SERVER_BASE_URL, ENDPOINTS } from './config/api.js';
 import { bootstrapTeacherAuthState, clearAuthState } from './auth/authStore.js';
 import { fetchClasses } from './api/classApi.js';

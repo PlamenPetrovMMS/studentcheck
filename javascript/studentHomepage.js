@@ -1,3 +1,5 @@
+import { initSupportChat } from './features/chatSupport.js';
+
 const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
         getStudentClasses: '/get_student_classes',
@@ -59,6 +61,8 @@ function resolveStudentData(parsed) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+	initSupportChat();
+
 	const revealPage = () => {
 		try {
 			document.body.classList.remove('page-loading');
@@ -551,7 +555,3 @@ async function getClassIdByName(className){
 	const classMeta = await getClassMetaByName(className);
 	return classMeta?.class_id ?? classMeta?.id ?? null;
 }
-
-
-
-
