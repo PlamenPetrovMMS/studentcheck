@@ -98,10 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		revealPage();
 		return;
 	}
-
-	// Quick cleanup: Forcibly remove lingering chat HTML from the page
-	document.getElementById('openSupportChatBtn')?.remove();
-	document.getElementById('supportChatOverlay')?.remove();
 	
 	try{
 
