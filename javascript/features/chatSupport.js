@@ -24,6 +24,12 @@ export function initSupportChat() {
         if (overlay) hideOverlay(overlay);
     });
 
+    overlay?.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            hideOverlay(overlay);
+        }
+    });
+
     // --- Chat Logic ---
     const appendMessage = (role, text) => {
         const msgEl = document.createElement('div');
