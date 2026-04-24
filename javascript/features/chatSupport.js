@@ -145,12 +145,17 @@ export function initSupportChat() {
 
         for(let attempt = 0; attempt < maxRetries; attempt++) {
             try {
+                const lang = window.i18n && typeof window.i18n.getLanguage === 'function'
+                    ? window.i18n.getLanguage()
+                    : 'en';
+
                 const response = await fetch(`${SERVER_BASE_URL}/support/chat`, { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         message: text, 
-                        history: chatHistory 
+                        history: chatHistory,
+                        language: lang
                     })
                 });
 
