@@ -53,7 +53,7 @@ export function initSupportChat() {
 
 
         const maxRetries = 3;
-        let dalay = 1000; // Start with 1 second delay for retries
+        let delay = 1000; // Start with 1 second delay for retries
         let lastError = null;
 
         for(let attempt = 0; attempt < maxRetries; attempt++) {
