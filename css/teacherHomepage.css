@@ -1764,8 +1764,32 @@ body.delete-popup-active #addClassBtn {
     gap: 12px;
 }
 
-.chat-header h3 { margin: 0; font-size: 16px; }
-.chat-header button { margin-left: auto; background: none; border: none; font-size: 20px; cursor: pointer; }
+.chat-header h2 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.chat-language-btn {
+    margin-left: auto;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.chat-language-btn:hover {
+    background: #f3f4f6;
+}
+
+#closeSupportChatBtn {
+    margin-left: 0;
+}
 
 .chat-history {
     flex-grow: 1;
