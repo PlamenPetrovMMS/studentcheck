@@ -507,6 +507,11 @@
     z-index: 900; /* overlays use z-index: 1000 */
 }
 
+/* Keep the current-language badge under teacher-page overlays as well. */
+.language-corner-display {
+    z-index: 900;
+}
+
 /* Teacher navbar */
 .teacher-navbar {
     display: flex;
