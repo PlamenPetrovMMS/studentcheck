@@ -137,6 +137,8 @@
       language_label: 'Language',
       brand_label: 'E-Trek',
       home_title: 'Join as',
+      email_or_faculty: 'Email or Faculty Number',
+      enter_email_or_faculty: 'Enter your email or faculty number',
       role_student: 'Student',
       role_teacher: 'Teacher',
       student_login_title: 'Student Log in',
@@ -313,6 +315,8 @@
       language_en: 'Английски',
       language_bg: 'Български',
       home_title: 'Влез като',
+      email_or_faculty: 'Имейл или факултетен номер',
+      enter_email_or_faculty: 'Въведете имейл или факултетен номер',
       role_student: 'Студент',
       role_teacher: 'Преподавател',
       student_login_title: 'Вход за студент',
@@ -617,9 +621,14 @@
 
     const pages = {
       'index.html': [
-        { selector: '#homeTitle', key: 'home_title' },
-        { selector: '#studentBtn', key: 'role_student' },
-        { selector: '#teacherBtn', key: 'role_teacher' }
+        { selector: '#homeTitle', key: 'log_in' },
+        { selector: '#identifierLabel', key: 'email_or_faculty' },
+        { selector: '#loginIdentifier', key: 'enter_email_or_faculty', attr: 'placeholder' },
+        { selector: '#passwordLabel', key: 'password' },
+        { selector: '#password', key: 'enter_password', attr: 'placeholder' },
+        { selector: '#loginSubmitBtn', key: 'log_in' },
+        { selector: '#registerPrompt', key: 'no_account_register_html', html: true },
+        { selector: '#error-message', key: 'err_login_failed' }
       ],
       'studentlogin.html': [
         { selector: '#loginTitle', key: 'student_login_title' },
