@@ -216,6 +216,11 @@ body {
 	right: auto;
 }
 
+/* Keep the current-language badge below the overlay backdrop on this page. */
+.language-corner-display {
+	z-index: 0;
+}
+
 @media (max-width: 480px) {
 	.student-navbar {
 		top: 10px;
