@@ -232,7 +232,7 @@ export function initSupportChat() {
             if (lastError.status === 503) {
                 userMessage = t('support_chat_error_overloaded', "The AI service is overloaded. Please try again in a moment.");
             } else if (lastError.message && (lastError.message.includes('429') || lastError.message.includes('quota'))) {
-                userMessage = t('support_chat_error_rate_limit', "The AI is currently receiving too many requests. Please wait about 20 seconds and try again.");
+                userMessage = t('support_chat_error_rate_limit', "The AI's limit of 20 request per day is reached.");
                 isRateLimit = true;
             }
             

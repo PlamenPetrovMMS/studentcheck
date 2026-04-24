@@ -303,7 +303,7 @@
       support_chat_welcome: 'Hello! I am the StudentCheck support assistant. How can I help you today?',
       support_chat_error_network: 'Network error. Please try again later.',
       support_chat_error_overloaded: 'The AI service is overloaded. Please try again in a moment.',
-      support_chat_error_rate_limit: 'The AI is currently receiving too many requests. Please wait about 20 seconds and try again.',
+      support_chat_error_rate_limit: 'The AI\'s limit of 20 request per day is reached.',
       support_chat_cooldown: 'Please wait {sec}s...'
     },
     bg: {
@@ -315,7 +315,7 @@
       support_chat_welcome: 'Здравей! Аз съм асистентът за поддръжка на StudentCheck. С какво мога да помогна днес?',
       support_chat_error_network: 'Мрежова грешка. Моля, опитайте отново по-късно.',
       support_chat_error_overloaded: 'AI услугата е претоварена. Моля, опитайте отново след малко.',
-      support_chat_error_rate_limit: 'AI получава твърде много заявки. Моля, изчакайте около 20 секунди и опитайте отново.',
+      support_chat_error_rate_limit: 'Лимитът на AI от 20 заявки на ден е достигнат.',
       support_chat_cooldown: 'Моля, изчакайте {sec} сек...',
       language_label: 'Език',
       brand_label: 'E-Trek',
