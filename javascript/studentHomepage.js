@@ -102,7 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	// Initialize chat only after confirming the user session is fully valid (Matches teacherHomepage.js)
-	initSupportChat();
+	try {
+		initSupportChat();
+	} catch (chatErr) {
+		console.error("Support chat failed to initialize:", chatErr);
+	}
 	
 	try{
 
