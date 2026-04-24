@@ -147,22 +147,25 @@ export function initSupportChat() {
         isSending = true;
 
         // Render user message instantly and lock inputs
-        await appendMessage('user', text);
-        input.value = '';
         input.disabled = true;
         sendBtn.disabled = true;
+        const originalPlaceholder = input.placeholder;
+        input.value = '';
+
+        await appendMessage('user', text);
 
 
         const maxRetries = 3;
-        let delay = 1000; // Start with 1 second delay for retries
+        let delayMs = 1000; // Start with 1 second delay for retries
         let lastError = null;
+        let success = false;
+
+        const lang = window.i18n && typeof window.i18n.getLanguage === 'function'
+            ? window.i18n.getLanguage()
+            : 'en';
 
         for(let attempt = 0; attempt < maxRetries; attempt++) {
             try {
-                const lang = window.i18n && typeof window.i18n.getLanguage === 'function'
-                    ? window.i18n.getLanguage()
-                    : 'en';
-
                 const response = await fetch(`${SERVER_BASE_URL}/support/chat`, { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -172,13 +175,6 @@ export function initSupportChat() {
                         language: lang
                     })
                 });
-
-                if(response.status == 503 && attempt < maxRetries - 1){
-                    await new Promise(res => setTimeout(res, delay)); // Wait before retrying
-                    delay *= 2;
-                    continue; // Retry the request
-                }
-
 
                 if (!response.ok) {
                     let serverError = 'Failed to fetch from chat API';
@@ -203,39 +199,72 @@ export function initSupportChat() {
                 chatHistory.push({ role: 'user', content: text });
                 chatHistory.push({ role: 'model', content: data.reply });
 
+                success = true;
+                break; // Break out of retry loop on success
+
             } catch (error) {
                 lastError = error;
-                if(error.status !== 503 || attempt >= maxRetries - 1) {
-                    await new Promise(res => setTimeout(res, delay)); // Wait before showing error
-                    delay *= 2;
+                if(error.status === 503 && attempt < maxRetries - 1) {
+                    await new Promise(res => setTimeout(res, delayMs)); // Wait before retrying
+                    delayMs *= 2;
+                } else {
+                    break; // Do not retry for 429 or other errors
                 }
             }
-
-            if (lastError) {
-                console.error("Support Chat Error:", lastError);
-                
-                const t = (key, fallback) => {
-                    return window.i18n && typeof window.i18n.t === 'function' && window.i18n.t(key) !== key
-                        ? window.i18n.t(key)
-                        : fallback;
-                };
-                
-                let userMessage = t('support_chat_error_network', "Network error. Please try again later.");
-                if (lastError.status === 503) {
-                    userMessage = t('support_chat_error_overloaded', "The AI service is overloaded. Please try again in a moment.");
-                } else if (lastError.message && (lastError.message.includes('429') || lastError.message.includes('quota'))) {
-                    userMessage = t('support_chat_error_rate_limit', "The AI is currently receiving too many requests. Please wait about 20 seconds and try again.");
-                }
-                
-                await appendMessage('error', userMessage);
-            }
-
-            isSending = false;
-            input.disabled = false;
-            sendBtn.disabled = false;
-            input.focus();
-            return;
         }
+
+        if (!success && lastError) {
+            console.error("Support Chat Error:", lastError);
+            
+            const t = (key, fallback) => {
+                return window.i18n && typeof window.i18n.t === 'function' && window.i18n.t(key) !== key
+                    ? window.i18n.t(key)
+                    : fallback;
+            };
+            
+            // Consolidate errors: Remove previous error messages
+            const existingErrors = historyContainer.querySelectorAll('.chat-message.error');
+            existingErrors.forEach(el => el.remove());
+            
+            let userMessage = t('support_chat_error_network', "Network error. Please try again later.");
+            let isRateLimit = false;
+
+            if (lastError.status === 503) {
+                userMessage = t('support_chat_error_overloaded', "The AI service is overloaded. Please try again in a moment.");
+            } else if (lastError.message && (lastError.message.includes('429') || lastError.message.includes('quota'))) {
+                userMessage = t('support_chat_error_rate_limit', "The AI is currently receiving too many requests. Please wait about 20 seconds and try again.");
+                isRateLimit = true;
+            }
+            
+            await appendMessage('error', userMessage);
+
+            if (isRateLimit) {
+                // Implement a 20-second cooldown
+                let timeLeft = 20;
+                input.placeholder = t('support_chat_cooldown', `Please wait ${timeLeft}s...`).replace('{sec}', timeLeft);
+                
+                const timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isSending = false;
+                        input.disabled = false;
+                        sendBtn.disabled = false;
+                        input.placeholder = originalPlaceholder;
+                        input.focus();
+                    } else {
+                        input.placeholder = t('support_chat_cooldown', `Please wait ${timeLeft}s...`).replace('{sec}', timeLeft);
+                    }
+                }, 1000);
+                
+                return; // Exit early to keep input disabled during cooldown
+            }
+        }
+
+        isSending = false;
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
     };
 
     // --- Event Listeners for sending ---
