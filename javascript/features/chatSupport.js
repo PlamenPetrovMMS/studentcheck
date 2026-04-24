@@ -49,11 +49,45 @@ export function initSupportChat() {
     });
 
     // --- Chat Logic ---
+    const splitModelMessage = (text) => {
+        const normalized = String(text || '').trim();
+        if (!normalized) return [];
+
+        const paragraphParts = normalized
+            .split(/\n\s*\n/)
+            .map(part => part.trim())
+            .filter(Boolean);
+
+        const chunks = [];
+        paragraphParts.forEach((part) => {
+            const sentences = part.match(/[^.!?\n]+[.!?]+(?:["')\]]+)?|[^.!?\n]+$/g) || [part];
+            let buffer = [];
+
+            sentences
+                .map(sentence => sentence.trim())
+                .filter(Boolean)
+                .forEach((sentence, index) => {
+                    buffer.push(sentence);
+                    const isLast = index === sentences.length - 1;
+                    if (buffer.length >= 2 || isLast) {
+                        chunks.push(buffer.join(' '));
+                        buffer = [];
+                    }
+                });
+        });
+
+        return chunks.length > 0 ? chunks : [normalized];
+    };
+
     const appendMessage = (role, text) => {
+        const parts = role === 'model' ? splitModelMessage(text) : [text];
+
+        parts.forEach((part) => {
         const msgEl = document.createElement('div');
         msgEl.className = `chat-message ${role}`;
-        msgEl.textContent = text;
+        msgEl.textContent = part;
         historyContainer.appendChild(msgEl);
+        });
         
         // Auto-scroll to the bottom
         historyContainer.scrollTop = historyContainer.scrollHeight;
