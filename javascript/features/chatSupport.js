@@ -14,9 +14,19 @@ export function initSupportChat() {
     let chatHistory = [];
     let isSending = false; // To prevent multiple simultaneous sends
 
+    const updateLanguageButtonLabel = () => {
+        if (!languageBtn) return;
+        const label = window.i18n && typeof window.i18n.t === 'function'
+            ? window.i18n.t('language_change_title')
+            : 'Change Language';
+        languageBtn.textContent = label;
+        languageBtn.setAttribute('aria-label', label);
+    };
+
     // --- Overlay Toggles ---
     openBtn?.addEventListener('click', () => {
         if (overlay) {
+            updateLanguageButtonLabel();
             showOverlay(overlay);
         }
     });
@@ -26,6 +36,7 @@ export function initSupportChat() {
     });
 
     languageBtn?.addEventListener('click', () => {
+        updateLanguageButtonLabel();
         if (window.i18n && typeof window.i18n.openLanguageMenu === 'function') {
             window.i18n.openLanguageMenu();
         }
@@ -142,4 +153,6 @@ export function initSupportChat() {
             sendMessage();
         }
     });
+
+    updateLanguageButtonLabel();
 }
