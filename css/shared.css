@@ -182,8 +182,8 @@ body[aria-busy="true"] .language-corner-display {
 }
 .lang-popup .lang-btn:hover { background: #e5e7eb; }
 .lang-popup .lang-btn.active {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  border-color: #1d4ed8; /* Darker blue */
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.25);
   background: #eef2ff;
 }
 .lang-popup .lang-flag {
@@ -391,7 +391,7 @@ body[aria-busy="true"] .language-corner-display {
   padding: 0 8px;
   z-index: 10000; /* Same level as navbar logo */
   background: #f3f4f6;
-  border: 1px solid #d1d5db;
+  border: 1px solid #9ca3af; /* Darker gray border */
   border-radius: var(--app-logo-radius);
   box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
   cursor: pointer;
