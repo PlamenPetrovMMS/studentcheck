@@ -473,7 +473,8 @@ body[aria-busy="true"] .navbar-logo {
   border: 1px solid #e5e7eb;
   border-radius: var(--app-logo-radius);
   box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  pointer-events: none; /* This is just a display, not interactive */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .language-corner-glyph {
@@ -487,6 +488,10 @@ body[aria-busy="true"] .navbar-logo {
   font-weight: 700;
   color: #1e3a8a;
   line-height: 1;
+}
+
+.language-corner-display:hover {
+  background-color: #f9fafb;
 }
 
 /* On mobile, it should scale down with the logo */

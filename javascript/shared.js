@@ -480,6 +480,26 @@
     return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
   }
 
+  function openLanguageMenu() {
+    const overlay = document.getElementById('langOverlay');
+    if (!overlay) return;
+
+    const updateLangButtons = () => {
+      const titleEl = document.getElementById('langTitle');
+      if (titleEl) titleEl.textContent = t('language_change_title');
+      const enBtn = overlay.querySelector('[data-lang="en"]');
+      const bgBtn = overlay.querySelector('[data-lang="bg"]');
+      if (enBtn) enBtn.innerHTML = `<img src="icons/united-kingdom.svg" alt="" class="lang-flag" /> ${t('language_en')}`;
+      if (bgBtn) bgBtn.innerHTML = `<img src="icons/bulgaria.svg" alt="" class="lang-flag" /> ${t('language_bg')}`;
+      const current = getLanguage();
+      if (enBtn) enBtn.classList.toggle('active', current === 'en');
+      if (bgBtn) bgBtn.classList.toggle('active', current === 'bg');
+    };
+
+    updateLangButtons();
+    overlay.classList.add('visible');
+  }
+
   function applyEntry(entry) {
     const nodes = document.querySelectorAll(entry.selector);
     if (!nodes || nodes.length === 0) return;
@@ -942,22 +962,7 @@
     ensureNavControlCluster(btn);
     document.body.appendChild(overlay);
 
-    const updateLangButtons = () => {
-      const titleEl = document.getElementById('langTitle');
-      if (titleEl) titleEl.textContent = t('language_change_title');
-      const enBtn = overlay.querySelector('[data-lang="en"]');
-      const bgBtn = overlay.querySelector('[data-lang="bg"]');
-      if (enBtn) enBtn.innerHTML = `<img src="icons/united-kingdom.svg" alt="" class="lang-flag" /> ${t('language_en')}`;
-      if (bgBtn) bgBtn.innerHTML = `<img src="icons/bulgaria.svg" alt="" class="lang-flag" /> ${t('language_bg')}`;
-      const current = getLanguage();
-      if (enBtn) enBtn.classList.toggle('active', current === 'en');
-      if (bgBtn) bgBtn.classList.toggle('active', current === 'bg');
-    };
-
-    btn.addEventListener('click', () => {
-      updateLangButtons();
-      overlay.classList.add('visible');
-    });
+    btn.addEventListener('click', openLanguageMenu);
 
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) overlay.classList.remove('visible');
@@ -973,16 +978,32 @@
   }
 
   function ensureLanguageCornerDisplay() {
-    if (document.getElementById('languageCornerDisplay')) return;
-    const display = document.createElement('div');
-    display.id = 'languageCornerDisplay';
-    display.className = 'language-corner-display';
-    display.setAttribute('aria-live', 'polite');
-    display.innerHTML = `
+    let display = document.getElementById('languageCornerDisplay');
+    if (display && display.dataset.interactive) return;
+
+    if (!display) {
+      display = document.createElement('div');
+      display.id = 'languageCornerDisplay';
+      display.className = 'language-corner-display';
+      display.setAttribute('aria-live', 'polite');
+      display.innerHTML = `
         <span class="language-corner-glyph" aria-hidden="true">🌐</span>
         <span class="language-corner-text"></span>
-    `;
-    document.body.appendChild(display);
+      `;
+      document.body.appendChild(display);
+    }
+
+    display.setAttribute('role', 'button');
+    display.setAttribute('tabindex', '0');
+    display.dataset.interactive = 'true';
+
+    display.addEventListener('click', openLanguageMenu);
+    display.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openLanguageMenu();
+      }
+    });
   }
 
   function init() {
@@ -997,5 +1018,5 @@
     init();
   }
 
-  window.i18n = { t, setLanguage, getLanguage, applyTranslations };
+  window.i18n = { t, setLanguage, getLanguage, applyTranslations, openLanguageMenu };
 })();
