@@ -142,12 +142,20 @@ body[aria-busy="true"] .language-corner-display {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  display: none;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10001;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
-.lang-overlay.visible { display: flex; }
+.lang-overlay.visible { 
+  opacity: 1;
+  visibility: visible;
+}
 
 .lang-popup {
   background: #ffffff;
