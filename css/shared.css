@@ -474,10 +474,10 @@ body[aria-busy="true"] .language-corner-display {
   gap: 8px;
   padding: 0 8px;
   z-index: 10000; /* Same level as navbar logo */
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
   border-radius: var(--app-logo-radius);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -491,12 +491,12 @@ body[aria-busy="true"] .language-corner-display {
 .language-corner-text {
   font-size: 1rem;
   font-weight: 700;
-  color: #1e3a8a;
+  color: #6b7280;
   line-height: 1;
 }
 
 .language-corner-display:hover {
-  background-color: #f9fafb;
+  background-color: #e5e7eb;
 }
 
 /* On mobile, it should scale down with the logo */
