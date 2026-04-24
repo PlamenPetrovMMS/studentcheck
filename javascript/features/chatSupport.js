@@ -79,15 +79,30 @@ export function initSupportChat() {
         return chunks.length > 0 ? chunks : [normalized];
     };
 
-    const appendMessage = (role, text) => {
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const getModelChunkDelayMs = (text) => {
+        const length = String(text || '').trim().length;
+        const baseDelay = 320;
+        const variableDelay = Math.min(1400, length * 14);
+        return baseDelay + variableDelay;
+    };
+
+    const appendMessage = async (role, text) => {
         const parts = role === 'model' ? splitModelMessage(text) : [text];
 
-        parts.forEach((part) => {
-        const msgEl = document.createElement('div');
-        msgEl.className = `chat-message ${role}`;
-        msgEl.textContent = part;
-        historyContainer.appendChild(msgEl);
-        });
+        for (let index = 0; index < parts.length; index += 1) {
+            const part = parts[index];
+            const msgEl = document.createElement('div');
+            msgEl.className = `chat-message ${role}`;
+            msgEl.textContent = part;
+            historyContainer.appendChild(msgEl);
+
+            // Shorter chunks land faster; longer ones pause longer before the next bubble.
+            if (role === 'model' && index < parts.length - 1) {
+                await delay(getModelChunkDelayMs(part));
+            }
+        }
         
         // Auto-scroll to the bottom
         historyContainer.scrollTop = historyContainer.scrollHeight;
@@ -104,7 +119,7 @@ export function initSupportChat() {
         isSending = true;
 
         // Render user message instantly and lock inputs
-        appendMessage('user', text);
+        await appendMessage('user', text);
         input.value = '';
         input.disabled = true;
         sendBtn.disabled = true;
@@ -149,7 +164,7 @@ export function initSupportChat() {
                 const data = await response.json();
                 
                 // Render the AI response
-                appendMessage('model', data.reply);
+                await appendMessage('model', data.reply);
                 
                 // Save to history array for the NEXT request context
                 chatHistory.push({ role: 'user', content: text });
@@ -168,7 +183,7 @@ export function initSupportChat() {
                 const userMessage = lastError.status === 503
                     ? "The AI service is overloaded. Please try again in a moment."
                     : "Network error. Please try again later.";
-                appendMessage('error', userMessage);
+                await appendMessage('error', userMessage);
             }
 
             isSending = false;
