@@ -213,9 +213,14 @@ export function initSupportChat() {
 
             if (lastError) {
                 console.error("Support Chat Error:", lastError);
-                const userMessage = lastError.status === 503
-                    ? "The AI service is overloaded. Please try again in a moment."
-                    : "Network error. Please try again later.";
+                
+                let userMessage = "Network error. Please try again later.";
+                if (lastError.status === 503) {
+                    userMessage = "The AI service is overloaded. Please try again in a moment.";
+                } else if (lastError.message && (lastError.message.includes('429') || lastError.message.includes('quota'))) {
+                    userMessage = "The AI is currently receiving too many requests. Please wait about 20 seconds and try again.";
+                }
+                
                 await appendMessage('error', userMessage);
             }
 
