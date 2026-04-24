@@ -294,7 +294,7 @@
       billing_upgrade_not_configured: 'Upgrade is not configured yet.',
       current_language_label: 'Current',
       support_chat_title: 'Support Chat',
-      support_chat_open: '💬 Support',
+      support_chat_open: '💬',
       support_chat_open_aria: 'Open Support Chat',
       support_chat_placeholder: 'Ask a question...',
       support_chat_send: 'Send',
@@ -302,7 +302,7 @@
     },
     bg: {
       support_chat_title: 'Чат поддръжка',
-      support_chat_open: '💬 Поддръжка',
+      support_chat_open: '💬',
       support_chat_open_aria: 'Отвори чата за поддръжка',
       support_chat_placeholder: 'Задайте въпрос...',
       support_chat_send: 'Изпрати',
