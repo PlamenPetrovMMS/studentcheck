@@ -61,8 +61,6 @@ function resolveStudentData(parsed) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	initSupportChat();
-
 	const revealPage = () => {
 		try {
 			document.body.classList.remove('page-loading');
@@ -102,6 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		revealPage();
 		return;
 	}
+
+	// Initialize chat only after confirming the user session is fully valid (Matches teacherHomepage.js)
+	initSupportChat();
 	
 	try{
 
