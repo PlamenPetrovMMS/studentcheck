@@ -81,11 +81,22 @@ export function initSupportChat() {
 
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    const getModelChunkDelayMs = (text) => {
-        const length = String(text || '').trim().length;
-        const baseDelay = 320;
-        const variableDelay = Math.min(1400, length * 14);
-        return baseDelay + variableDelay;
+    const getTypingDelayMs = (char) => {
+        if (!char) return 18;
+        if (/[.!?]/.test(char)) return 85;
+        if (/[,;:]/.test(char)) return 45;
+        if (/\s/.test(char)) return 12;
+        return 18;
+    };
+
+    const typeText = async (element, text) => {
+        const value = String(text || '');
+        element.textContent = '';
+        for (const char of value) {
+            element.textContent += char;
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+            await delay(getTypingDelayMs(char));
+        }
     };
 
     const appendMessage = async (role, text) => {
@@ -95,12 +106,15 @@ export function initSupportChat() {
             const part = parts[index];
             const msgEl = document.createElement('div');
             msgEl.className = `chat-message ${role}`;
-            msgEl.textContent = part;
             historyContainer.appendChild(msgEl);
 
-            // Shorter chunks land faster; longer ones pause longer before the next bubble.
-            if (role === 'model' && index < parts.length - 1) {
-                await delay(getModelChunkDelayMs(part));
+            if (role === 'model') {
+                await typeText(msgEl, part);
+                if (index < parts.length - 1) {
+                    await delay(180);
+                }
+            } else {
+                msgEl.textContent = part;
             }
         }
         
