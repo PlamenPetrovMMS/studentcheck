@@ -11,7 +11,10 @@ body {
 }
 
 /* Center the Welcome title and remove separating lines specific to the home card */
-.card-header { border-bottom: 0; }
+.card-header {
+	border-bottom: 0;
+	margin-bottom: 24px;
+}
 .card-header .title { text-align: center; }
 
 /* Remove card background on the index page */
