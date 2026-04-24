@@ -1734,6 +1734,20 @@ body.delete-popup-active #addClassBtn {
 
 .support-chat-fab:hover { background-color: #515252; }
 
+/* Chat Overlay Background Transition */
+#supportChatOverlay {
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    transition: background-color 0.5s ease, backdrop-filter 0.5s ease, -webkit-backdrop-filter 0.5s ease;
+}
+
+#supportChatOverlay.chat-slide-in {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
 /* Chat Popup Window */
 #supportChatOverlay .chat-popup {
     background: white;
