@@ -1737,7 +1737,7 @@ body.delete-popup-active #addClassBtn {
 /* Chat Popup Window */
 #supportChatOverlay .chat-popup {
     background: white;
-    width: 350px;
+    width: 450px;
     max-width: 90vw;
     height: 500px;
     max-height: 80vh;
@@ -1749,7 +1749,9 @@ body.delete-popup-active #addClassBtn {
     /* Center it in the overlay, or position it bottom-right */
     position: absolute;
     bottom: 80px;
-    right: 24px;
+    right: 0px;
+
+    padding: 0px 10px 10px 10px;
 }
 
 .chat-header {
@@ -1758,12 +1760,12 @@ body.delete-popup-active #addClassBtn {
     border-bottom: 1px solid #ddd;
     border-radius: 12px 12px 0 0;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 12px;
 }
 
 .chat-header h3 { margin: 0; font-size: 16px; }
-.chat-header button { background: none; border: none; font-size: 20px; cursor: pointer; }
+.chat-header button { margin-left: auto; background: none; border: none; font-size: 20px; cursor: pointer; }
 
 .chat-history {
     flex-grow: 1;
