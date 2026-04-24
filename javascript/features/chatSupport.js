@@ -68,8 +68,8 @@ export function initSupportChat() {
                 });
 
                 if(response.status == 503 && attempt < maxRetries - 1){
-                    await new Promise(res => setTimeout(res, dalay)); // Wait before retrying
-                    dalay *= 2;
+                    await new Promise(res => setTimeout(res, delay)); // Wait before retrying
+                    delay *= 2;
                     continue; // Retry the request
                 }
 
@@ -100,7 +100,7 @@ export function initSupportChat() {
             } catch (error) {
                 lastError = error;
                 if(error.status !== 503 || attempt >= maxRetries - 1) {
-                    await new Promise(res => setTimeout(res, dalay)); // Wait before showing error
+                    await new Promise(res => setTimeout(res, delay)); // Wait before showing error
                     delay *= 2;
                 }
             }
