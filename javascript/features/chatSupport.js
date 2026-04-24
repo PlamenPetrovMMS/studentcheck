@@ -11,6 +11,7 @@ export function initSupportChat() {
 
     // We keep track of the history exactly as your backend expects it
     let chatHistory = [];
+    let isSending = false; // To prevent multiple simultaneous sends
 
     // --- Overlay Toggles ---
     openBtn?.addEventListener('click', () => {
@@ -35,6 +36,15 @@ export function initSupportChat() {
     };
 
     const sendMessage = async () => {
+
+        if(isSending) return; // Prevent multiple sends
+
+        const text = input.value.trim();
+
+        if(!text) return;
+        
+        isSending = true;
+
         const text = input.value.trim();
         if (!text) return;
 
@@ -80,6 +90,7 @@ export function initSupportChat() {
             appendMessage('error', 'Network error. Please try again later.');
         } finally {
             // Unlock inputs
+            isSending = false;
             input.disabled = false;
             sendBtn.disabled = false;
             input.focus();

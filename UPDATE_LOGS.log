@@ -4,3 +4,4 @@
 [2026-04-23]
 - Initialized UPDATE_LOGS.log file to track future changes.
 - Diagnosed backend 500 error in chatSupport.js: Identified that the Google Generative AI SDK is rejecting the 'systemInstruction' payload. Instructed backend SDK update.
+- Confirmed that the 'systemInstruction' Gemini API error must be resolved entirely on the server side codebase.
