@@ -45,9 +45,6 @@ export function initSupportChat() {
         
         isSending = true;
 
-        const text = input.value.trim();
-        if (!text) return;
-
         // Render user message instantly and lock inputs
         appendMessage('user', text);
         input.value = '';
