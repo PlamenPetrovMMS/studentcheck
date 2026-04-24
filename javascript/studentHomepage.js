@@ -220,6 +220,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			});
 		
 		if (kjuaData) {
+			// Ensure the QR code is responsive and cannot exceed container bounds
+			kjuaData.style.maxWidth = '100%';
+			kjuaData.style.height = 'auto';
+			
+			// Create a flex context so it sits neatly in the page flow
+			qrContainer.style.display = 'flex';
+			qrContainer.style.justifyContent = 'center';
+			qrContainer.style.position = 'relative';
+			qrContainer.style.zIndex = '1'; // Force below chat overlays
+
 			qrContainer.appendChild(kjuaData);
 		} else {
 			displayErrorInQRContainer(qrContainer, 'Unable to generate QR code');

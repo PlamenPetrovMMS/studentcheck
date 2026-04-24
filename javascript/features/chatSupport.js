@@ -27,6 +27,8 @@ export function initSupportChat() {
     openBtn?.addEventListener('click', () => {
         if (overlay) {
             updateLanguageButtonLabel();
+            // Guarantee chat sits strictly above all other dashboard content
+            overlay.style.zIndex = '9999';
             showOverlay(overlay);
             // Delay adding the class slightly to ensure the CSS transition plays
             requestAnimationFrame(() => {
