@@ -220,6 +220,7 @@ export function initSupportChat() {
             isSending = false;
             input.disabled = false;
             sendBtn.disabled = false;
+            input.focus();
             return;
         }
     };

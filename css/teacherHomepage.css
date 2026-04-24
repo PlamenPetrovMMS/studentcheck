@@ -1877,7 +1877,7 @@ body.delete-popup-active #addClassBtn {
     flex-grow: 1;
     padding: 8px 12px;
     border: 1px solid #ccc;
-    border-radius: 20px;
+    border-radius: 12px;
     outline: none;
 }
 
@@ -1886,7 +1886,7 @@ body.delete-popup-active #addClassBtn {
     background-color: #000;
     color: white;
     border: none;
-    border-radius: 20px;
+    border-radius: 12px;
     cursor: pointer;
 }
 
