@@ -300,7 +300,10 @@
       support_chat_open_aria: 'Open Chat',
       support_chat_placeholder: 'Ask a question...',
       support_chat_send: 'Send',
-      support_chat_welcome: 'Hello! I am the StudentCheck support assistant. How can I help you today?'
+      support_chat_welcome: 'Hello! I am the StudentCheck support assistant. How can I help you today?',
+      support_chat_error_network: 'Network error. Please try again later.',
+      support_chat_error_overloaded: 'The AI service is overloaded. Please try again in a moment.',
+      support_chat_error_rate_limit: 'The AI is currently receiving too many requests. Please wait about 20 seconds and try again.'
     },
     bg: {
       support_chat_title: 'Чат поддръжка',
@@ -309,6 +312,9 @@
       support_chat_placeholder: 'Задайте въпрос...',
       support_chat_send: 'Изпрати',
       support_chat_welcome: 'Здравей! Аз съм асистентът за поддръжка на StudentCheck. С какво мога да помогна днес?',
+      support_chat_error_network: 'Мрежова грешка. Моля, опитайте отново по-късно.',
+      support_chat_error_overloaded: 'AI услугата е претоварена. Моля, опитайте отново след малко.',
+      support_chat_error_rate_limit: 'AI получава твърде много заявки. Моля, изчакайте около 20 секунди и опитайте отново.',
       language_label: 'Език',
       brand_label: 'E-Trek',
       language_change_title: 'Промяна на езика',
