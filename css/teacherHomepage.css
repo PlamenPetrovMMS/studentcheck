@@ -1753,7 +1753,7 @@ body.delete-popup-active #addClassBtn {
 }
 
 .chat-header {
-    padding: 16px;
+    padding: 16px 22px;
     background: #f8f9fa;
     border-bottom: 1px solid #ddd;
     border-radius: 12px 12px 0 0;
@@ -1767,7 +1767,7 @@ body.delete-popup-active #addClassBtn {
 
 .chat-history {
     flex-grow: 1;
-    padding: 16px;
+    padding: 16px 22px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -1804,7 +1804,7 @@ body.delete-popup-active #addClassBtn {
 }
 
 .chat-input-area {
-    padding: 16px;
+    padding: 16px 22px;
     border-top: 1px solid #ddd;
     display: flex;
     gap: 8px;
