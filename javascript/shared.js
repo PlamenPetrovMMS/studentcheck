@@ -295,7 +295,7 @@
       current_language_label: 'Current',
       support_chat_title: 'Support Chat',
       support_chat_open: '💬',
-      support_chat_open_aria: 'Open Support Chat',
+      support_chat_open_aria: 'Open Chat',
       support_chat_placeholder: 'Ask a question...',
       support_chat_send: 'Send',
       support_chat_welcome: 'Hello! I am the StudentCheck support assistant. How can I help you today?'
@@ -303,7 +303,7 @@
     bg: {
       support_chat_title: 'Чат поддръжка',
       support_chat_open: '💬',
-      support_chat_open_aria: 'Отвори чата за поддръжка',
+      support_chat_open_aria: 'Отвори чат',
       support_chat_placeholder: 'Задайте въпрос...',
       support_chat_send: 'Изпрати',
       support_chat_welcome: 'Здравей! Аз съм асистентът за поддръжка на StudentCheck. С какво мога да помогна днес?',
