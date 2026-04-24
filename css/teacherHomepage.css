@@ -1753,10 +1753,10 @@ body.delete-popup-active #addClassBtn {
 
     padding: 0px 10px 10px 10px;
 
-    /* Start off-screen to the left */
-    transform: translateX(-100vw);
+    /* Start off-screen to the right */
+    transform: translateX(100vw);
     opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.5s ease;
 }
 
 #supportChatOverlay.chat-slide-in .chat-popup {

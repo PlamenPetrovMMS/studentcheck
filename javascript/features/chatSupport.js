@@ -41,7 +41,7 @@ export function initSupportChat() {
             // Wait for the slide-out animation to finish before hiding the overlay
             setTimeout(() => {
                 hideOverlay(overlay);
-            }, 300);
+            }, 500);
         }
     };
 
