@@ -1722,7 +1722,7 @@ body.delete-popup-active #addClassBtn {
     bottom: 24px;
     right: 24px;
     padding: 12px 20px;
-    background-color: #007bff;
+    background-color: #000;
     color: white;
     border: none;
     border-radius: 50px;
@@ -1732,7 +1732,7 @@ body.delete-popup-active #addClassBtn {
     z-index: 2001;
 }
 
-.support-chat-fab:hover { background-color: #0056b3; }
+.support-chat-fab:hover { background-color: #515252; }
 
 /* Chat Popup Window */
 #supportChatOverlay .chat-popup {
