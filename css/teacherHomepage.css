@@ -1752,6 +1752,16 @@ body.delete-popup-active #addClassBtn {
     right: 24px;
 
     padding: 0px 10px 10px 10px;
+
+    /* Start off-screen to the left */
+    transform: translateX(-100vw);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+}
+
+#supportChatOverlay.chat-slide-in .chat-popup {
+    transform: translateX(0);
+    opacity: 1;
 }
 
 .chat-header {

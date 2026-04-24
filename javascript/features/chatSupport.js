@@ -28,12 +28,24 @@ export function initSupportChat() {
         if (overlay) {
             updateLanguageButtonLabel();
             showOverlay(overlay);
+            // Delay adding the class slightly to ensure the CSS transition plays
+            requestAnimationFrame(() => {
+                overlay.classList.add('chat-slide-in');
+            });
         }
     });
 
-    closeBtn?.addEventListener('click', () => {
-        if (overlay) hideOverlay(overlay);
-    });
+    const closeChat = () => {
+        if (overlay) {
+            overlay.classList.remove('chat-slide-in');
+            // Wait for the slide-out animation to finish before hiding the overlay
+            setTimeout(() => {
+                hideOverlay(overlay);
+            }, 300);
+        }
+    };
+
+    closeBtn?.addEventListener('click', closeChat);
 
     languageBtn?.addEventListener('click', () => {
         updateLanguageButtonLabel();
@@ -44,7 +56,7 @@ export function initSupportChat() {
 
     overlay?.addEventListener('click', (event) => {
         if (event.target === overlay) {
-            hideOverlay(overlay);
+            closeChat();
         }
     });
 
