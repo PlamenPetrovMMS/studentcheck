@@ -126,6 +126,8 @@
 (function(){
   const LANGUAGE_KEY = 'language';
   const DEFAULT_LANG = 'en';
+  const BRAND_LOGO_SRC = 'images/new_main_logo.png';
+  const BRAND_LOGO_ALT = 'Home';
 
   const translations = {
     en: {
@@ -724,17 +726,40 @@
 
   function updateNavClusterLabels() {
     const brandLabel = document.getElementById('navControlBrandLabel');
+    const brandBtn = document.getElementById('navControlBrandBtn');
+    const brandBtnImg = brandBtn ? brandBtn.querySelector('img') : null;
     const languageLabel = document.getElementById('navControlLanguageLabel');
     const billingLabel = document.getElementById('navMenuBillingLabel');
     const billingBtn = document.getElementById('navMenuBillingBtn');
     const logoutLabel = document.getElementById('navMenuLogoutLabel');
     const logoutBtn = document.getElementById('navMenuLogoutBtn');
     if (brandLabel) brandLabel.textContent = t('brand_label') || 'E-Trek';
+    if (brandBtn) brandBtn.setAttribute('aria-label', BRAND_LOGO_ALT);
+    if (brandBtnImg) {
+      brandBtnImg.setAttribute('src', BRAND_LOGO_SRC);
+      brandBtnImg.setAttribute('alt', BRAND_LOGO_ALT);
+    }
     if (languageLabel) languageLabel.textContent = t('language_label') || 'Language';
     if (billingLabel) billingLabel.textContent = t('billing_page') || 'Billing Page';
     if (billingBtn) billingBtn.setAttribute('aria-label', t('billing_page') || 'Billing Page');
     if (logoutLabel) logoutLabel.textContent = t('log_out') || 'Log out';
     if (logoutBtn) logoutBtn.setAttribute('aria-label', t('log_out') || 'Log out');
+  }
+
+  function refreshNavbarLogoButton() {
+    const logoBtn = document.querySelector('.navbar-logo');
+    if (!logoBtn) return;
+
+    logoBtn.type = 'button';
+    logoBtn.setAttribute('aria-label', BRAND_LOGO_ALT);
+
+    let logoImg = logoBtn.querySelector('img');
+    if (!logoImg) {
+      logoImg = document.createElement('img');
+      logoBtn.replaceChildren(logoImg);
+    }
+    logoImg.setAttribute('src', BRAND_LOGO_SRC);
+    logoImg.setAttribute('alt', BRAND_LOGO_ALT);
   }
 
   function updateLanguageCornerDisplay() {
@@ -1007,6 +1032,7 @@
   }
 
   function init() {
+    refreshNavbarLogoButton();
     ensureLanguageUI();
     ensureLanguageCornerDisplay();
     applyTranslations();
