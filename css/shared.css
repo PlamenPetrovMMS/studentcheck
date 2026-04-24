@@ -378,6 +378,25 @@ body[aria-busy="true"] .navbar-logo {
   color: #1e3a8a;
 }
 
+.nav-menu-item-current-lang {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-menu-current-lang-glyph {
+  width: var(--menu-control-size);
+  height: var(--menu-control-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #4b5563;
+}
+
+#navMenuCurrentLangLabel {
+  font-weight: 600;
+}
 .nav-control-brand-btn {
   width: var(--menu-control-size);
   height: var(--menu-control-size);
