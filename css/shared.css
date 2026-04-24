@@ -378,25 +378,6 @@ body[aria-busy="true"] .navbar-logo {
   color: #1e3a8a;
 }
 
-.nav-menu-item-current-lang {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav-menu-current-lang-glyph {
-  width: var(--menu-control-size);
-  height: var(--menu-control-size);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: #4b5563;
-}
-
-#navMenuCurrentLangLabel {
-  font-weight: 600;
-}
 .nav-control-brand-btn {
   width: var(--menu-control-size);
   height: var(--menu-control-size);
@@ -475,6 +456,53 @@ body[aria-busy="true"] .navbar-logo {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Top-right language display */
+.language-corner-display {
+  position: fixed;
+  top: var(--app-logo-top);
+  right: var(--app-logo-left); /* Symmetrical positioning */
+  height: var(--app-logo-size);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  z-index: 10000; /* Same level as navbar logo */
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--app-logo-radius);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  pointer-events: none; /* This is just a display, not interactive */
+}
+
+.language-corner-glyph {
+  font-size: 1.5rem;
+  color: #4b5563;
+  line-height: 1;
+}
+
+.language-corner-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  line-height: 1;
+}
+
+/* On mobile, it should scale down with the logo */
+@media (max-width: 480px) {
+  .language-corner-display {
+    top: var(--app-logo-mobile-top);
+    right: var(--app-logo-mobile-left);
+    height: var(--app-logo-mobile-size);
+    gap: 6px;
+  }
+  .language-corner-glyph {
+    font-size: 1.2rem;
+  }
+  .language-corner-text {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 768px) {

@@ -696,6 +696,7 @@
     if (page === 'teacherhomepage.html') {
       updateModeLabels();
     }
+    updateLanguageCornerDisplay();
     updateNavClusterLabels();
   }
 
@@ -706,17 +707,19 @@
     const billingBtn = document.getElementById('navMenuBillingBtn');
     const logoutLabel = document.getElementById('navMenuLogoutLabel');
     const logoutBtn = document.getElementById('navMenuLogoutBtn');
-    const currentLangLabel = document.getElementById('navMenuCurrentLangLabel');
     if (brandLabel) brandLabel.textContent = t('brand_label') || 'E-Trek';
     if (languageLabel) languageLabel.textContent = t('language_label') || 'Language';
     if (billingLabel) billingLabel.textContent = t('billing_page') || 'Billing Page';
     if (billingBtn) billingBtn.setAttribute('aria-label', t('billing_page') || 'Billing Page');
     if (logoutLabel) logoutLabel.textContent = t('log_out') || 'Log out';
     if (logoutBtn) logoutBtn.setAttribute('aria-label', t('log_out') || 'Log out');
-    if (currentLangLabel) {
-        const lang = (window.i18n.getLanguage() || 'en').toUpperCase();
-        currentLangLabel.textContent = `${t('current_language_label', 'Current')}: ${lang}`;
-    }
+  }
+
+  function updateLanguageCornerDisplay() {
+    const textEl = document.querySelector('#languageCornerDisplay .language-corner-text');
+    if (!textEl) return;
+    const lang = (getLanguage() || 'en').toUpperCase();
+    textEl.textContent = lang;
   }
 
   function ensureNavControlCluster(btn) {
@@ -739,10 +742,6 @@
               <span id="navControlBrandLabel" class="nav-control-label nav-control-label-brand">E-Trek</span>
             </div>
             <div class="nav-menu-item nav-menu-item-language" id="navMenuLanguageRow"></div>
-            <div class="nav-menu-item nav-menu-item-current-lang">
-                <span class="nav-menu-current-lang-glyph" aria-hidden="true">🌐</span>
-                <span id="navMenuCurrentLangLabel" class="nav-control-label nav-control-label-language"></span>
-            </div>
             <div class="nav-menu-item nav-menu-item-billing" id="navMenuBillingRow">
               <button id="navMenuBillingBtn" class="nav-menu-billing-btn" type="button" aria-label="Billing Page">
                 <span class="nav-menu-billing-glyph" aria-hidden="true">$</span>
@@ -971,8 +970,22 @@
     });
   }
 
+  function ensureLanguageCornerDisplay() {
+    if (document.getElementById('languageCornerDisplay')) return;
+    const display = document.createElement('div');
+    display.id = 'languageCornerDisplay';
+    display.className = 'language-corner-display';
+    display.setAttribute('aria-live', 'polite');
+    display.innerHTML = `
+        <span class="language-corner-glyph" aria-hidden="true">🌐</span>
+        <span class="language-corner-text"></span>
+    `;
+    document.body.appendChild(display);
+  }
+
   function init() {
     ensureLanguageUI();
+    ensureLanguageCornerDisplay();
     applyTranslations();
   }
 
