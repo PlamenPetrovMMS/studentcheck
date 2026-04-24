@@ -491,7 +491,7 @@ body[aria-busy="true"] .language-corner-display {
 .language-corner-text {
   font-size: 1rem;
   font-weight: 700;
-  color: #6b7280;
+  color: #000000;
   line-height: 1;
 }
 
