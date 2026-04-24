@@ -766,10 +766,9 @@
     const brandBtn = document.getElementById('navControlBrandBtn');
     const brandBtnImg = brandBtn ? brandBtn.querySelector('img') : null;
     const languageLabel = document.getElementById('navControlLanguageLabel');
-    const billingLabel = document.getElementById('navMenuBillingLabel');
-    const billingBtn = document.getElementById('navMenuBillingBtn');
     const logoutLabel = document.getElementById('navMenuLogoutLabel');
     const logoutBtn = document.getElementById('navMenuLogoutBtn');
+    const floatingBillingBtn = document.getElementById('floatingBillingBtn');
     if (brandLabel) brandLabel.textContent = t('brand_label') || 'E-Trek';
     if (brandBtn) brandBtn.setAttribute('aria-label', BRAND_LOGO_ALT);
     if (brandBtnImg) {
@@ -777,10 +776,9 @@
       brandBtnImg.setAttribute('alt', BRAND_LOGO_ALT);
     }
     if (languageLabel) languageLabel.textContent = t('language_label') || 'Language';
-    if (billingLabel) billingLabel.textContent = t('billing_page') || 'Billing Page';
-    if (billingBtn) billingBtn.setAttribute('aria-label', t('billing_page') || 'Billing Page');
     if (logoutLabel) logoutLabel.textContent = t('log_out') || 'Log out';
     if (logoutBtn) logoutBtn.setAttribute('aria-label', t('log_out') || 'Log out');
+    if (floatingBillingBtn) floatingBillingBtn.setAttribute('aria-label', t('billing_page') || 'Billing Page');
   }
 
   function refreshNavbarLogoButton() {
@@ -826,12 +824,6 @@
               <span id="navControlBrandLabel" class="nav-control-label nav-control-label-brand">E-Trek</span>
             </div>
             <div class="nav-menu-item nav-menu-item-language" id="navMenuLanguageRow"></div>
-            <div class="nav-menu-item nav-menu-item-billing" id="navMenuBillingRow">
-              <button id="navMenuBillingBtn" class="nav-menu-billing-btn" type="button" aria-label="Billing Page">
-                <span class="nav-menu-billing-glyph" aria-hidden="true">$</span>
-              </button>
-              <span id="navMenuBillingLabel" class="nav-control-label nav-control-label-language">Billing Page</span>
-            </div>
             <div class="nav-menu-spacer" aria-hidden="true"></div>
             <div class="nav-menu-item nav-menu-item-logout" id="navMenuLogoutRow">
               <button id="navMenuLogoutBtn" class="nav-menu-logout-btn" type="button" aria-label="Log out">
@@ -861,8 +853,6 @@
     const panel = document.getElementById('navControlCluster');
     const backdrop = document.getElementById('navMenuBackdrop');
     const brandBtn = document.getElementById('navControlBrandBtn');
-    const billingBtn = document.getElementById('navMenuBillingBtn');
-    const billingRow = document.getElementById('navMenuBillingRow');
     const logoutBtn = document.getElementById('navMenuLogoutBtn');
     const logoutRow = document.getElementById('navMenuLogoutRow');
     if (!panel || !backdrop) return;
@@ -872,14 +862,6 @@
         const hasStudent = !!sessionStorage.getItem('studentData');
         const hasTeacher = !!sessionStorage.getItem('teacherData');
         return hasStudent || hasTeacher;
-      } catch (_) {
-        return false;
-      }
-    }
-
-    function hasTeacherSession() {
-      try {
-        return !!sessionStorage.getItem('teacherData');
       } catch (_) {
         return false;
       }
@@ -901,14 +883,6 @@
       logoutBtn.tabIndex = visible ? 0 : -1;
     }
 
-    function syncBillingVisibility() {
-      if (!billingBtn || !billingRow) return;
-      const visible = hasTeacherSession();
-      billingRow.style.display = visible ? 'grid' : 'none';
-      billingBtn.setAttribute('aria-hidden', visible ? 'false' : 'true');
-      billingBtn.tabIndex = visible ? 0 : -1;
-    }
-
     logoBtn.setAttribute('aria-controls', 'navControlCluster');
     logoBtn.setAttribute('aria-expanded', 'false');
 
@@ -920,7 +894,6 @@
 
     function openMenu() {
       syncLogoutVisibility();
-      syncBillingVisibility();
       shell.classList.add('open');
       panel.setAttribute('aria-hidden', 'false');
       logoBtn.setAttribute('aria-expanded', 'true');
@@ -941,11 +914,6 @@
           if (currentPage !== destination.toLowerCase()) {
             window.location.href = destination;
           }
-        });
-      }
-      if (billingBtn) {
-        billingBtn.addEventListener('click', () => {
-          window.location.href = 'billing.html';
         });
       }
       if (logoutBtn) {
@@ -984,7 +952,6 @@
     }
 
     syncLogoutVisibility();
-    syncBillingVisibility();
 
     window.NavMenu = {
       open: openMenu,
@@ -1068,10 +1035,33 @@
     });
   }
 
+  function ensureFloatingBillingButton() {
+    let btn = document.getElementById('floatingBillingBtn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'floatingBillingBtn';
+      btn.className = 'billing-fab';
+      btn.type = 'button';
+      btn.innerHTML = '<span class="billing-fab-glyph" aria-hidden="true">$</span>';
+      document.body.appendChild(btn);
+
+      btn.addEventListener('click', () => {
+        window.location.href = 'billing.html';
+      });
+    }
+
+    function hasTeacherSession() {
+      try { return !!sessionStorage.getItem('teacherData'); } catch (_) { return false; }
+    }
+    const isBillingPage = window.location.pathname.toLowerCase().includes('billing.html');
+    btn.style.display = (hasTeacherSession() && !isBillingPage) ? 'flex' : 'none';
+  }
+
   function init() {
     refreshNavbarLogoButton();
     ensureLanguageUI();
     ensureLanguageCornerDisplay();
+    ensureFloatingBillingButton();
     applyTranslations();
   }
 

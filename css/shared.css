@@ -341,91 +341,7 @@ body[aria-busy="true"] .language-corner-display {
   color: #7f1d1d;
 }
 
-.nav-menu-item-billing {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav-menu-billing-btn {
-  width: var(--menu-control-size);
-  height: var(--menu-control-size);
-  border: 2px solid #86efac;
-  border-radius: 10px;
-  background: #dcfce7;
-  color: #166534;
-  cursor: pointer;
-  box-shadow: none;
-  transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.nav-menu-billing-btn:hover {
-  background: #bbf7d0;
-  color: #14532d;
-}
-
-.nav-menu-billing-btn:active {
-  transform: translateY(2px) scale(0.98);
-  box-shadow: none;
-}
-
-.nav-menu-billing-glyph {
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-#navMenuBillingLabel {
-  color: #1e3a8a;
-}
-
-.nav-control-brand-btn {
-  width: var(--menu-control-size);
-  height: var(--menu-control-size);
-  border: 2px solid #000000;
-  border-radius: 10px;
-  padding: 0;
-  margin: 0;
-  background: transparent;
-  box-shadow: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
-}
-
-.nav-control-brand-btn img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  border-radius: inherit;
-}
-
-.nav-menu-shell.open {
-  pointer-events: auto;
-}
-
-.nav-menu-shell.open .nav-menu-backdrop {
-  opacity: 1;
-}
-
-.nav-menu-shell.open .nav-menu-panel {
-  transform: translateX(0);
-}
-
-.nav-menu-panel .lang-toggle-btn {
-  position: static;
-  top: auto;
-  left: auto;
-  right: auto;
-  margin: 0;
-  width: var(--menu-control-size);
+.nav-th: var(--menu-control-size);
   height: var(--menu-control-size);
   border: 2px solid #000000;
   box-shadow: none;
@@ -554,6 +470,34 @@ body[aria-busy="true"] .language-corner-display {
   color: #f9fafb; /* near-white on dark backdrop */
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+
+/* Floating Billing Action Button (replaces nav menu item) */
+.billing-fab {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 100;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.billing-fab:hover { background-color: #1d4ed8; }
+.billing-fab:active { transform: translateY(2px); }
+.billing-fab-glyph {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* Global mobile button sizing: add ~30px vertical size for better touch targets */
