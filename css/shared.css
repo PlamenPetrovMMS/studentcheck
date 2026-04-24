@@ -483,8 +483,8 @@ body[aria-busy="true"] .language-corner-display {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #2563eb;
-  color: white;
+  background-color: #86efac;
+  color: #14532d;
   border: none;
   border-radius: 16px;
   cursor: pointer;
@@ -492,7 +492,7 @@ body[aria-busy="true"] .language-corner-display {
   z-index: 100;
   transition: background-color 0.2s ease, transform 0.15s ease;
 }
-.billing-fab:hover { background-color: #1d4ed8; }
+.billing-fab:hover { background-color: #4ade80; }
 .billing-fab:active { transform: translateY(2px); }
 .billing-fab-glyph {
   font-size: 26px;
