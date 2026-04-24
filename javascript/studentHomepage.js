@@ -1,5 +1,3 @@
-import { initSupportChat } from './features/chatSupport.js';
-
 const serverBaseUrl = 'https://studentcheck-server.onrender.com';
 const ENDPOINTS = {
         getStudentClasses: '/get_student_classes',
@@ -99,13 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		window.location.replace('studentLogin.html');
 		revealPage();
 		return;
-	}
-
-	// Initialize chat only after confirming the user session is fully valid (Matches teacherHomepage.js)
-	try {
-		initSupportChat();
-	} catch (chatErr) {
-		console.error("Support chat failed to initialize:", chatErr);
 	}
 	
 	try{

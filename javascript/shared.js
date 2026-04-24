@@ -678,15 +678,7 @@
         { selector: '#closeClassDetailsOverlayBtn', key: 'back' },
         { selector: '#viewClassesBtn', key: 'classes' },
         { selector: '#logoutBtn', key: 'log_out' },
-        { selector: '#classesList .no-classes-message', key: 'no_classes_found' },
-        { selector: '#openSupportChatBtn', key: 'support_chat_open', html: true },
-        { selector: '#openSupportChatBtn', key: 'support_chat_open_aria', attr: 'aria-label' },
-        { selector: '#supportChatTitle', key: 'support_chat_title' },
-        { selector: '#supportChatLanguageBtn', key: 'language_change_title' },
-        { selector: '#closeSupportChatBtn', key: 'close', attr: 'aria-label' },
-        { selector: '#chatInput', key: 'support_chat_placeholder', attr: 'placeholder' },
-        { selector: '#sendChatBtn', key: 'support_chat_send' },
-        { selector: '#chatHistoryContainer .chat-message.model:first-child', key: 'support_chat_welcome' }
+        { selector: '#classesList .no-classes-message', key: 'no_classes_found' }
       ],
       'teacherhomepage.html': [
         { selector: '#overlayTitle', key: 'students' },
