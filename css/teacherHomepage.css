@@ -1748,7 +1748,7 @@ body.delete-popup-active #addClassBtn {
     
     /* Center it in the overlay, or position it bottom-right */
     position: absolute;
-    bottom: 80px;
+    bottom: 100px;
     right: 24px;
 
     padding: 0px 10px 10px 10px;
