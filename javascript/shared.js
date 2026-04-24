@@ -2,11 +2,13 @@
 // Uses ONLY sessionStorage so login dies with the tab/window.
 (function(){
   function handleLogoClick() {
+    // If the NavMenu is ready, toggle it.
     if (window.NavMenu && typeof window.NavMenu.toggle === 'function' && window.NavMenu.isReady()) {
       window.NavMenu.toggle();
       return;
     }
-    window.location.href = 'index.html';
+    // Otherwise, the menu is still initializing. Do nothing to prevent an
+    // unexpected redirect. The click will be ignored until the menu is ready.
   }
 
   window.handleLogoClick = handleLogoClick;
