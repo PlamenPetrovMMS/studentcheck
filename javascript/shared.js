@@ -294,7 +294,7 @@
       billing_upgrade_not_configured: 'Upgrade is not configured yet.',
       current_language_label: 'Current',
       support_chat_title: 'Support Chat',
-      support_chat_open: '💬',
+      support_chat_open: '<img src="images/message-square-lines-svgrepo-com.svg" alt="" class="support-chat-icon" />',
       support_chat_open_aria: 'Open Chat',
       support_chat_placeholder: 'Ask a question...',
       support_chat_send: 'Send',
@@ -302,7 +302,7 @@
     },
     bg: {
       support_chat_title: 'Чат поддръжка',
-      support_chat_open: '💬',
+      support_chat_open: '<img src="images/message-square-lines-svgrepo-com.svg" alt="" class="support-chat-icon" />',
       support_chat_open_aria: 'Отвори чат',
       support_chat_placeholder: 'Задайте въпрос...',
       support_chat_send: 'Изпрати',
@@ -669,7 +669,15 @@
         { selector: '#closeClassDetailsOverlayBtn', key: 'back' },
         { selector: '#viewClassesBtn', key: 'classes' },
         { selector: '#logoutBtn', key: 'log_out' },
-        { selector: '#classesList .no-classes-message', key: 'no_classes_found' }
+        { selector: '#classesList .no-classes-message', key: 'no_classes_found' },
+        { selector: '#openSupportChatBtn', key: 'support_chat_open', html: true },
+        { selector: '#openSupportChatBtn', key: 'support_chat_open_aria', attr: 'aria-label' },
+        { selector: '#supportChatTitle', key: 'support_chat_title' },
+        { selector: '#supportChatLanguageBtn', key: 'language_change_title' },
+        { selector: '#closeSupportChatBtn', key: 'close', attr: 'aria-label' },
+        { selector: '#chatInput', key: 'support_chat_placeholder', attr: 'placeholder' },
+        { selector: '#sendChatBtn', key: 'support_chat_send' },
+        { selector: '#chatHistoryContainer .chat-message.model:first-child', key: 'support_chat_welcome' }
       ],
       'teacherhomepage.html': [
         { selector: '#overlayTitle', key: 'students' },
