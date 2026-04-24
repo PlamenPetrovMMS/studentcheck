@@ -92,29 +92,6 @@
 
     </main>
 
-    <button id="openSupportChatBtn" class="support-chat-fab" aria-label="Open Support Chat">
-        <img src="images/message-square-lines-svgrepo-com.svg" alt="" class="support-chat-icon" />
-    </button>
-
-    <div id="supportChatOverlay" class="overlay" style="visibility: hidden;">
-        <div class="chat-popup">
-            <div class="chat-header">
-                <h2 id="supportChatTitle">Support Chat</h2>
-                <button id="supportChatLanguageBtn" class="chat-language-btn" type="button">Change Language</button>
-                <button id="closeSupportChatBtn" class="close-small" aria-label="Close">×</button>
-            </div>
-
-            <div id="chatHistoryContainer" class="chat-history"> 
-                <div class="chat-message model">Hello! I am the StudentCheck support assistant. How can I help you today?</div>
-            </div>
-
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Ask a question..." autocomplete="off" />
-                <button id="sendChatBtn">Send</button>
-            </div>
-        </div>
-    </div>
-
     <!-- QR library: kjua (canvas/SVG QR renderer) -->
     <script src="https://cdn.jsdelivr.net/npm/kjua@0.9.0/dist/kjua.min.js"></script>
     <script src="javascript/shared.js"></script>
