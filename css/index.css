@@ -1,55 +1,57 @@
-/* Basic layout and typography */
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-	margin: 0;
-	min-height: 100vh;
-	display: flex;
-	flex-direction: column;
-	justify-content: center; /* Center heading and buttons together vertically */
-	font-family: inherit;
-}
+/* Unified Login Page Styles */
 
-/* Center the Welcome title and remove separating lines specific to the home card */
-.card-header {
-	border-bottom: 0;
-	margin-bottom: 24px;
-}
-.card-header .title { text-align: center; }
-
-/* Remove card background on the index page */
+/* Remove card background on login page */
 .card {
-	background: transparent;
-	box-shadow: none;
+    background: transparent;
+    box-shadow: none;
 }
 
-/* Reuse actions bar but stack buttons in a column and remove the top divider line */
+/* Remove divider lines in login card */
+.card-header {
+    border-bottom: 0;
+    margin-bottom: 24px;
+}
+.card-header .title {
+    text-align: center;
+}
+
+/* Center the single button in actions area */
 .actions {
-	justify-content: center;
-	align-items: stretch;
-	flex-direction: column;
-	gap: 18px;
-	border-top: 0;
+    justify-content: center;
+    border-top: 0;
 }
 
-/* Make the home buttons larger to feel like primary entry points */
-.actions .btn {
-	font-size: 1.25rem; /* ~20px */
-	padding: 18px 22px;
-	min-height: 64px;
+/* Make the primary Log in button larger to match key CTAs across the app */
+.actions .btn.btn-primary {
+    font-size: 1.15rem;
+    padding: 16px 22px;
+    min-height: 56px;
+    min-width: 220px;
 }
 
-/* Push action buttons to the right side */
-.actions-right {
-	margin-left: auto;
-	display: flex;
-	gap: 12px;
+@media (max-width: 480px) {
+    .actions .btn.btn-primary {
+        font-size: 1.2rem;
+        min-height: 68px;
+    }
 }
 
-/* Buttons now use shared .btn styles from registration.css */
+@media (max-width: 360px) {
+    .actions .btn.btn-primary {
+        min-width: 0;
+        width: 100%;
+    }
+}
 
-/* Optional: center the heading text */
-/* Heading is provided via .card-header .title now; no extra rules needed */
+/* Extra spacing above first field for clearer separation from header */
+form .field:first-child { 
+    margin-top: 16px; 
+}
+
+/* Ensure error message spacing consistent */
+#error-message.error { 
+    margin-top: -6px; 
+}
 
 /* On small portrait screens, push content below the fixed logo */
 @media (max-width: 480px) {
@@ -60,9 +62,9 @@ body {
 	}
 }
 
-/* In landscape (short viewports), also push content down to clear the logo */
 @media (max-height: 500px) {
 	body {
+		align-items: flex-start;
 		justify-content: flex-start;
 		padding-top: 100px;
 		overflow-y: auto !important;
