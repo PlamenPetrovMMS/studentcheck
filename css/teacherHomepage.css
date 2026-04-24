@@ -1808,7 +1808,7 @@ body.delete-popup-active #addClassBtn {
 }
 
 .chat-language-btn {
-    margin-left: auto;
+    margin-left: 0;
     padding: 8px 12px;
     border: 1px solid #d1d5db;
     border-radius: 999px;
@@ -1825,7 +1825,7 @@ body.delete-popup-active #addClassBtn {
 }
 
 #closeSupportChatBtn {
-    margin-left: 0;
+    margin-left: auto;
 }
 
 .chat-history {
