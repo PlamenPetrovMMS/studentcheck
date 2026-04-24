@@ -103,6 +103,11 @@ body[aria-busy="true"] .navbar-logo {
   pointer-events: none;
 }
 
+body[aria-busy="true"] .language-corner-display {
+  z-index: 0 !important;
+  pointer-events: none;
+}
+
 /* Language switcher */
 .lang-toggle-btn {
   position: fixed;
