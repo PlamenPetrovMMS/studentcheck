@@ -51,46 +51,72 @@ export function initSupportChat() {
         input.disabled = true;
         sendBtn.disabled = true;
 
-        try {
-            const response = await fetch(`${SERVER_BASE_URL}/support/chat`, { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    message: text, 
-                    history: chatHistory 
-                })
-            });
 
-            if (!response.ok) {
-                let serverError = 'Failed to fetch from chat API';
-                try {
-                    // Try to read the exact error message from the server
-                    const errData = await response.json();
-                    serverError = errData.error || errData.message || errData.details || serverError;
-                } catch (e) {
-                    serverError = await response.text() || serverError;
+        const maxRetries = 3;
+        let dalay = 1000; // Start with 1 second delay for retries
+        let lastError = null;
+
+        for(let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const response = await fetch(`${SERVER_BASE_URL}/support/chat`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: text, 
+                        history: chatHistory 
+                    })
+                });
+
+                if(response.status == 503 && attempt < maxRetries - 1){
+                    await new Promise(res => setTimeout(res, dalay)); // Wait before retrying
+                    dalay *= 2;
+                    continue; // Retry the request
                 }
-                throw new Error(`Server Error (${response.status}): ${serverError}`);
+
+
+                if (!response.ok) {
+                    let serverError = 'Failed to fetch from chat API';
+                    try {
+                        // Try to read the exact error message from the server
+                        const errData = await response.json();
+                        serverError = errData.error || errData.message || errData.details || serverError;
+                    } catch (e) {
+                        serverError = await response.text() || serverError;
+                    }
+                    const err = new Error(`Server Error (${response.status}): ${serverError}`);
+                    err.status = response.status;
+                    throw err;
+                }
+
+                const data = await response.json();
+                
+                // Render the AI response
+                appendMessage('model', data.reply);
+                
+                // Save to history array for the NEXT request context
+                chatHistory.push({ role: 'user', content: text });
+                chatHistory.push({ role: 'model', content: data.reply });
+
+            } catch (error) {
+                lastError = error;
+                if(error.status !== 503 || attempt >= maxRetries - 1) {
+                    await new Promise(res => setTimeout(res, dalay)); // Wait before showing error
+                    delay *= 2;
+                }
             }
 
-            const data = await response.json();
-            
-            // Render the AI response
-            appendMessage('model', data.reply);
-            
-            // Save to history array for the NEXT request context
-            chatHistory.push({ role: 'user', content: text });
-            chatHistory.push({ role: 'model', content: data.reply });
+            if (lastError) {
+                console.error("Support Chat Error:", lastError);
+                const userMessage = lastError.status === 503
+                    ? "The AI service is overloaded. Please try again in a moment."
+                    : "Network error. Please try again later.";
+                appendMessage('error', userMessage);
+            }
 
-        } catch (error) {
-            console.error("Support Chat Error:", error);
-            appendMessage('error', 'Network error. Please try again later.');
-        } finally {
-            // Unlock inputs
             isSending = false;
             input.disabled = false;
             sendBtn.disabled = false;
-            input.focus();
+            return;
         }
     };
 
