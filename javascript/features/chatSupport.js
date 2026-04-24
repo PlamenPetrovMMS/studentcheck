@@ -4,6 +4,7 @@ import { SERVER_BASE_URL } from '../config/api.js'; // Fallback if you use full 
 export function initSupportChat() {
     const openBtn = document.getElementById('openSupportChatBtn');
     const closeBtn = document.getElementById('closeSupportChatBtn');
+    const languageBtn = document.getElementById('supportChatLanguageBtn');
     const overlay = getOverlay('supportChatOverlay'); 
     const sendBtn = document.getElementById('sendChatBtn');
     const input = document.getElementById('chatInput');
@@ -22,6 +23,12 @@ export function initSupportChat() {
 
     closeBtn?.addEventListener('click', () => {
         if (overlay) hideOverlay(overlay);
+    });
+
+    languageBtn?.addEventListener('click', () => {
+        if (window.i18n && typeof window.i18n.openLanguageMenu === 'function') {
+            window.i18n.openLanguageMenu();
+        }
     });
 
     overlay?.addEventListener('click', (event) => {
