@@ -1437,7 +1437,7 @@ body.delete-popup-active #addClassBtn {
 
 @media (max-width: 600px) {
     #addStudentsClassOverlay .add-students-list {
-        max-height: 32vh;
+        height: 32vh;
     }
     #createClassStudentsBody {
         max-height: 32vh;
