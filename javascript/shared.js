@@ -295,7 +295,7 @@
       billing_err_status: 'Unable to load billing status.',
       billing_upgrade_not_configured: 'Upgrade is not configured yet.',
       current_language_label: 'Current',
-      support_chat_title: 'Support Chat',
+      support_chat_title: 'Support',
       support_chat_open: '<img src="images/message-square-lines-svgrepo-com.svg" alt="" class="support-chat-icon" style="width: 32px; height: 32px; max-width: 100%;" />',
       support_chat_open_aria: 'Open Chat',
       support_chat_placeholder: 'Ask a question...',
@@ -307,7 +307,7 @@
       support_chat_cooldown: 'Please wait {sec}s...'
     },
     bg: {
-      support_chat_title: 'Чат поддръжка',
+      support_chat_title: 'Поддръжка',
       support_chat_open: '<img src="images/message-square-lines-svgrepo-com.svg" alt="" class="support-chat-icon" style="width: 32px; height: 32px; max-width: 100%;" />',
       support_chat_open_aria: 'Отвори чат',
       support_chat_placeholder: 'Задайте въпрос...',
