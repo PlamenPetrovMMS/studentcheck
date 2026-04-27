@@ -536,6 +536,55 @@ body[aria-busy="true"] .language-corner-display {
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
 }
 
+/* --- Multi-step Registration Wizard --- */
+#slidesTrack {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#slidesTrack .slide {
+  display: none;
+  animation: slideFadeIn 0.35s ease forwards;
+}
+
+#slidesTrack .slide.active {
+  display: block;
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Hide elements when instructed by JS */
+.finish-hidden {
+  display: none !important;
+}
+
+/* Wizard Navigation Actions */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  gap: 12px;
+}
+.actions.single-right {
+  justify-content: flex-end;
+}
+
+/* Form Validation States */
+input.invalid, select.invalid { border-color: #dc2626 !important; background-color: #fef2f2 !important; }
+
+/* Password Requirements List */
+.req-list { list-style: none; padding: 0; margin: 12px 0 0 0; font-size: 0.85rem; }
+.req-list li { color: #6b7280; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; transition: color 0.2s ease; }
+.req-list li::before { content: "○"; font-size: 1.1rem; }
+.req-list li.met { color: #059669; }
+.req-list li.met::before { content: "●"; }
+.req-list li.unmet { color: #dc2626; }
+
 /* Floating Billing Action Button (replaces nav menu item) */
 .billing-fab {
   position: fixed;
