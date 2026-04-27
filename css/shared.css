@@ -565,7 +565,7 @@ body[aria-busy="true"] .language-corner-display {
 /* Wizard Navigation Actions */
 .actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 24px;
   gap: 12px;
@@ -574,9 +574,9 @@ body[aria-busy="true"] .language-corner-display {
   justify-content: flex-end;
 }
 
-/* Prevent button jumping on page load by forcing them right natively */
-#nextBtn, #finishBtn {
-  margin-left: auto;
+/* Force Back button to the left, which naturally keeps Continue/Finish on the right */
+#backBtn {
+  margin-right: auto !important;
 }
 
 /* Form Validation States */

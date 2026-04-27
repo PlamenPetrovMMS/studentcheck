@@ -76,8 +76,9 @@ body {
 .error { margin-top: -6px; font-size: 0.9rem; color: #b91c1c; min-height: 1.1em; }
 
 /* Actions */
-.actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 22px 20px 22px; border-top: none; }
+.actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 14px 22px 20px 22px; border-top: none; }
 .actions.single-right { justify-content: flex-end; }
+#backBtn { margin-right: auto !important; }
 
 .btn { appearance: none; border: none; border-radius: 10px; padding: 12px 18px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 60ms ease-out, box-shadow 0.2s ease, background-color 0.2s ease; }
 
