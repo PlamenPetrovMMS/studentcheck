@@ -688,7 +688,7 @@
         { selector: '#closeClassDetailsOverlayBtn', key: 'back' },
         { selector: '#viewClassesBtn', key: 'classes' },
         { selector: '#logoutBtn', key: 'log_out' },
-        { selector: '#classesList .no-classes-message', key: 'no_classes_found' }
+        { selector: '#classesList .no-classes-message', key: 'student_no_classes' }
       ],
       'teacherhomepage.html': [
         { selector: '#overlayTitle', key: 'students' },
