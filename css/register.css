@@ -14,13 +14,13 @@
 .finish-hidden { display: none; }
 
 /* Password requirement list */
-.password-req { list-style: none; margin: 4px 0 6px 0; padding: 0; font-size: 0.75rem; display: grid; gap: 2px; }
-.password-req li { display: flex; align-items: center; gap: 6px; line-height: 1.1; transition: color 0.25s ease, opacity 0.25s ease; }
-.password-req li .indicator { width: 10px; height: 10px; border-radius: 50%; background: currentColor; opacity: 0.5; transition: opacity 0.25s ease, transform 0.25s ease; }
+.password-req { list-style: none; margin: 4px 0 6px 0; padding: 0; font-size: 0.85rem; display: grid; gap: 6px; }
+.password-req li { display: flex; align-items: center; gap: 6px; line-height: 1.1; color: #6b7280; transition: color 0.25s ease; }
+.password-req li::before { content: "○"; font-size: 1.1rem; width: 14px; text-align: center; display: inline-block; }
 .password-req li.met { color: #059669; }
-.password-req li.met .indicator { opacity: 0.9; transform: scale(1.1); }
+.password-req li.met::before { content: "✓"; font-weight: bold; }
 .password-req li.unmet { color: #b91c1c; }
-.password-req li.unmet .indicator { opacity: 0.6; }
+.password-req li.unmet::before { content: "×"; font-weight: bold; font-size: 1.2rem; }
 
 @media (max-width: 520px) {
   .slide { padding: 18px 14px 8px 14px; }
