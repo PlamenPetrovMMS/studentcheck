@@ -585,7 +585,7 @@ input.invalid, select.invalid { border-color: #dc2626 !important; background-col
 /* Password Requirements List */
 .req-list { list-style: none; padding: 0; margin: 12px 0 0 0; font-size: 0.85rem; }
 .req-list li, #reqLength, #reqLetter, #reqNumber, #reqMatch { color: #6b7280; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; transition: color 0.2s ease; }
-.req-list li::before, #reqLength::before, #reqLetter::before, #reqNumber::before, #reqMatch::before { content: "○"; font-size: 1.1rem; width: 14px; text-align: center; display: inline-block; }
+.req-list li::before, #reqLength::before, #reqLetter::before, #reqNumber::before, #reqMatch::before { content: "○"; font-size: 1.1rem; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
 .req-list li.met, #reqLength.met, #reqLetter.met, #reqNumber.met, #reqMatch.met { color: #059669 !important; }
 .req-list li.met::before, #reqLength.met::before, #reqLetter.met::before, #reqNumber.met::before, #reqMatch.met::before { content: "✓"; font-weight: bold; }
 .req-list li.unmet, #reqLength.unmet, #reqLetter.unmet, #reqNumber.unmet, #reqMatch.unmet { color: #dc2626 !important; }

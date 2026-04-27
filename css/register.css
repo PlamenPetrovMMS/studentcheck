@@ -16,7 +16,7 @@
 /* Password requirement list */
 .password-req { list-style: none; margin: 4px 0 6px 0; padding: 0; font-size: 0.85rem; display: grid; gap: 6px; }
 .password-req li, #reqLength, #reqLetter, #reqNumber, #reqMatch { display: flex; align-items: center; gap: 6px; line-height: 1.1; color: #6b7280; transition: color 0.25s ease; }
-.password-req li::before, #reqLength::before, #reqLetter::before, #reqNumber::before, #reqMatch::before { content: "○"; font-size: 1.1rem; width: 14px; text-align: center; display: inline-block; }
+.password-req li::before, #reqLength::before, #reqLetter::before, #reqNumber::before, #reqMatch::before { content: "○"; font-size: 1.1rem; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
 .password-req li.met, #reqLength.met, #reqLetter.met, #reqNumber.met, #reqMatch.met { color: #059669 !important; }
 .password-req li.met::before, #reqLength.met::before, #reqLetter.met::before, #reqNumber.met::before, #reqMatch.met::before { content: "✓"; font-weight: bold; }
 .password-req li.unmet, #reqLength.unmet, #reqLetter.unmet, #reqNumber.unmet, #reqMatch.unmet { color: #b91c1c !important; }
