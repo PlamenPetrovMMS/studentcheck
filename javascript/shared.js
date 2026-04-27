@@ -1045,38 +1045,9 @@
       btn.innerHTML = '<span class="billing-fab-glyph" aria-hidden="true">$</span>';
       document.body.appendChild(btn);
 
-      // Dynamically create the overlay if it doesn't exist yet
-      let overlay = document.getElementById('billingOverlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'billingOverlay';
-        overlay.innerHTML = `
-            <div class="billing-popup">
-                <button class="billing-popup-close" id="closeBillingBtn" aria-label="Close">&times;</button>
-                <div class="billing-popup-logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <h3 class="billing-popup-title">Donate for more improvements</h3>
-                <button class="billing-popup-btn" id="donateBtn">1$ - Thank you!</button>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        // Handle closing the overlay
-        document.getElementById('closeBillingBtn').addEventListener('click', () => {
-            overlay.classList.remove('billing-slide-in');
-        });
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) overlay.classList.remove('billing-slide-in');
-        });
-      }
-
-      // Open the overlay when clicking the billing FAB
-      btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          overlay.classList.add('billing-slide-in');
+      // Redirect to the main billing page
+      btn.addEventListener('click', () => {
+        window.location.href = 'billing.html';
       });
     }
 
