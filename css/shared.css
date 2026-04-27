@@ -574,6 +574,11 @@ body[aria-busy="true"] .language-corner-display {
   justify-content: flex-end;
 }
 
+/* Prevent button jumping on page load by forcing them right natively */
+#nextBtn, #finishBtn {
+  margin-left: auto;
+}
+
 /* Form Validation States */
 input.invalid, select.invalid { border-color: #dc2626 !important; background-color: #fef2f2 !important; }
 
