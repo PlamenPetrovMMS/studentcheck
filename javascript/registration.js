@@ -932,22 +932,27 @@
     (function(){
         const pwInput = document.getElementById('password');
         const repeatInput = document.getElementById('repeatPassword');
-        const pwBtn = document.querySelector('.password-wrapper .toggle-password');
-        if (!pwInput || !repeatInput || !pwBtn) return;
-        const img = pwBtn.querySelector('img');
+        const pwBtns = document.querySelectorAll('.password-wrapper .toggle-password');
+        if (!pwInput || !repeatInput || pwBtns.length === 0) return;
+        
         const setState = (show) => {
             pwInput.type = show ? 'text' : 'password';
             repeatInput.type = show ? 'text' : 'password';
-            pwBtn.setAttribute('aria-pressed', String(show));
-            pwBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-            if (img) {
-                img.src = show ? 'icons/hide.svg' : 'icons/show.svg';
-                img.alt = show ? 'Hide password' : 'Show password';
-            }
+            pwBtns.forEach(btn => {
+                btn.setAttribute('aria-pressed', String(show));
+                btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                const img = btn.querySelector('img');
+                if (img) {
+                    img.src = show ? 'icons/hide.svg' : 'icons/show.svg';
+                    img.alt = show ? 'Hide password' : 'Show password';
+                }
+            });
         };
-        pwBtn.addEventListener('click', () => {
-            const willShow = pwInput.type === 'password';
-            setState(willShow);
+        pwBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const willShow = pwInput.type === 'password';
+                setState(willShow);
+            });
         });
     })();
 
