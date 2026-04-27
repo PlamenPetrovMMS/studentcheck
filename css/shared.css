@@ -158,6 +158,9 @@ body[aria-busy="true"] .language-corner-display {
 }
 
 .lang-popup {
+  position: absolute;
+  top: calc(var(--app-logo-top) + var(--app-logo-size) + 12px);
+  right: var(--app-logo-left);
   background: #ffffff;
   color: #111827;
   border-radius: 14px;
@@ -165,12 +168,14 @@ body[aria-busy="true"] .language-corner-display {
   box-shadow: 0 12px 30px rgba(0,0,0,0.25);
   padding: 18px 16px 16px 16px;
   text-align: center;
-  transform: scale(0.92) translateY(10px);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
 }
 
 .lang-overlay.visible .lang-popup {
-  transform: scale(1) translateY(0);
+  transform: translateX(0);
+  opacity: 1;
 }
 .lang-popup h2 {
   margin: 0 0 12px 0;
@@ -252,7 +257,10 @@ body[aria-busy="true"] .language-corner-display {
     width: 44px;
     height: 44px;
   }
-
+  .lang-popup {
+    top: calc(var(--app-logo-mobile-top) + var(--app-logo-mobile-size) + 12px);
+    right: var(--app-logo-mobile-left);
+  }
 }
 
 /* Slide-out menu shell (logo stays visible; menu appears on click) */
