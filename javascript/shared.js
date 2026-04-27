@@ -1045,9 +1045,9 @@
       btn.innerHTML = '<span class="billing-fab-glyph" aria-hidden="true">$</span>';
       document.body.appendChild(btn);
 
-      // Redirect to the main billing page
+      // Redirect directly to the Stripe Payment Link
       btn.addEventListener('click', () => {
-        window.location.href = 'billing.html';
+        window.location.href = 'YOUR_LINK_HERE';
       });
     }
 
