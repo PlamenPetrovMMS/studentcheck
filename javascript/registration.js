@@ -816,6 +816,8 @@
                     .join(' ')
                     .trim();
                 const sessionStudent = {
+                    id: responseStudent?.id,
+                    student_id: responseStudent?.student_id || responseStudent?.id,
                     full_name: responseStudent?.full_name || responseStudent?.fullName || fullNameFromPayload,
                     faculty_number: responseStudent?.faculty_number || responseStudent?.facultyNumber || payload.facultyNumber,
                     firstName: responseStudent?.firstName || payload.firstName,
