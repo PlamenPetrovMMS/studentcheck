@@ -335,12 +335,12 @@ async function loadClassesForStudent(studentData) {
 
 
 			}else{
-				classesList.innerHTML = '<p class="no-classes-message">No classes found.</p>';
+				classesList.innerHTML = '<p class="no-classes-message">You\'re not added to any class yet.</p>';
 			}
 			
 		} else if (response && (response.status === 400 || response.status === 404)) {
 			// Gracefully handle missing student_id / no classes
-			classesList.innerHTML = '<p class="no-classes-message">No classes found.</p>';
+			classesList.innerHTML = '<p class="no-classes-message">You\'re not added to any class yet.</p>';
 		} else {
 			console.error("Error fetching classes:", response.status, response.statusText);
 			classesList.innerHTML = '<p class="no-classes-message">Unable to load classes right now. Please try again.</p>';
