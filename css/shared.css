@@ -585,10 +585,11 @@ input.invalid, select.invalid { border-color: #dc2626 !important; background-col
 /* Password Requirements List */
 .req-list { list-style: none; padding: 0; margin: 12px 0 0 0; font-size: 0.85rem; }
 .req-list li { color: #6b7280; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; transition: color 0.2s ease; }
-.req-list li::before { content: "○"; font-size: 1.1rem; }
+.req-list li::before { content: "○"; font-size: 1.1rem; width: 14px; text-align: center; display: inline-block; }
 .req-list li.met { color: #059669; }
-.req-list li.met::before { content: "●"; }
+.req-list li.met::before { content: "✓"; font-weight: bold; }
 .req-list li.unmet { color: #dc2626; }
+.req-list li.unmet::before { content: "×"; font-weight: bold; font-size: 1.2rem; }
 
 /* Floating Billing Action Button (replaces nav menu item) */
 .billing-fab {
