@@ -422,8 +422,8 @@ function getManageStudentsListEl() { return document.getElementById('manageStude
 function getAddStudentsClassOverlay() { return getOverlay('addStudentsClassOverlay'); }
 function getAddStudentsListEl() {
     const overlay = getAddStudentsClassOverlay();
-    const scoped = overlay?.querySelector('#addStudentsList');
-    return scoped || document.getElementById('addStudentsList');
+    const scoped = overlay?.querySelector('#classAddStudentsList');
+    return scoped || document.getElementById('classAddStudentsList');
 }
 function getAttendanceHistoryOverlay() { return getOverlay('attendanceHistoryOverlay'); }
 
@@ -1391,7 +1391,7 @@ function resetAddStudentsFiltersState() {
  */
 function updateAddStudentsCounter() {
     const overlay = getAddStudentsClassOverlay();
-    const confirmBtn = overlay?.querySelector('#addStudentsOverlayBtn');
+    const confirmBtn = overlay?.querySelector('#classAddStudentsOverlayBtn');
     if (confirmBtn) {
         const label = i18nText('add_btn', 'Add');
         confirmBtn.textContent = `${label} (${addStudentsSelections.size})`;
@@ -1410,7 +1410,7 @@ function ensureAddStudentsOverlayInitialized() {
 
     const closeBtn = overlay.querySelector('#closeAddStudentsClassBtn');
     const searchInput = overlay.querySelector('#addStudentsSearchInput');
-    const confirmBtn = overlay.querySelector('#addStudentsOverlayBtn');
+    const confirmBtn = overlay.querySelector('#classAddStudentsOverlayBtn');
     const resetBtn = overlay.querySelector('#addStudentsResetFiltersBtn');
     const levelSelect = overlay.querySelector('#addStudentsFilterLevel');
     const facultySelect = overlay.querySelector('#addStudentsFilterFaculty');
@@ -1570,7 +1570,7 @@ export async function openAddStudentsToClass(className, options = {}) {
     addStudentsReturnToManage = Boolean(options.returnToManage);
 
     const overlay = getAddStudentsClassOverlay();
-    const confirmBtn = overlay?.querySelector('#addStudentsOverlayBtn');
+    const confirmBtn = overlay?.querySelector('#classAddStudentsOverlayBtn');
     const searchInput = overlay?.querySelector('#addStudentsSearchInput');
 
     addStudentsSelections.clear();

@@ -693,7 +693,7 @@
       'teacherhomepage.html': [
         { selector: '#overlayTitle', key: 'students' },
         { selector: '#resetFiltersBtn', key: 'reset' },
-        { selector: '#addStudentsOverlayBtn', key: 'add_students' },
+        { selector: '#searchAddStudentsOverlayBtn', key: 'add_students' },
         { selector: '#closeOverlayBtn', key: 'close' },
         { selector: '#attendanceHistoryTitle', key: 'attendance_history' },
         { selector: '#attendanceHistoryBackBtn', key: 'back' },
@@ -708,7 +708,7 @@
         { selector: '#addStudentManageBtn', key: 'add_students' },
         { selector: '#addStudentsTitle', key: 'add_students' },
         { selector: '#addStudentsResetFiltersBtn', key: 'reset' },
-        { selector: '#addStudentsOverlayBtn', key: 'add' },
+        { selector: '#classAddStudentsOverlayBtn', key: 'add' },
         { selector: '#readyClassTitle', key: 'class_ready' },
         { selector: '#manageStudentsBtn', key: 'manage_students' },
         { selector: '#startScannerBtn', key: 'start_scanner' },

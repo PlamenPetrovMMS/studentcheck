@@ -466,9 +466,20 @@
 
 .role-button:hover { background: #d1d5db; }
 .role-button:active { transform: translateY(2px); }
-#addStudentsOverlayBtn { background: #2563eb; color: #ffffff; border-color: #2563eb; }
-#addStudentsOverlayBtn:hover { background: #1d4ed8; }
-#addStudentsOverlayBtn:active { transform: translateY(2px); }
+#searchAddStudentsOverlayBtn,
+#classAddStudentsOverlayBtn {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+#searchAddStudentsOverlayBtn:hover,
+#classAddStudentsOverlayBtn:hover {
+    background: #1d4ed8;
+}
+#searchAddStudentsOverlayBtn:active,
+#classAddStudentsOverlayBtn:active {
+    transform: translateY(2px);
+}
 
 #manageStudentsOverlay{
     visibility: hidden;
