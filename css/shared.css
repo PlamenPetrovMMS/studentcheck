@@ -29,6 +29,18 @@ textarea {
   font-family: inherit;
 }
 
+button {
+  transform-origin: center;
+}
+
+button:not(:disabled):not([aria-disabled="true"]):hover {
+  transform: scale(1.03) !important;
+}
+
+button:not(:disabled):not([aria-disabled="true"]):active {
+  transform: translateY(2px) scale(0.98) !important;
+}
+
 /* Shared page width wrapper for auth/home cards */
 .page-container {
   width: 100%;
@@ -478,6 +490,7 @@ body[aria-busy="true"] .language-corner-display {
 
 .language-corner-display:hover {
   background-color: #e5e7eb;
+  transform: scale(1.03);
 }
 
 .language-corner-display.is-clicking {
@@ -487,13 +500,13 @@ body[aria-busy="true"] .language-corner-display {
 
 @keyframes languageCornerClick {
   0% {
-    transform: scale(1);
+    transform: scale(1.03);
   }
   45% {
-    transform: translateY(1px) scale(0.94);
+    transform: translateY(1px) scale(0.96);
   }
   100% {
-    transform: scale(1);
+    transform: scale(1.03);
   }
 }
 
