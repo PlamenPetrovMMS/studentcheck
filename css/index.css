@@ -53,6 +53,14 @@ form .field:first-child {
     margin-top: -6px; 
 }
 
+#unifiedLoginForm .toggle-password:hover {
+    transform: translateY(-50%) scale(1.04) !important;
+}
+
+#unifiedLoginForm .toggle-password:active {
+    transform: translateY(-50%) scale(1.04) !important;
+}
+
 /* On small portrait screens, push content below the fixed logo */
 @media (max-width: 480px) {
 	body {
