@@ -49,8 +49,8 @@
 	--student-overlay-backdrop: rgba(0, 0, 0, 0.8);
 	--student-overlay-blur: 8px;
 
-	--student-transition-base: background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
-	--student-transition-button: background 0.15s ease, transform 120ms ease;
+	--student-transition-base: background 0.25s ease, box-shadow 0.25s ease, transform var(--app-button-hover-duration) var(--app-button-hover-ease);
+	--student-transition-button: background 0.18s ease, transform var(--app-button-hover-duration) var(--app-button-hover-ease);
 }
 
 /* Hide initial skeleton until JS finishes page initialization */
