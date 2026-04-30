@@ -1028,10 +1028,24 @@
     display.setAttribute('tabindex', '0');
     display.dataset.interactive = 'true';
 
-    display.addEventListener('click', openLanguageMenu);
+    const playClickAnimation = () => {
+      display.classList.remove('is-clicking');
+      void display.offsetWidth;
+      display.classList.add('is-clicking');
+    };
+
+    display.addEventListener('animationend', () => {
+      display.classList.remove('is-clicking');
+    });
+
+    display.addEventListener('click', () => {
+      playClickAnimation();
+      openLanguageMenu();
+    });
     display.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
+        playClickAnimation();
         openLanguageMenu();
       }
     });
