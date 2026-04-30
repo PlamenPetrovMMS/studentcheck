@@ -1173,7 +1173,7 @@ body.delete-popup-active #addClassBtn {
     font-weight: 700;
     letter-spacing: .2px;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform var(--app-button-hover-duration) var(--app-button-hover-ease);
 }
 #scannerOverlay .mode-toggle .mode-label:hover {
     background: #e5e7eb; /* gray-200 */
