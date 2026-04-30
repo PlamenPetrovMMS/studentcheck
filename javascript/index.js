@@ -143,5 +143,13 @@ document.querySelectorAll('.password-wrapper').forEach(wrapper => {
             img.alt = show ? 'Hide password' : 'Show password';
         }
     };
-    btn.addEventListener('click', () => setState(input.type === 'password'));
+    btn.addEventListener('animationend', () => {
+        btn.classList.remove('is-clicking');
+    });
+    btn.addEventListener('click', () => {
+        btn.classList.remove('is-clicking');
+        void btn.offsetWidth;
+        btn.classList.add('is-clicking');
+        setState(input.type === 'password');
+    });
 });
