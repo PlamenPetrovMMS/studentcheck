@@ -480,13 +480,9 @@ body[aria-busy="true"] .language-corner-display {
   background-color: #e5e7eb;
 }
 
-.language-corner-display:active {
-  transform: translateY(1px) scale(0.96);
-  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.12);
-}
-
 .language-corner-display.is-clicking {
   animation: languageCornerClick 0.24s ease;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.12);
 }
 
 @keyframes languageCornerClick {
