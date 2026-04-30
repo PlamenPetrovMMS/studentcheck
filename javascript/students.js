@@ -1,7 +1,11 @@
 (function(){
-  const API_URL = 'https://studentcheck-server.onrender.com/students';
   let cache = [];
   let index = new Map();
+
+  async function getStudentsUrl() {
+    const { SERVER_BASE_URL, ENDPOINTS } = await import('./config/api.js');
+    return SERVER_BASE_URL + ENDPOINTS.students;
+  }
 
   function splitNames(input){
     const raw = (typeof input === 'string') ? input : (input && input.full_name) || '';
@@ -37,7 +41,7 @@
 
   async function fetchAll(){
     if (Array.isArray(cache) && cache.length > 0) return cache;
-    const data = await window.Utils.fetchJSON(API_URL, { method: 'GET', headers: { 'Accept': 'application/json' } });
+    const data = await window.Utils.fetchJSON(await getStudentsUrl(), { method: 'GET', headers: { 'Accept': 'application/json' } });
     const students = Array.isArray(data.students) ? data.students : [];
     cache = students;
     buildIndex(students);

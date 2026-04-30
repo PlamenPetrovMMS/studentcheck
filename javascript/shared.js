@@ -16,7 +16,6 @@
 
 // Best-effort health ping while the app tab is open.
 (function(){
-  const url = 'https://studentcheck-server.onrender.com/healthz';
   const minMs = 5 * 60 * 1000;
   const maxMs = 10 * 60 * 1000;
   let timerId = null;
@@ -25,19 +24,19 @@
     return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
   }
 
-  function ping() {
-    fetch(url, { method: 'GET', cache: 'no-store' })
-      .then((res) => {
-        if (res && res.ok === true) {
-          // Health endpoint responded OK.
-        }
-      })
-      .catch(() => {
-        // Ignore failures; this ping is best-effort only.
-      })
-      .finally(() => {
-        timerId = setTimeout(ping, nextDelayMs());
-      });
+  async function ping() {
+    try {
+      const { SERVER_BASE_URL, ENDPOINTS } = await import('./config/api.js');
+      const url = SERVER_BASE_URL + ENDPOINTS.health;
+      const res = await fetch(url, { method: 'GET', cache: 'no-store' });
+      if (res && res.ok === true) {
+        // Health endpoint responded OK.
+      }
+    } catch (_) {
+      // Ignore failures; this ping is best-effort only.
+    } finally {
+      timerId = setTimeout(ping, nextDelayMs());
+    }
   }
 
   timerId = setTimeout(ping, nextDelayMs());

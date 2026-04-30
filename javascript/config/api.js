@@ -10,6 +10,10 @@ export const SERVER_BASE_URL = 'https://studentcheck-server.onrender.com';
 
 // API endpoint paths
 export const ENDPOINTS = {
+    health: '/healthz',
+    studentLogin: '/studentLogin',
+    teacherLogin: '/teacherLogin',
+    registration: '/registration',
     createClass: '/classes',
     deleteClass: '/classes',
     updateClass: '/classes',
@@ -17,6 +21,11 @@ export const ENDPOINTS = {
     finishAttendanceSession: '/attendance/finish',
     class_students: '/class_students',
     students: '/students',
+    checkStudentEmail: '/students/check-email',
+    checkStudentFacultyNumber: '/students/check-faculty-number',
+    getStudentClasses: '/get_student_classes',
+    getStudentClassesNamesByIds: '/get_classes_names_by_ids',
+    getClassIdByName: '/get_class_id_by_name',
     updateCompletedClassesCount: '/update_completed_classes_count',
     saveStudentTimestamps: '/save_student_timestamps',
     removeStudentFromClass: '/class_students/remove',

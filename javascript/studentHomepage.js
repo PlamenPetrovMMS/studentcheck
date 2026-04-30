@@ -1,10 +1,4 @@
-const serverBaseUrl = 'https://studentcheck-server.onrender.com';
-const ENDPOINTS = {
-        getStudentClasses: '/get_student_classes',
-		getStudentClassesNamesbyIds: '/get_classes_names_by_ids',
-		getClassAttendanceSummary: '/attendance/summary',
-		getClassIdByName: '/get_class_id_by_name',
-	};
+import { SERVER_BASE_URL, ENDPOINTS } from './config/api.js';
 
 
 function deriveDisplayName(loginData) {
@@ -280,10 +274,10 @@ async function loadClassesForStudent(studentData) {
 	const facultyNumber = studentData?.faculty_number || studentData?.facultyNumber || null;
 	const requestUrls = [];
 	if (studentId) {
-		requestUrls.push(serverBaseUrl + ENDPOINTS.getStudentClasses + `?student_id=${encodeURIComponent(studentId)}`);
+		requestUrls.push(SERVER_BASE_URL + ENDPOINTS.getStudentClasses + `?student_id=${encodeURIComponent(studentId)}`);
 	}
 	if (facultyNumber) {
-		requestUrls.push(serverBaseUrl + ENDPOINTS.getStudentClasses + `?faculty_number=${encodeURIComponent(facultyNumber)}`);
+		requestUrls.push(SERVER_BASE_URL + ENDPOINTS.getStudentClasses + `?faculty_number=${encodeURIComponent(facultyNumber)}`);
 	}
 	if (requestUrls.length === 0) {
 		classesList.innerHTML = '<p class="no-classes-message">Unable to load classes. Missing student identifier.</p>';
@@ -421,10 +415,10 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 	if (classRecordCompletedCount !== null && classRecordCompletedCount !== undefined) {
 		total_completed_classes_count = normalizeCount(classRecordCompletedCount);
 	}
-	const summaryUrl = serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`;
+	const summaryUrl = SERVER_BASE_URL + ENDPOINTS.classAttendanceSummary(classId);
 	let response = null;
 	try {
-		response = await fetch(serverBaseUrl + ENDPOINTS.getClassAttendanceSummary + `?class_id=${encodeURIComponent(classId)}`, {
+		response = await fetch(summaryUrl, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'
@@ -510,8 +504,8 @@ async function loadAttendedClassesCount(className, studentId, facultyNumber){
 // End of Class Details Overlay functions ========================
 
 async function getClassMetaByName(className){
-	const url = serverBaseUrl + ENDPOINTS.getClassIdByName + `?class_name=${encodeURIComponent(className)}`;
-	const response = await fetch(serverBaseUrl + ENDPOINTS.getClassIdByName + `?class_name=${encodeURIComponent(className)}`, {
+	const url = SERVER_BASE_URL + ENDPOINTS.getClassIdByName + `?class_name=${encodeURIComponent(className)}`;
+	const response = await fetch(url, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
@@ -528,7 +522,7 @@ async function getClassMetaByName(className){
 async function fetchCompletedClassesCountFromClassRecord(classId) {
 	const id = encodeURIComponent(classId);
 	const attempts = [
-		`${serverBaseUrl}/classes?class_id=${id}`
+		`${SERVER_BASE_URL + ENDPOINTS.createClass}?class_id=${id}`
 	];
 	for (const url of attempts) {
 		try {

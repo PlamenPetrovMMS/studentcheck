@@ -1,3 +1,5 @@
+import { SERVER_BASE_URL, ENDPOINTS } from './config/api.js';
+
 // Sliding multi-step registration controller
 (function(){
     
@@ -456,7 +458,7 @@
         try {
             // Preferred secure/performant contract: backend existence probe endpoint.
             // If endpoint is missing, defer duplicate detection to final registration response.
-            const response = await fetch('https://studentcheck-server.onrender.com/students/check-email', {
+            const response = await fetch(SERVER_BASE_URL + ENDPOINTS.checkStudentEmail, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email: emailValue.toLowerCase() })
@@ -512,7 +514,7 @@
         nextBtn.disabled = true;
         try {
             // Preferred secure/performant contract: backend existence probe endpoint.
-            const response = await fetch('https://studentcheck-server.onrender.com/students/check-faculty-number', {
+            const response = await fetch(SERVER_BASE_URL + ENDPOINTS.checkStudentFacultyNumber, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ facultyNumber: facultyValue.toUpperCase() })
@@ -752,7 +754,7 @@
             finishBtn.textContent = t('submitting', 'Submitting...');
             LoadingOverlay.show(t('submitting', 'Submitting...'));
 
-            const resp = await fetch('https://studentcheck-server.onrender.com/registration', {
+            const resp = await fetch(SERVER_BASE_URL + ENDPOINTS.registration, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

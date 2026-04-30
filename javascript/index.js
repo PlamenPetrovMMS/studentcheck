@@ -1,3 +1,5 @@
+import { SERVER_BASE_URL, ENDPOINTS } from './config/api.js';
+
 const AUTH_TOKEN_KEY = 'auth.teacher.token';
 const AUTH_EXPIRES_AT_KEY = 'auth.teacher.expiresAt';
 
@@ -62,7 +64,7 @@ function showError(msg) {
 }
 
 async function handleStudentLogin(facultyNumber, password, errorMessage) {
-    const response = await fetch("https://studentcheck-server.onrender.com/studentLogin", {
+    const response = await fetch(SERVER_BASE_URL + ENDPOINTS.studentLogin, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ facultyNumber, password })
@@ -90,7 +92,7 @@ async function handleStudentLogin(facultyNumber, password, errorMessage) {
 
 async function handleTeacherLogin(email, password, errorMessage) {
     const normalizedEmail = email.toLowerCase();
-    const response = await fetch("https://studentcheck-server.onrender.com/teacherLogin", {
+    const response = await fetch(SERVER_BASE_URL + ENDPOINTS.teacherLogin, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail, password })
