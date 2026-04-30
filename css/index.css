@@ -61,6 +61,22 @@ form .field:first-child {
     transform: translateY(-50%) scale(1.04) !important;
 }
 
+#unifiedLoginForm .toggle-password.is-clicking {
+    animation: loginPasswordToggleClick 0.22s ease;
+}
+
+@keyframes loginPasswordToggleClick {
+    0% {
+        transform: translateY(-50%) scale(1.04);
+    }
+    45% {
+        transform: translateY(-50%) scale(1.12);
+    }
+    100% {
+        transform: translateY(-50%) scale(1.04);
+    }
+}
+
 /* On small portrait screens, push content below the fixed logo */
 @media (max-width: 480px) {
 	body {
