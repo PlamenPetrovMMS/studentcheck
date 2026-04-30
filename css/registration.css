@@ -187,7 +187,7 @@ body {
   padding: 0;
   border-radius: 8px;
   color: #374151; /* gray-700 */
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
   z-index: 1;
 }
 
@@ -197,7 +197,15 @@ body {
   pointer-events: none;
 }
 
-.toggle-password:hover { background: #f3f4f6; }
+.toggle-password:hover {
+  background: #f3f4f6;
+  transform: translateY(-50%) scale(1.03) !important;
+}
+
+.toggle-password:active {
+  transform: translateY(-50%) scale(0.98) !important;
+}
+
 .toggle-password:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .toggle-password[aria-pressed="true"] { color: #2563eb; }
 
