@@ -80,7 +80,7 @@ body {
 .actions.single-right { justify-content: flex-end; }
 #backBtn { margin-right: auto !important; }
 
-.btn { appearance: none; border: none; border-radius: 10px; padding: 12px 18px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 60ms ease-out, box-shadow 0.2s ease, background-color 0.2s ease; }
+.btn { appearance: none; border: none; border-radius: 10px; padding: 12px 18px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform var(--app-button-hover-duration) var(--app-button-hover-ease), box-shadow 0.2s ease, background-color 0.2s ease; }
 
 .btn-primary { background: #2563eb; color: #fff; box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25); }
 .btn-primary:hover { background: #1d4ed8; }
@@ -187,7 +187,7 @@ body {
   padding: 0;
   border-radius: 8px;
   color: #374151; /* gray-700 */
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background-color 0.18s ease, color 0.18s ease, transform var(--app-button-hover-duration) var(--app-button-hover-ease);
   z-index: 1;
 }
 

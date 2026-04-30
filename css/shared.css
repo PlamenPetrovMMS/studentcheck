@@ -10,6 +10,8 @@
   --app-logo-mobile-top: 10px;
   --app-logo-mobile-left: 10px;
   --app-logo-mobile-size: 44px;
+  --app-button-hover-duration: 180ms;
+  --app-button-hover-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Global reset and mobile viewport fixes */
@@ -31,14 +33,20 @@ textarea {
 
 button {
   transform-origin: center;
+  transition: transform var(--app-button-hover-duration) var(--app-button-hover-ease),
+              background-color 0.2s ease,
+              background 0.2s ease,
+              box-shadow 0.2s ease,
+              color 0.2s ease,
+              border-color 0.2s ease;
 }
 
 button:not(:disabled):not([aria-disabled="true"]):hover {
-  transform: scale(1.03) !important;
+  transform: scale(1.025) !important;
 }
 
 button:not(:disabled):not([aria-disabled="true"]):active {
-  transform: translateY(2px) scale(0.98) !important;
+  transform: translateY(1px) scale(0.99) !important;
 }
 
 /* Shared page width wrapper for auth/home cards */
