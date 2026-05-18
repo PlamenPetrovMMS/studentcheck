@@ -854,6 +854,8 @@ function ensureManageStudentsOverlayInitialized() {
     const backBtn = overlay.querySelector('#backToReadyBtn');
     const closeBtn = overlay.querySelector('#closeManageOverlayBtn');
     const addBtn = overlay.querySelector('#addStudentManageBtn');
+    const searchInput = overlay.querySelector('#manageStudentsSearchInput');
+    const filterBtn = overlay.querySelector('#manageStudentsFilterBtn');
 
     backBtn?.addEventListener('click', () => {
         const current = getCurrentClass();
@@ -867,10 +869,33 @@ function ensureManageStudentsOverlayInitialized() {
         closeAllClassOverlays();
     });
 
-        addBtn?.addEventListener('click', async () => {
-            const current = getCurrentClass();
-            await openAddStudentsToClass(current.name, { returnToManage: true });
+    addBtn?.addEventListener('click', async () => {
+        const current = getCurrentClass();
+        await openAddStudentsToClass(current.name, { returnToManage: true });
+    });
+
+    // Search functionality
+    searchInput?.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const listEl = getManageStudentsListEl();
+        if (!listEl) return;
+
+        const listItems = listEl.querySelectorAll('li.list-item');
+        listItems.forEach(item => {
+            const nameEl = item.querySelector('.student-name');
+            const facEl = item.querySelector('.student-fac');
+            const name = (nameEl?.textContent || '').toLowerCase();
+            const fac = (facEl?.textContent || '').toLowerCase();
+
+            const matches = !searchTerm || name.includes(searchTerm) || fac.includes(searchTerm);
+            item.style.display = matches ? '' : 'none';
         });
+    });
+
+    // Filter button click handler
+    filterBtn?.addEventListener('click', () => {
+        alert('Filter functionality coming soon!');
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && isOverlayVisible(overlay)) {
