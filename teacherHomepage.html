@@ -228,19 +228,17 @@
         <div class="overlay" id="manageStudentsOverlay">
             <div class="ready-class-popup" role="dialog" aria-modal="true" aria-labelledby="manageStudentsTitle">
                 <div class="overlay-top-bar">
-                    <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
-                        <h2 id="manageStudentsTitle">Students</h2>
-                        <div style="display: flex; gap: 0.5rem; flex: 1; max-width: 400px;">
-                            <input type="text" id="manageStudentsSearchInput" placeholder="Search by name, email, or faculty number..." style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" aria-label="Search students" />
-                            <button type="button" id="manageStudentsFilterBtn" style="padding: 0.5rem 1rem; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 14px;" aria-label="Filter students">⚙️ Filter</button>
-                        </div>
-                    </div>
-                    <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close">×</button>
+                    <h2 id="manageStudentsTitle">Students</h2>
+                </div>
+                <div class="top-section-search-bar-reset-filters">
+                    <input type="text" id="manageStudentsSearchInput" placeholder="Search by name, email, or faculty number..." aria-label="Search students" />
+                    <button type="button" id="manageStudentsFilterBtn" class="reset-filters-button" aria-label="Filter students">Filter</button>
                 </div>
                 <div id="manageStudentsList" class="manage-students-list"></div>
                 <div class="manage-footer-actions">
                     <button type="button" id="backToReadyBtn" class="role-button">Back</button>
                     <button type="button" id="addStudentManageBtn" class="role-button" aria-label="Add Students">Add Students</button>
+                    <button type="button" id="closeManageOverlayBtn" class="close-small" aria-label="Close">×</button>
                 </div>
             </div>
         </div>

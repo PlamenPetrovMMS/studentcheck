@@ -1677,7 +1677,8 @@ body.delete-popup-active #addClassBtn {
 /* Search input responsive styles */
 #overlaySearchInput,
 #addStudentsSearchInput,
-#createClassSearchInput {
+#createClassSearchInput,
+#manageStudentsSearchInput {
     height: 36px;
     width: 90%;
     font-size: 1rem;
@@ -1690,7 +1691,8 @@ body.delete-popup-active #addClassBtn {
 
 #overlaySearchInput:focus,
 #addStudentsSearchInput:focus,
-#createClassSearchInput:focus {
+#createClassSearchInput:focus,
+#manageStudentsSearchInput:focus {
     background: #ffffff;
     border-color: #2563eb;
     box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
