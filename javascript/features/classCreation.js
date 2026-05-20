@@ -491,39 +491,65 @@ function filterCreateClassStudentsBySelects(levelValue, facultyValue, specializa
     });
 }
 
-/**
- * Reset all filters
- */
+function getCreateClassFilterBtn() { return document.getElementById('createClassFilterBtn'); }
+function getCreateClassFilterPanel() { return document.getElementById('createClassFilterPanel'); }
+
+function updateCreateClassFilterActive() {
+    const levelSelect = document.getElementById('createClassFilterLevel');
+    const facultySelect = document.getElementById('createClassFilterFaculty');
+    const specializationSelect = document.getElementById('createClassFilterSpecialization');
+    const groupSelect = document.getElementById('createClassFilterGroup');
+    const hasActive = !!(levelSelect?.value || facultySelect?.value || specializationSelect?.value || groupSelect?.value);
+    getCreateClassFilterBtn()?.classList.toggle('filter-active', hasActive);
+}
+
 function resetCreateClassFilters() {
     const levelSelect = document.getElementById('createClassFilterLevel');
     const facultySelect = document.getElementById('createClassFilterFaculty');
     const specializationSelect = document.getElementById('createClassFilterSpecialization');
     const groupSelect = document.getElementById('createClassFilterGroup');
     const searchInput = getCreateClassSearchInput();
-    
+
     if (levelSelect) levelSelect.value = '';
     if (facultySelect) facultySelect.value = '';
     if (specializationSelect) specializationSelect.value = '';
     if (groupSelect) groupSelect.value = '';
     if (searchInput) searchInput.value = '';
-    
+
+    getCreateClassFilterPanel()?.classList.add('hidden');
+    getCreateClassFilterBtn()?.classList.remove('filter-active');
+
     fetchFilteredStudents();
 }
 
-/**
- * Ensure filter event listeners are initialized (idempotent)
- */
 function ensureCreateClassFiltersInitialized() {
     if (createClassFiltersInitialized) return;
     createClassFiltersInitialized = true;
-    
+
     const levelSelect = document.getElementById('createClassFilterLevel');
     const facultySelect = document.getElementById('createClassFilterFaculty');
     const specializationSelect = document.getElementById('createClassFilterSpecialization');
     const groupSelect = document.getElementById('createClassFilterGroup');
     const resetBtn = document.getElementById('createClassResetFiltersBtn');
     const searchInput = getCreateClassSearchInput();
-    
+    const filterBtn = getCreateClassFilterBtn();
+    const filterPanel = getCreateClassFilterPanel();
+
+    filterBtn?.addEventListener('click', () => {
+        filterPanel?.classList.toggle('hidden');
+    });
+
+    const runFilter = () => {
+        updateCreateClassFilterActive();
+        filterCreateClassStudentsBySelects(
+            levelSelect?.value || '',
+            facultySelect?.value || '',
+            specializationSelect?.value || '',
+            groupSelect?.value || '',
+            searchInput?.value || ''
+        );
+    };
+
     if (searchInput) {
         if (window.Utils && typeof window.Utils.debounce === 'function') {
             const debounced = window.Utils.debounce((value) => filterCreateClassStudentsBySelects(
@@ -548,55 +574,12 @@ function ensureCreateClassFiltersInitialized() {
             });
         }
     }
-    
-    if (levelSelect) {
-        levelSelect.addEventListener('change', () => {
-            filterCreateClassStudentsBySelects(
-                levelSelect.value,
-                facultySelect?.value || '',
-                specializationSelect?.value || '',
-                groupSelect?.value || '',
-                searchInput?.value || ''
-            );
-        });
-    }
-    
-    if (facultySelect) {
-        facultySelect.addEventListener('change', () => {
-            filterCreateClassStudentsBySelects(
-                levelSelect?.value || '',
-                facultySelect.value,
-                specializationSelect?.value || '',
-                groupSelect?.value || '',
-                searchInput?.value || ''
-            );
-        });
-    }
-    
-    if (specializationSelect) {
-        specializationSelect.addEventListener('change', () => {
-            filterCreateClassStudentsBySelects(
-                levelSelect?.value || '',
-                facultySelect?.value || '',
-                specializationSelect.value,
-                groupSelect?.value || '',
-                searchInput?.value || ''
-            );
-        });
-    }
-    
-    if (groupSelect) {
-        groupSelect.addEventListener('change', () => {
-            filterCreateClassStudentsBySelects(
-                levelSelect?.value || '',
-                facultySelect?.value || '',
-                specializationSelect?.value || '',
-                groupSelect.value,
-                searchInput?.value || ''
-            );
-        });
-    }
-    
+
+    levelSelect?.addEventListener('change', runFilter);
+    facultySelect?.addEventListener('change', runFilter);
+    specializationSelect?.addEventListener('change', runFilter);
+    groupSelect?.addEventListener('change', runFilter);
+
     if (resetBtn) {
         resetBtn.addEventListener('click', resetCreateClassFilters);
     }
@@ -692,6 +675,9 @@ export function openClassCreationWizard() {
         }
     }
     
+    getCreateClassFilterPanel()?.classList.add('hidden');
+    getCreateClassFilterBtn()?.classList.remove('filter-active');
+
     showOverlay(overlay);
     goToSlide(0);
     // Avoid auto-focus to prevent mobile keyboard opening unexpectedly
