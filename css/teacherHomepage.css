@@ -664,7 +664,7 @@ body.delete-popup-active #addClassBtn {
     min-height: 420px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.25);
     /* Extra top/right padding so title/content won't overlap the close (X) button on mobile */
-    padding: 50px 30px 26px 22px;
+    padding: 26px 24px 26px 24px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -808,13 +808,6 @@ body.delete-popup-active #addClassBtn {
     }
 }
 
-/* On very small screens, give a bit more breathing room for the close (X) area */
-@media (max-width: 480px) {
-    #manageStudentsOverlay .ready-class-popup {
-        padding-top: 50px;
-        padding-right: 36px;
-    }
-}
 
 /* Add Students overlay styling */
 #addStudentsClassOverlay .add-students-popup {
