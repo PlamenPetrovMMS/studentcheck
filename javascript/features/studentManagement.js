@@ -38,6 +38,7 @@ let manageStudentsOverlayInitialized = false;
 let attendanceHistoryOverlayInitialized = false;
 let addStudentsOverlayInitialized = false;
 let addStudentsReturnToManage = false;
+let manageFilters = { level: '', faculty: '', specialization: '', group: '' };
 
 function getStudentFullName(student) {
     return student?.fullName || student?.full_name || student?.name || '';
@@ -204,6 +205,18 @@ function logMissingEmailDiagnostics({ studentId, className, studentObj, storageI
 
 function getStudentGroup(student) {
     return student?.group || student?.group_name || student?.groupName || student?.group_number || student?.groupNumber || '';
+}
+
+function getStudentLevel(student) {
+    return student?.level || student?.education_level || student?.educationLevel || '';
+}
+
+function getStudentFacultyName(student) {
+    return student?.faculty || student?.faculty_name || student?.facultyName || '';
+}
+
+function getStudentSpecialization(student) {
+    return student?.specialization || student?.specialization_name || student?.specializationName || '';
 }
 
 function i18nText(key, fallback) {
@@ -657,7 +670,10 @@ export async function renderManageStudentsForClass(className) {
                         const id = String(s.id || s.student_id || '').trim();
                         const email = getStudentEmail(s);
                         const group = getStudentGroup(s);
-                        const payload = { fullName: name, faculty_number: fac, email, group };
+                        const level = getStudentLevel(s);
+                        const facultyName = getStudentFacultyName(s);
+                        const specialization = getStudentSpecialization(s);
+                        const payload = { fullName: name, faculty_number: fac, email, group, level, facultyName, specialization };
                         if (fac) infoLookup.set(fac, payload);
                         if (id) infoLookup.set(id, payload);
                     });
@@ -725,6 +741,13 @@ export async function renderManageStudentsForClass(className) {
                 const facultyNumber = getStudentFacultyNumber(student) || lookup?.faculty_number || '';
                 const email = getStudentEmail(student) || lookup?.email || '';
                 const group = getStudentGroup(student) || lookup?.group || '';
+                const level = getStudentLevel(student) || lookup?.level || '';
+                const facultyName = getStudentFacultyName(student) || lookup?.facultyName || '';
+                const specialization = getStudentSpecialization(student) || lookup?.specialization || '';
+                if (level) li.dataset.level = level.toLowerCase();
+                if (facultyName) li.dataset.faculty = facultyName;
+                if (specialization) li.dataset.specialization = specialization;
+                if (group) li.dataset.group = String(group);
 
                 const wrap = document.createElement('div');
                 wrap.className = 'student-card-text';
@@ -757,7 +780,10 @@ export async function renderManageStudentsForClass(className) {
                         fullName,
                         faculty_number: facultyNumber,
                         email,
-                        group
+                        group,
+                        level,
+                        facultyName,
+                        specialization
                     });
                 }
 
@@ -834,6 +860,22 @@ export async function renderManageStudentsForClass(className) {
     }
 }
 
+function applyManageFilters(searchTerm) {
+    const listEl = getManageStudentsListEl();
+    if (!listEl) return;
+    const q = (searchTerm || '').toLowerCase().trim();
+    listEl.querySelectorAll('li.list-item').forEach(item => {
+        const name = (item.querySelector('.student-name')?.textContent || '').toLowerCase();
+        const fac = (item.querySelector('.student-fac')?.textContent || '').toLowerCase();
+        const matchSearch = !q || name.includes(q) || fac.includes(q);
+        const matchLevel = !manageFilters.level || (item.dataset.level || '') === manageFilters.level.toLowerCase();
+        const matchFaculty = !manageFilters.faculty || item.dataset.faculty === manageFilters.faculty;
+        const matchSpec = !manageFilters.specialization || item.dataset.specialization === manageFilters.specialization;
+        const matchGroup = !manageFilters.group || item.dataset.group === manageFilters.group;
+        item.style.display = (matchSearch && matchLevel && matchFaculty && matchSpec && matchGroup) ? '' : 'none';
+    });
+}
+
 /**
  * Ensure manage students overlay is initialized (idempotent)
  */
@@ -876,25 +918,47 @@ function ensureManageStudentsOverlayInitialized() {
 
     // Search functionality
     searchInput?.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        const listEl = getManageStudentsListEl();
-        if (!listEl) return;
-
-        const listItems = listEl.querySelectorAll('li.list-item');
-        listItems.forEach(item => {
-            const nameEl = item.querySelector('.student-name');
-            const facEl = item.querySelector('.student-fac');
-            const name = (nameEl?.textContent || '').toLowerCase();
-            const fac = (facEl?.textContent || '').toLowerCase();
-
-            const matches = !searchTerm || name.includes(searchTerm) || fac.includes(searchTerm);
-            item.style.display = matches ? '' : 'none';
-        });
+        applyManageFilters(e.target.value);
     });
 
-    // Filter button click handler
+    // Filter panel elements
+    const filterPanel = overlay.querySelector('#manageFilterPanel');
+    const levelSel = overlay.querySelector('#manageFilterLevel');
+    const facultySel = overlay.querySelector('#manageFilterFaculty');
+    const specSel = overlay.querySelector('#manageFilterSpecialization');
+    const groupSel = overlay.querySelector('#manageFilterGroup');
+    const resetFilterBtn = overlay.querySelector('#manageFilterResetBtn');
+
+    const syncFilters = () => {
+        manageFilters = {
+            level: levelSel?.value || '',
+            faculty: facultySel?.value || '',
+            specialization: specSel?.value || '',
+            group: groupSel?.value || ''
+        };
+        const hasActive = Object.values(manageFilters).some(Boolean);
+        filterBtn?.classList.toggle('filter-active', hasActive);
+        applyManageFilters(searchInput?.value || '');
+    };
+
+    levelSel?.addEventListener('change', syncFilters);
+    facultySel?.addEventListener('change', syncFilters);
+    specSel?.addEventListener('change', syncFilters);
+    groupSel?.addEventListener('change', syncFilters);
+
+    resetFilterBtn?.addEventListener('click', () => {
+        if (levelSel) levelSel.value = '';
+        if (facultySel) facultySel.value = '';
+        if (specSel) specSel.value = '';
+        if (groupSel) groupSel.value = '';
+        manageFilters = { level: '', faculty: '', specialization: '', group: '' };
+        filterBtn?.classList.remove('filter-active');
+        applyManageFilters(searchInput?.value || '');
+    });
+
+    // Filter button toggles the panel
     filterBtn?.addEventListener('click', () => {
-        alert('Filter functionality coming soon!');
+        filterPanel?.classList.toggle('hidden');
     });
 
     document.addEventListener('keydown', (e) => {
@@ -929,12 +993,23 @@ export async function openManageStudentsOverlay(className) {
 
     // Show overlay immediately (renderManageStudentsForClass will show loading state)
     if (overlay) {
+        // Reset filter panel and search on each open
+        overlay.querySelector('#manageFilterPanel')?.classList.add('hidden');
+        manageFilters = { level: '', faculty: '', specialization: '', group: '' };
+        overlay.querySelector('#manageStudentsFilterBtn')?.classList.remove('filter-active');
+        ['#manageFilterLevel', '#manageFilterFaculty', '#manageFilterSpecialization', '#manageFilterGroup'].forEach(id => {
+            const el = overlay.querySelector(id);
+            if (el) el.value = '';
+        });
+        const searchInputEl = overlay.querySelector('#manageStudentsSearchInput');
+        if (searchInputEl) searchInputEl.value = '';
         showOverlay(overlay);
     }
 
     // Render students list (async, will fetch from API if needed)
     try {
         await renderManageStudentsForClass(className);
+        applyManageFilters(overlay?.querySelector('#manageStudentsSearchInput')?.value || '');
     } catch (e) {
         console.error('[openManageStudentsOverlay] Failed to render students list:', className, e);
         // Error handling is done inside renderManageStudentsForClass

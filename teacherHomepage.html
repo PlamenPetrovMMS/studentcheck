@@ -235,6 +235,45 @@
                     <input type="text" id="manageStudentsSearchInput" placeholder="Search by name, email, or faculty number..." aria-label="Search students" />
                     <button type="button" id="manageStudentsFilterBtn" class="reset-filters-button" aria-label="Filter students">Filter</button>
                 </div>
+                <div id="manageFilterPanel" class="manage-filter-panel hidden">
+                    <div class="manage-filter-grid">
+                        <select class="filter-select" id="manageFilterLevel" aria-label="Level">
+                            <option value="" selected>Level</option>
+                            <option value="bachelor">Bachelor</option>
+                            <option value="master">Master</option>
+                            <option value="phd">PhD</option>
+                        </select>
+                        <select class="filter-select" id="manageFilterFaculty" aria-label="Faculty">
+                            <option value="" selected>Faculty</option>
+                            <option value="Economics">Economics</option>
+                        </select>
+                        <select class="filter-select" id="manageFilterSpecialization" aria-label="Specialization">
+                            <option value="" selected>Specialization</option>
+                            <option value="Business Management">Business Management</option>
+                            <option value="Business Management 1">Business Management 1</option>
+                            <option value="Business Management 2">Business Management 2</option>
+                            <option value="Business Management in English">Business Management in English</option>
+                            <option value="Electricity Management">Electricity Management</option>
+                            <option value="Industrial Management">Industrial Management</option>
+                            <option value="Industrial Management in English">Industrial Management in English</option>
+                            <option value="Intellectual Property and Innovation">Intellectual Property and Innovation</option>
+                            <option value="Management and Business Information Systems">Management and Business Information Systems</option>
+                            <option value="Senior Management">Senior Management</option>
+                        </select>
+                        <select class="filter-select" id="manageFilterGroup" aria-label="Group">
+                            <option value="" selected>Group</option>
+                            <option value="37">37</option>
+                            <option value="38">38</option>
+                            <option value="39">39</option>
+                            <option value="40">40</option>
+                            <option value="41">41</option>
+                            <option value="42">42</option>
+                        </select>
+                    </div>
+                    <div class="manage-filter-footer">
+                        <button type="button" id="manageFilterResetBtn" class="reset-filters-button">Reset Filters</button>
+                    </div>
+                </div>
                 <div id="manageStudentsList" class="manage-students-list"></div>
                 <div class="manage-footer-actions">
                     <button type="button" id="backToReadyBtn" class="role-button">Back</button>

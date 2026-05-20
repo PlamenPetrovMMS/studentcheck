@@ -999,6 +999,43 @@ body.delete-popup-active #addClassBtn {
     border-radius: 10px;
 }
 
+/* Manage Students filter panel */
+.manage-filter-panel {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.manage-filter-panel.hidden { display: none; }
+.manage-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.manage-filter-grid .filter-select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+.manage-filter-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+#manageStudentsFilterBtn.filter-active {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+@media (max-width: 400px) {
+    .manage-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 #studentInfoOverlay .ready-class-popup.student-info-popup {
     background: #ffffff;
     color: #111827;
