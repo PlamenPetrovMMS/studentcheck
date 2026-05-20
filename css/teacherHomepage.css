@@ -1026,8 +1026,18 @@ body.delete-popup-active #addClassBtn {
     flex-direction: column;
     gap: 10px;
     margin-bottom: 10px;
+    overflow: hidden;
+    max-height: 400px;
+    opacity: 1;
+    transition: max-height 0.28s ease, opacity 0.22s ease, padding 0.28s ease, margin-bottom 0.28s ease;
 }
-.manage-filter-panel.hidden { display: none; }
+.manage-filter-panel.hidden {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
 .manage-filter-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1046,6 +1056,23 @@ body.delete-popup-active #addClassBtn {
     background: #dbeafe;
     border-color: #93c5fd;
     color: #1d4ed8;
+}
+#manageStudentsFilterBtn::after,
+#createClassFilterBtn::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    margin-left: 6px;
+    vertical-align: middle;
+    transition: transform 0.22s ease;
+}
+#manageStudentsFilterBtn.panel-open::after,
+#createClassFilterBtn.panel-open::after {
+    transform: rotate(180deg);
 }
 @media (max-width: 400px) {
     .manage-filter-grid {

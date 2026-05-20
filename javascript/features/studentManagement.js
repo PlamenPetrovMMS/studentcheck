@@ -958,7 +958,8 @@ function ensureManageStudentsOverlayInitialized() {
 
     // Filter button toggles the panel
     filterBtn?.addEventListener('click', () => {
-        filterPanel?.classList.toggle('hidden');
+        const nowHidden = filterPanel?.classList.toggle('hidden');
+        filterBtn?.classList.toggle('panel-open', !nowHidden);
     });
 
     document.addEventListener('keydown', (e) => {
@@ -997,6 +998,7 @@ export async function openManageStudentsOverlay(className) {
         overlay.querySelector('#manageFilterPanel')?.classList.add('hidden');
         manageFilters = { level: '', faculty: '', specialization: '', group: '' };
         overlay.querySelector('#manageStudentsFilterBtn')?.classList.remove('filter-active');
+        overlay.querySelector('#manageStudentsFilterBtn')?.classList.remove('panel-open');
         ['#manageFilterLevel', '#manageFilterFaculty', '#manageFilterSpecialization', '#manageFilterGroup'].forEach(id => {
             const el = overlay.querySelector(id);
             if (el) el.value = '';

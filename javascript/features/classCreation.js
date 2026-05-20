@@ -518,6 +518,7 @@ function resetCreateClassFilters() {
 
     getCreateClassFilterPanel()?.classList.add('hidden');
     getCreateClassFilterBtn()?.classList.remove('filter-active');
+    getCreateClassFilterBtn()?.classList.remove('panel-open');
 
     fetchFilteredStudents();
 }
@@ -536,7 +537,8 @@ function ensureCreateClassFiltersInitialized() {
     const filterPanel = getCreateClassFilterPanel();
 
     filterBtn?.addEventListener('click', () => {
-        filterPanel?.classList.toggle('hidden');
+        const nowHidden = filterPanel?.classList.toggle('hidden');
+        filterBtn?.classList.toggle('panel-open', !nowHidden);
     });
 
     const runFilter = () => {
@@ -677,6 +679,7 @@ export function openClassCreationWizard() {
     
     getCreateClassFilterPanel()?.classList.add('hidden');
     getCreateClassFilterBtn()?.classList.remove('filter-active');
+    getCreateClassFilterBtn()?.classList.remove('panel-open');
 
     showOverlay(overlay);
     goToSlide(0);
