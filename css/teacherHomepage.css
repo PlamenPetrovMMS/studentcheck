@@ -996,6 +996,16 @@ body.delete-popup-active #addClassBtn {
     margin-top: 2px;
 }
 
+#manageStudentsOverlay .top-section-search-bar-reset-filters {
+    align-items: center;
+}
+#manageStudentsOverlay #manageStudentsSearchInput {
+    height: 40px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
 #studentInfoOverlay .ready-class-popup.student-info-popup {
     background: #ffffff;
     color: #111827;
