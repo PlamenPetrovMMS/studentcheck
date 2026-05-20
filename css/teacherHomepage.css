@@ -349,7 +349,24 @@
     padding-top: 4px;
 }
 
+#createClassOverlay .slider {
+    overflow: hidden;
+}
 
+#createClassOverlay .slides-track {
+    display: flex;
+    width: 100%;
+}
+
+#createClassOverlay .slide {
+    flex: 0 0 100%;
+    display: none;
+    padding: 16px 22px 10px 22px;
+}
+
+#createClassOverlay .slide.active {
+    display: block;
+}
 
 
 
